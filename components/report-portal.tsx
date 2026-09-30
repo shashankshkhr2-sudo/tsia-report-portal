@@ -124,10 +124,10 @@ export function ReportPortal({ onSignOut, userId }: { onSignOut: () => Promise<v
       if (!supabase) return
       const { data: { user } } = await supabase.auth.getUser()
       if (!user || user.id !== userId || !active) return
-      const { data: profile, error } = await supabase.from('profiles').select('full_name').eq('id', userId).single()
+      const { data: profile, error } = await supabase.from('profiles').select('full_name').eq('id', user.id).single()
       if (!active) return
       if (error) { setFullName('Team member'); return }
-      if (profile?.full_name?.trim()) setFullName(profile.full_name.trim())
+      setFullName(profile?.full_name?.trim() || 'Team member')
     }
     void loadProfile()
     return () => { active = false }
