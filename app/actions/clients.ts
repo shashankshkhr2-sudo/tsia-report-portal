@@ -72,8 +72,8 @@ export async function addClient(
       )
       .single<SavedClient>()
 
-    return {
-    error: error
+      if (error || !data) {
+      return { error: error 
     ? `${error.code}: ${error.message}`
     : 'No data returned after insert.',
   client: null,
