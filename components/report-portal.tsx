@@ -820,4 +820,258 @@ function NewClientPage({
               <input
                 type="tel"
                 value={whatsapp}
+              onChange={(e) => setWhatsapp(e.target.value)}
+              placeholder="+91"
+              className={inputClass}
+            />
+          </label>
+        )}
+      </Section>
+
+      <Section
+        number={4}
+        title="Client Source"
+        description="Track how the client came to The Swastik Indian Art."
+      >
+        <label className={labelClass}>
+          Source
+          <select
+            value={sourceId}
+            onChange={(e) => setSourceId(e.target.value)}
+            className={inputClass}
+          >
+            <option value="">Select source</option>
+
+            {clientSources.map((source) => (
+              <option key={source.id} value={source.id}>
+                {source.name}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        {referral && (
+          <label className={labelClass}>
+            Referred By
+            <input
+              value={referredBy}
+              onChange={(e) => setReferredBy(e.target.value)}
+              placeholder="Name of referrer"
+              className={inputClass}
+            />
+          </label>
+        )}
+      </Section>
+
+      <Section
+        number={5}
+        title="Assignment"
+        description="Select the primary TSIA employee responsible for this client."
+      >
+        <label className={`${labelClass} sm:col-span-2`}>
+          Primary Assigned Employee
+          <select
+            value={employeeId}
+            onChange={(e) => setEmployeeId(e.target.value)}
+            className={inputClass}
+          >
+            <option value="">Assign to me</option>
+
+            {employees.map((employee) => (
+              <option key={employee.id} value={employee.id}>
+                {employee.fullName}
+                {employee.specialization
+                  ? ` — ${employee.specialization}`
+                  : ''}
+              </option>
+            ))}
+          </select>
+        </label>
+      </Section>      <Section
+        number={6}
+        title="Internal Notes"
+        description="Private notes for the TSIA team. Not visible to the customer."
+      >
+        <label className={`${labelClass} sm:col-span-2`}>
+          Notes
+          <textarea
+            rows={4}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Internal notes..."
+            className="w-full resize-none rounded-xl border border-[#e5dccf] px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-[#d6b47b]/20"
+          />
+        </label>
+      </Section>
+
+      {error && (
+        <div className="mx-5 mt-5 rounded-xl border border-[#ead0c7] bg-[#fff5f1] px-4 py-3 text-sm text-[#a55f46] sm:mx-8">
+          {error}
+        </div>
+      )}
+
+      <div className="flex flex-col-reverse gap-3 bg-[#fcfaf6] px-5 py-5 sm:flex-row sm:justify-end sm:px-8">
+        <Button
+          variant="outline"
+          disabled={saving}
+          onClick={() => setView('clients')}
+          className="h-11 rounded-xl"
+        >
+          Cancel
+        </Button>
+
+        <Button
+          disabled={saving || !fullName.trim() || !dob}
+          onClick={save}
+          className="h-11 rounded-xl bg-[#24354c] px-6 text-white hover:bg-[#30445f]"
+        >
+          {saving ? 'Saving…' : 'Save Client'}
+        </Button>
+      </div>
+    </div>
+  </div>
+  )
+}
+function GeneratePage({
+  clients,
+  setView,
+}: {
+  clients: Client[]
+  setView: (view: View) => void
+}) {
+  return (
+    <div className="p-5 sm:p-8 lg:p-10">
+      <button
+        onClick={() => setView('dashboard')}
+        className="mb-6 text-xs font-semibold text-[#9a7b4f]"
+      >
+        ← Back to Dashboard
+      </button>
+
+      <PageTitle
+        eyebrow="Report studio"
+        title="Generate a Report"
+        description="Report generation will be connected after the client module is complete."
+      />
+
+      <div className="max-w-2xl rounded-2xl border border-[#e8dfd3] bg-white p-6">
+        <label className={labelClass}>
+          Client
+          <select
+            disabled
+            className={`${inputClass} opacity-60`}
+          >
+            {clients.length === 0 ? (
+              <option>No clients available</option>
+            ) : (
+              clients.map((client) => (
+                <option key={client.id}>
+                  {client.name}
+                </option>
+              ))
+            )}
+          </select>
+        </label>
+
+        <div className="mt-5 flex gap-3 rounded-xl bg-[#f5f0e8] p-4 text-xs leading-5 text-[#7c6d5b]">
+          <CircleHelp className="size-4 shrink-0 text-[#ad7b40]" />
+          Numerology Version 2 will be connected in the Reports module.
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const titles: Record<View, string> = {
+  dashboard: 'Dashboard',
+  clients: 'Clients',
+  reports: 'Reports',
+  'new-client': 'New Client',
+  generate: 'Generate Report',
+}
+
+export function ReportPortal({
+  fullName,
+  reports,
+  clients,
+  clientSources,
+  employees,
+}: {
+  fullName: string
+  reports: Report[]
+  clients: Client[]
+  clientSources: ClientSourceOption[]
+  employees: EmployeeOption[]
+}) {
+  const [view, setView] = useState<View>('dashboard')
+  const [open, setOpen] = useState(false)
+  const [clientList, setClientList] = useState<Client[]>(clients)
+
+  const addLocalClient = (client: Client) => {
+    setClientList((current) => [client, ...current])
+  }
+
+  return (
+    <div className="min-h-screen bg-[#f7f3ed] text-[#3e3a35]">
+      <div className="flex min-h-screen">
+        <Sidebar
+          view={view}
+          setView={setView}
+          open={open}
+          setOpen={setOpen}
+          fullName={fullName}
+        />
+
+        <div className="min-w-0 flex-1">
+          <Header
+            title={titles[view]}
+            fullName={fullName}
+            setOpen={setOpen}
+          />
+
+          <main>
+            {view === 'dashboard' && (
+              <Dashboard
+                setView={setView}
+                fullName={fullName}
+                clients={clientList}
+                reports={reports}
+              />
+            )}
+
+            {view === 'clients' && (
+              <ClientsPage
+                clients={clientList}
+                setView={setView}
+              />
+            )}
+
+            {view === 'reports' && (
+              <ReportsPage
+                reports={reports}
+                setView={setView}
+              />
+            )}
+
+            {view === 'new-client' && (
+              <NewClientPage
+                setView={setView}
+                onAddClient={addLocalClient}
+                clientSources={clientSources}
+                employees={employees}
+              />
+            )}
+
+            {view === 'generate' && (
+              <GeneratePage
+                clients={clientList}
+                setView={setView}
+              />
+            )}
+          </main>
+        </div>
+      </div>
+    </div>
+  )
+}
                 
