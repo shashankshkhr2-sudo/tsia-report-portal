@@ -455,4 +455,369 @@ function ReportsPage({
   setView: (view: View) => void
 }) {
   return (
-    <div className="
+        <div className="p-5 sm:p-8 lg:p-10">
+      <PageTitle
+        eyebrow="Workspace"
+        title="Reports"
+        description="Review and manage client reports."
+      >
+        <Button
+          onClick={() => setView('generate')}
+          className="h-11 rounded-xl bg-[#24354c] px-5 text-white hover:bg-[#30445f]"
+        >
+          <Sparkles className="mr-2 size-4" />
+          Generate Report
+        </Button>
+      </PageTitle>
+
+      {reports.length === 0 ? (
+        <div className="rounded-2xl border border-[#e8dfd3] bg-white p-10 text-center text-sm text-[#9a8d7e]">
+          No reports to show yet.
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-2xl border border-[#e8dfd3] bg-white">
+          {reports.map((report) => (
+            <div
+              key={report.id}
+              className="flex items-center gap-3 border-b border-[#f1ebe2] px-5 py-4 last:border-0"
+            >
+              <div
+                className={`flex size-9 items-center justify-center rounded-full text-xs font-semibold ${toneClasses[report.tone]}`}
+              >
+                {report.initials}
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-[#3e3a35]">
+                  {report.client}
+                </p>
+
+                <p className="mt-1 text-xs text-[#8d8275]">
+                  {report.version} · {report.date}
+                </p>
+              </div>
+
+              <span className="text-xs text-[#81776b]">
+                {report.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Section({
+  number,
+  title,
+  description,
+  children,
+}: {
+  number: number
+  title: string
+  description: string
+  children: React.ReactNode
+}) {
+  return (
+    <section className="border-b border-[#eee7dc] px-5 py-7 last:border-0 sm:px-8">
+      <div className="mb-6 flex gap-4">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#24354c] text-xs font-semibold text-white">
+          {number}
+        </div>
+
+        <div>
+          <h3 className="font-serif text-lg font-semibold text-[#24354c]">
+            {title}
+          </h3>
+
+          <p className="mt-1 text-xs leading-5 text-[#948779]">
+            {description}
+          </p>
+        </div>
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        {children}
+      </div>
+    </section>
+  )
+}
+
+function NewClientPage({
+  setView,
+  onAddClient,
+  clientSources,
+  employees,
+}: {
+  setView: (view: View) => void
+  onAddClient: (client: Client) => void
+  clientSources: ClientSourceOption[]
+  employees: EmployeeOption[]
+}) {
+  const [fullName, setFullName] = useState('')
+  const [currentName, setCurrentName] = useState('')
+  const [dob, setDob] = useState('')
+  const [gender, setGender] = useState('')
+  const [birthTime, setBirthTime] = useState('')
+  const [birthPlace, setBirthPlace] = useState('')
+  const [birthStateRegion, setBirthStateRegion] = useState('')
+  const [birthCountry, setBirthCountry] = useState('India')
+  const [mobile, setMobile] = useState('')
+  const [email, setEmail] = useState('')
+  const [sameWhatsapp, setSameWhatsapp] = useState(true)
+  const [whatsapp, setWhatsapp] = useState('')
+  const [sourceId, setSourceId] = useState('')
+  const [referredBy, setReferredBy] = useState('')
+  const [employeeId, setEmployeeId] = useState('')
+  const [notes, setNotes] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [saving, startSaving] = useTransition()
+
+  const selectedSource = clientSources.find(
+    (source) => source.id === sourceId
+  )
+
+  const referral =
+    selectedSource?.name.trim().toLowerCase() === 'referral'
+
+  const save = () => {
+    if (!fullName.trim() || !dob || saving) return
+
+    setError(null)
+
+    startSaving(async () => {
+      const result = await addClient({
+        full_name: fullName.trim(),
+        current_name: currentName.trim(),
+        date_of_birth: dob,
+        gender,
+        birth_time: birthTime,
+        birth_place_name: birthPlace.trim(),
+        birth_state_region: birthStateRegion.trim(),
+        birth_country: birthCountry.trim(),
+        mobile: mobile.trim(),
+        whatsapp_number: sameWhatsapp
+          ? mobile.trim()
+          : whatsapp.trim(),
+        email: email.trim(),
+        source_id: sourceId,
+        referred_by: referral ? referredBy.trim() : '',
+        primary_employee_id: employeeId,
+        notes: notes.trim(),
+      })
+
+      if (result.error || !result.client) {
+        setError(result.error || 'Unable to save client.')
+        return
+      }
+
+      onAddClient({
+        id: result.client.id,
+        clientNumber: result.client.client_number || undefined,
+        name: result.client.full_name,
+        currentName: result.client.current_name || undefined,
+        initials: getInitials(result.client.full_name),
+        dob: result.client.date_of_birth,
+        gender: result.client.gender || undefined,
+        birthTime: result.client.birth_time || undefined,
+        birthPlace: result.client.birth_place_name || undefined,
+        birthStateRegion:
+          result.client.birth_state_region || undefined,
+        birthCountry: result.client.birth_country || undefined,
+        phone: result.client.mobile || '',
+        whatsapp: result.client.whatsapp_number || undefined,
+        email: result.client.email || '',
+        sourceId: result.client.source_id || undefined,
+        sourceName: selectedSource?.name,
+        referredBy: result.client.referred_by || undefined,
+        primaryEmployeeId:
+          result.client.primary_employee_id || undefined,
+        notes: result.client.notes || '',
+        status:
+          result.client.status === 'inactive'
+            ? 'inactive'
+            : 'active',
+        joined: new Date(
+          result.client.created_at
+        ).toLocaleDateString(),
+        tone: 'navy',
+      })
+
+      setView('clients')
+    })
+  }
+
+  return (
+    <div className="p-5 sm:p-8 lg:p-10">
+      <button
+        onClick={() => setView('clients')}
+        className="mb-6 text-xs font-semibold text-[#9a7b4f]"
+      >
+        ← Back to Clients
+      </button>
+
+      <PageTitle
+        eyebrow="Client management"
+        title="Add New Client"
+        description="Create the master client record once. Reports and services will be connected to this client."
+      />
+
+      <div className="max-w-4xl overflow-hidden rounded-2xl border border-[#e5dccf] bg-white shadow-sm">
+        <div className="flex items-center justify-between border-b border-[#eee7dc] bg-[#fcfaf6] px-5 py-5 sm:px-8">
+          <div>
+            <p className="text-xs font-semibold text-[#24354c]">
+              Client ID
+            </p>
+            <p className="mt-1 text-xs text-[#948779]">
+              Generated automatically after saving.
+            </p>
+          </div>
+
+          <span className="rounded-full border border-[#dfd1bd] bg-white px-3 py-1.5 text-xs font-semibold text-[#a47a42]">
+            Automatic
+          </span>
+        </div>
+
+        <Section
+          number={1}
+          title="Personal Details"
+          description="Basic identity information for the master client record."
+        >
+          <label className={`${labelClass} sm:col-span-2`}>
+            Full Name / Birth Name *
+            <input
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Enter client's full name"
+              className={inputClass}
+            />
+          </label>
+
+          <label className={labelClass}>
+            Current Name
+            <input
+              value={currentName}
+              onChange={(e) => setCurrentName(e.target.value)}
+              placeholder="If different"
+              className={inputClass}
+            />
+          </label>
+
+          <label className={labelClass}>
+            Date of Birth *
+            <input
+              type="date"
+              value={dob}
+              onChange={(e) => setDob(e.target.value)}
+              className={inputClass}
+            />
+          </label>
+
+          <label className={labelClass}>
+            Gender
+            <select
+              value={gender}
+              onChange={(e) => setGender(e.target.value)}
+              className={inputClass}
+            >
+              <option value="">Select</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+              <option value="prefer_not_to_say">
+                Prefer not to say
+              </option>
+            </select>
+          </label>
+        </Section>
+
+        <Section
+          number={2}
+          title="Birth Details"
+          description="Birth information for astrology and Premium Life Path services."
+        >
+          <label className={labelClass}>
+            Time of Birth
+            <input
+              type="time"
+              value={birthTime}
+              onChange={(e) => setBirthTime(e.target.value)}
+              className={inputClass}
+            />
+          </label>
+
+          <label className={labelClass}>
+            Birth Place
+            <input
+              value={birthPlace}
+              onChange={(e) => setBirthPlace(e.target.value)}
+              placeholder="City / Town"
+              className={inputClass}
+            />
+          </label>
+
+          <label className={labelClass}>
+            State / Region
+            <input
+              value={birthStateRegion}
+              onChange={(e) => setBirthStateRegion(e.target.value)}
+              placeholder="e.g. Maharashtra"
+              className={inputClass}
+            />
+          </label>
+
+          <label className={labelClass}>
+            Country
+            <input
+              value={birthCountry}
+              onChange={(e) => setBirthCountry(e.target.value)}
+              className={inputClass}
+            />
+          </label>
+        </Section>
+
+        <Section
+          number={3}
+          title="Contact"
+          description="Contact information is optional."
+        >
+          <label className={labelClass}>
+            Mobile / Primary Contact
+            <input
+              type="tel"
+              value={mobile}
+              onChange={(e) => setMobile(e.target.value)}
+              placeholder="+91"
+              className={inputClass}
+            />
+          </label>
+
+          <label className={labelClass}>
+            Email
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@email.com"
+              className={inputClass}
+            />
+          </label>
+
+          <label className="flex items-center gap-3 rounded-xl border border-[#e8dfd3] bg-[#fcfaf6] px-4 py-3 text-sm text-[#5f574d] sm:col-span-2">
+            <input
+              type="checkbox"
+              checked={sameWhatsapp}
+              onChange={(e) => setSameWhatsapp(e.target.checked)}
+              className="size-4 accent-[#24354c]"
+            />
+            WhatsApp number is the same as mobile
+          </label>
+
+          {!sameWhatsapp && (
+            <label className={`${labelClass} sm:col-span-2`}>
+              WhatsApp Number
+              <input
+                type="tel"
+                value={whatsapp}
+                onChange={(
