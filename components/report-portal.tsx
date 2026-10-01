@@ -447,61 +447,254 @@ function ClientsPage({
   )
 }
 
-function ReportsPage({
-  reports,
+function ClientsPage({
+  clients,
   setView,
 }: {
-  reports: Report[]
+  clients: Client[]
   setView: (view: View) => void
 }) {
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const normalizedSearch = searchTerm
+    .trim()
+    .toLowerCase()
+
+  const filteredClients = clients.filter((client) => {
+    if (!normalizedSearch) return true
+
+    return [
+      client.clientNumber,
+      client.name,
+      client.phone,
+      client.email,
+    ].some((value) =>
+      String(value || '')
+        .toLowerCase()
+        .includes(normalizedSearch)
+    )
+  })
+
   return (
-        <div className="p-5 sm:p-8 lg:p-10">
+    <div className="p-5 sm:p-8 lg:p-10">
       <PageTitle
-        eyebrow="Workspace"
-        title="Reports"
-        description="Review and manage client reports."
+        eyebrow="Client management"
+        title="Clients"
+        description="Manage clients, reports and customer interactions."
       >
         <Button
-          onClick={() => setView('generate')}
+          onClick={() => setView('new-client')}
           className="h-11 rounded-xl bg-[#24354c] px-5 text-white hover:bg-[#30445f]"
         >
-          <Sparkles className="mr-2 size-4" />
-          Generate Report
+          <Plus className="mr-2 size-4" />
+          Add Client
         </Button>
       </PageTitle>
 
-      {reports.length === 0 ? (
-        <div className="rounded-2xl border border-[#e8dfd3] bg-white p-10 text-center text-sm text-[#9a8d7e]">
-          No reports to show yet.
+      {/* Search and filter */}
+      <div className="mb-6 flex gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3.5 top-3 size-4 text-[#aa9c8c]" />
+
+          <input
+            value={searchTerm}
+            onChange={(event) =>
+              setSearchTerm(event.target.value)
+            }
+            placeholder="Search Client ID / Name / Mobile / Email"
+            className="h-10 w-full rounded-xl border border-[#e4dbcf] bg-white pl-10 pr-4 text-sm text-[#24354c] outline-none transition focus:border-[#b89a61] focus:ring-2 focus:ring-[#b89a61]/10"
+          />
+        </div>
+
+        <button
+          type="button"
+          title="More filters will be available as client management expands."
+          className="hidden h-10 items-center gap-2 rounded-xl border border-[#e4dbcf] bg-white px-4 text-sm font-medium text-[#5f5a54] sm:flex"
+        >
+          <Settings className="size-4" />
+          Filter
+        </button>
+      </div>
+
+      {/* Client count and sorting */}
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <span className="text-sm font-semibold text-[#24354c]">
+            {filteredClients.length}{' '}
+            {filteredClients.length === 1
+              ? 'Client'
+              : 'Clients'}
+          </span>
+
+          {searchTerm && (
+            <span className="ml-2 text-xs text-[#9a8d7e]">
+              of {clients.length}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1.5 text-xs font-medium text-[#8e8275]">
+          Latest Activity
+          <ChevronDown className="size-3.5" />
+        </div>
+      </div>
+
+      {/* Empty state */}
+      {filteredClients.length === 0 ? (
+        <div className="rounded-2xl border border-[#e8dfd3] bg-white p-10 text-center">
+          <Users className="mx-auto mb-3 size-8 text-[#b89a61]" />
+
+          <h3 className="font-serif text-lg font-semibold text-[#24354c]">
+            {clients.length === 0
+              ? 'No clients yet'
+              : 'No matching clients'}
+          </h3>
+
+          <p className="mx-auto mt-1 max-w-sm text-sm text-[#95897b]">
+            {clients.length === 0
+              ? 'Add your first client to begin managing reports and customer interactions.'
+              : 'Try searching with a different Client ID, name, mobile number or email.'}
+          </p>
+
+          {clients.length === 0 && (
+            <Button
+              onClick={() => setView('new-client')}
+              className="mt-5 rounded-xl bg-[#24354c] px-5 text-white hover:bg-[#30445f]"
+            >
+              <Plus className="mr-2 size-4" />
+              Add Client
+            </Button>
+          )}
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-[#e8dfd3] bg-white">
-          {reports.map((report) => (
-            <div
-              key={report.id}
-              className="flex items-center gap-3 border-b border-[#f1ebe2] px-5 py-4 last:border-0"
-            >
+        <div className="space-y-3">
+          {filteredClients.map((client) => {
+            const hasWhatsApp = Boolean(
+              client.whatsapp || client.phone
+            )
+
+            return (
               <div
-                className={`flex size-9 items-center justify-center rounded-full text-xs font-semibold ${toneClasses[report.tone]}`}
+                key={client.id}
+                className="group overflow-hidden rounded-2xl border border-[#e8dfd3] bg-white shadow-sm transition hover:border-[#d9c49b] hover:shadow-md"
               >
-                {report.initials}
+                <div className="p-4 sm:p-5">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    {/* Initials */}
+                    <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#24354c] text-sm font-semibold text-white sm:size-12">
+                      {client.initials || 'C'}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      {/* Main client information */}
+                      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="truncate font-serif text-lg font-semibold text-[#24354c]">
+                              {client.name}
+                            </h3>
+
+                            {client.clientNumber && (
+                              <span className="rounded-full border border-[#e6d8bd] bg-[#fbf6ec] px-2.5 py-1 text-[10px] font-semibold tracking-wide text-[#8b6d37]">
+                                {client.clientNumber}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#766d63]">
+                            {client.phone ? (
+                              <span>{client.phone}</span>
+                            ) : (
+                              <span className="text-[#aaa095]">
+                                No mobile number
+                              </span>
+                            )}
+
+                            {hasWhatsApp && (
+                              <span className="rounded-full bg-[#f1f7f1] px-2 py-0.5 text-[10px] font-semibold text-[#55705a]">
+                                WhatsApp
+                              </span>
+                            )}
+
+                            {client.email && (
+                              <span className="hidden truncate text-xs text-[#a09588] md:inline">
+                                {client.email}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Last activity */}
+                        <div className="shrink-0 lg:text-right">
+                          <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#aaa095]">
+                            Last activity
+                          </div>
+
+                          <div className="mt-1 text-sm font-medium text-[#4e5b6d]">
+                            {client.lastActivity ||
+                              client.joined ||
+                              '—'}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Client summary */}
+                      <div className="mt-4 grid grid-cols-3 gap-2 sm:max-w-xl">
+                        <div className="rounded-xl border border-[#eadfc9] bg-[#fcf8ef] px-3 py-2.5">
+                          <div className="text-[10px] font-semibold uppercase tracking-wide text-[#a38a5b]">
+                            Source
+                          </div>
+
+                          <div className="mt-1 truncate text-xs font-semibold text-[#5d554b] sm:text-sm">
+                            {client.sourceName || '—'}
+                          </div>
+                        </div>
+
+                        <div className="rounded-xl border border-[#e2e6ea] bg-[#f7f9fb] px-3 py-2.5">
+                          <div className="text-[10px] font-semibold uppercase tracking-wide text-[#7c8795]">
+                            Reports
+                          </div>
+
+                          <div className="mt-1 text-sm font-semibold text-[#24354c]">
+                            {client.reportCount ?? 0}
+                          </div>
+                        </div>
+
+                        <div className="rounded-xl border border-[#ece3da] bg-[#fbf8f5] px-3 py-2.5">
+                          <div className="text-[10px] font-semibold uppercase tracking-wide text-[#97897b]">
+                            Questions
+                          </div>
+
+                          <div className="mt-1 text-sm font-semibold text-[#24354c]">
+                            {client.questionCount ?? 0}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Assignment */}
+                      <div className="mt-3 flex items-center justify-between gap-3 border-t border-[#f0ebe4] pt-3">
+                        <div className="min-w-0 text-xs text-[#94887b]">
+                          Assigned to{' '}
+                          <span className="font-semibold text-[#5d574f]">
+                            {client.primaryEmployeeName ||
+                              'Not assigned'}
+                          </span>
+                        </div>
+
+                        <button
+                          type="button"
+                          title="Client Profile will open here after the profile page is connected."
+                          className="flex size-8 shrink-0 items-center justify-center rounded-full border border-[#e4d8c5] bg-[#fffdf9] text-[#8f7445] transition group-hover:border-[#cdb47f] group-hover:bg-[#fbf4e6]"
+                        >
+                          <ArrowRight className="size-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-[#3e3a35]">
-                  {report.client}
-                </p>
-
-                <p className="mt-1 text-xs text-[#8d8275]">
-                  {report.version} · {report.date}
-                </p>
-              </div>
-
-              <span className="text-xs text-[#81776b]">
-                {report.status}
-              </span>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>
