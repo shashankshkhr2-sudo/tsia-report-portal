@@ -72,16 +72,14 @@ export async function addClient(
       )
       .single<SavedClient>()
 
-    if (error || !data) {
-      console.error('[clients] insert failed', {
-        code: error?.code,
-        message: error?.message,
-      })
+    return {
+    error: error
+    ? `${error.code}: ${error.message}`
+    : 'No data returned after insert.',
+  client: null,
+}
 
-      return {
-        error: 'Unable to save the client. Please try again.',
-        client: null,
-      }
+      
     }
 
     revalidatePath('/')
