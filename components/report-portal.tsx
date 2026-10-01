@@ -246,11 +246,86 @@ function GeneratePage({ setView, clients }: { setView: (v: View) => void; client
 
 const titles: Record<View, string> = { dashboard: 'Dashboard', clients: 'Clients', reports: 'Reports', 'new-client': 'New client', generate: 'Generate report' }
 
-export function ReportPortal({ fullName, reports, clients }: { fullName: string; reports: Report[]; clients: Client[] }) {
+export function ReportPortal({
+  fullName,
+  reports,
+  clients,
+}: {
+  fullName: string
+  reports: Report[]
+  clients: Client[]
+}) {
   const [view, setView] = useState<View>('dashboard')
   const [open, setOpen] = useState(false)
+  const [clientList, setClientList] = useState<Client[]>(clients)
+
   const initials = getInitials(fullName)
   const firstName = fullName.split(/\s+/)[0] || 'there'
 
-  return <div className="min-h-screen bg-[#f7f3ed] text-[#3e3a35]"><div className="flex min-h-screen"><Sidebar view={view} setView={setView} open={open} setOpen={setOpen} fullName={fullName} initials={initials} /><div className="min-w-0 flex-1"><Header title={titles[view]} setOpen={setOpen} fullName={fullName} initials={initials} /><main>{view === 'dashboard' && <Dashboard setView={setView} firstName={firstName} reports={reports} clients={clients}/>}{view === 'clients' && <ClientsPage setView={setView} clients={clients} />}{view === 'reports' && <ReportsPage setView={setView} reports={reports} />}{view === 'new-client' && <NewClientPage setView={setView} />}{view === 'generate' && <GeneratePage setView={setView} clients={clients} />}</main></div></div></div>
+  const handleAddClient = (client: Client) => {
+    setClientList((current) => [client, ...current])
+  }
+
+  return (
+    <div className="min-h-screen bg-[#f7f3ed] text-[#3e3a35]">
+      <div className="flex min-h-screen">
+        <Sidebar
+          view={view}
+          setView={setView}
+          open={open}
+          setOpen={setOpen}
+          fullName={fullName}
+          initials={initials}
+        />
+
+        <div className="min-w-0 flex-1">
+          <Header
+            title={titles[view]}
+            setOpen={setOpen}
+            fullName={fullName}
+            initials={initials}
+          />
+
+          <main>
+            {view === 'dashboard' && (
+              <Dashboard
+                setView={setView}
+                firstName={firstName}
+                reports={reports}
+                clients={clientList}
+              />
+            )}
+
+            {view === 'clients' && (
+              <ClientsPage
+                setView={setView}
+                clients={clientList}
+              />
+            )}
+
+            {view === 'reports' && (
+              <ReportsPage
+                setView={setView}
+                reports={reports}
+              />
+            )}
+
+            {view === 'new-client' && (
+              <NewClientPage
+                setView={setView}
+                onAddClient={handleAddClient}
+              />
+            )}
+
+            {view === 'generate' && (
+              <GeneratePage
+                setView={setView}
+                clients={clientList}
+              />
+            )}
+          </main>
+        </div>
+      </div>
+    </div>
+  )
 }
