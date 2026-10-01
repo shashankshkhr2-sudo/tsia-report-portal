@@ -111,56 +111,135 @@ function ReportsPage({ setView, reports }: { setView: (v: View) => void; reports
 function ClientsPage({ setView, clients }: { setView: (v: View) => void; clients: Client[] }) {
   return <div className="p-5 sm:p-8 lg:p-10"><PageIntro eyebrow="Workspace" title="Clients" description="Your client relationships, all in one considered space." action={<Button onClick={() => setView('new-client')} className="h-11 rounded-xl bg-[#24354c] px-5 text-sm text-white hover:bg-[#30445f]"><Plus data-icon="inline-start" />New client</Button>} /><div className="mb-5 flex items-center gap-3"><div className="relative flex-1"><Search className="absolute left-3.5 top-3 size-4 text-[#aa9c8c]" /><input disabled title={NOT_AVAILABLE} aria-label="Search clients (not available yet)" placeholder="Search clients..." className={`h-10 w-full rounded-xl border border-[#e8dfd3] bg-white pl-10 pr-4 text-sm outline-none ring-[#d6b47b] placeholder:text-[#b1a597] focus:ring-2 ${disabledControl}`} /></div><span className="hidden text-xs text-[#9a8d7e] sm:block">128 clients</span></div>{clients.length === 0 ? <div className="rounded-2xl border border-[#e8dfd3] bg-white"><EmptyState message="No clients to show yet." /></div> : <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{clients.map((client) => <div key={client.id} className="rounded-2xl border border-[#e8dfd3] bg-white p-5 text-left"><div className="flex items-start justify-between"><div className={`flex size-11 items-center justify-center rounded-full text-xs font-semibold ${toneClasses[client.tone]}`}>{client.initials}</div></div><h3 className="mt-5 font-serif text-lg font-semibold text-[#24354c]">{client.name}</h3><p className="mt-1 text-xs text-[#8d8275]">{client.email}</p><div className="mt-5 flex items-center justify-between border-t border-[#f1ebe2] pt-4 text-[11px] text-[#9a8d7e]"><span>{client.phone}</span><span>Joined {client.joined}</span></div></div>)}</div>}</div>
 }
-
-function NewClientPage({ setView, onAddClient }: { setView: (v: View) => void; onAddClient: (client: Client) => void }) {
+function NewClientPage({
+  setView,
+  onAddClient,
+}: {
+  setView: (v: View) => void
+  onAddClient: (client: Client) => void
+}) {
   const [name, setName] = useState('')
   const [dob, setDob] = useState('')
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
   const [notes, setNotes] = useState('')
-const handleSave = () => {
-  if (!name.trim() || !dob) return
-     onAddClient({
-    id: Date.now().toString(),
-    name: name.trim(),
-    initials: name.trim().split(/\s+/).map(n =>   n[0]).join('').slice(0, 2).toUpperCase(),
-    phone,
-    email,
-    dob,
-    notes,
-    joined: new Date().toLocaleDateString(),
-    tone: 'navy'
-  })
 
-  setView('clients')
+  const handleSave = () => {
+    if (!name.trim() || !dob) return
+
+    onAddClient({
+      id: Date.now().toString(),
+      name: name.trim(),
+      initials: name
+        .trim()
+        .split(/\s+/)
+        .map((n) => n[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase(),
+      phone,
+      email,
+      dob,
+      notes,
+      joined: new Date().toLocaleDateString(),
+      tone: 'navy',
+    })
+
+    setView('clients')
+  }
+
+  return (
+    <div className="p-5 sm:p-8 lg:p-10">
+      <button
+        onClick={() => setView('dashboard')}
+        className="mb-6 flex items-center gap-2 text-xs font-semibold text-[#9a7b4f] hover:text-[#805526]"
+      >
+        ← Back to dashboard
+      </button>
+
+      <PageIntro
+        eyebrow="Client management"
+        title="Add a new client"
+        description="Capture the essentials before creating a personal report."
+      />
+
+      <div className="max-w-2xl rounded-2xl border border-[#e8dfd3] bg-white p-5 sm:p-7">
+        <fieldset className="grid gap-5 sm:grid-cols-2">
+
+          <label className="flex flex-col gap-2 text-xs font-semibold text-[#5f574d] sm:col-span-2">
+            Full name
+            <input
+              className="h-11 rounded-xl border border-[#e8dfd3] px-3 text-sm font-normal outline-none focus:ring-2 focus:ring-[#d6b47b]"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Client's full name"
+            />
+          </label>
+
+          <label className="flex flex-col gap-2 text-xs font-semibold text-[#5f574d]">
+            Date of birth
+            <input
+              type="date"
+              className="h-11 rounded-xl border border-[#e8dfd3] px-3 text-sm font-normal text-[#6d665d] outline-none focus:ring-2 focus:ring-[#d6b47b]"
+              value={dob}
+              onChange={(e) => setDob(e.target.value)}
+            />
+          </label>
+
+          <label className="flex flex-col gap-2 text-xs font-semibold text-[#5f574d]">
+            Mobile number
+            <input
+              className="h-11 rounded-xl border border-[#e8dfd3] px-3 text-sm font-normal outline-none focus:ring-2 focus:ring-[#d6b47b]"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+91"
+            />
+          </label>
+
+          <label className="flex flex-col gap-2 text-xs font-semibold text-[#5f574d] sm:col-span-2">
+            Email address
+            <input
+              type="email"
+              className="h-11 rounded-xl border border-[#e8dfd3] px-3 text-sm font-normal outline-none focus:ring-2 focus:ring-[#d6b47b]"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@email.com"
+            />
+          </label>
+
+          <label className="flex flex-col gap-2 text-xs font-semibold text-[#5f574d] sm:col-span-2">
+            Notes
+            <textarea
+              rows={4}
+              className="resize-none rounded-xl border border-[#e8dfd3] px-3 py-3 text-sm font-normal outline-none focus:ring-2 focus:ring-[#d6b47b]"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Anything important to remember about this client..."
+            />
+          </label>
+
+        </fieldset>
+
+        <div className="mt-6 flex items-center justify-end gap-3 border-t border-[#f1ebe2] pt-5">
+          <Button
+            variant="outline"
+            onClick={() => setView('dashboard')}
+            className="h-10 rounded-xl border-[#e8dfd3]"
+          >
+            Cancel
+          </Button>
+
+          <Button
+            onClick={handleSave}
+            className="h-10 rounded-xl bg-[#24354c] text-white hover:bg-[#30445f]"
+          >
+            Save client
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
 }
-  return <div className="p-5 sm:p-8 lg:p-10"><button onClick={() => setView('dashboard')} className="mb-6 flex items-center gap-2 text-xs font-semibold text-[#9a7b4f] hover:text-[#805526]">← Back to dashboard</button><PageIntro eyebrow="Client management" title="Add a new client" description="Capture the essentials before creating a personal report." /><div className="max-w-2xl rounded-2xl border border-[#e8dfd3] bg-white p-5 sm:p-7"><fieldset className="grid gap-5 sm:grid-cols-2"><label className="flex flex-col gap-2 text-xs font-semibold text-[#5f574d] sm:col-span-2">Full name<input className="h-11 rounded-xl border border-[#e8dfd3] px-3 text-sm font-normal outline-none focus:ring-2 focus:ring-[#d6b47b] disabled:cursor-not-allowed" value={name}
-onChange={(e) => setName(e.target.value)}
-placeholder="Client's full name" 
-/><label><label className="flex flex-col gap-2 text-xs font-semibold text-[#5f574d]">Date of birth<input type="date" className="h-11 rounded-xl border border-[#e8dfd3] px-3 text-sm font-normal text-[#6d665d] outline-none focus:ring-2 focus:ring-[#d6b47b] disabled:cursor-not-allowed" value={dob} onChange={(e) => setDob(e.target.value)}  /></label><label className="flex flex-col gap-2 text-xs font-semibold text-[#5f574d]">Mobile number<input className="h-11 rounded-xl border border-[#e8dfd3] px-3 text-sm font-normal outline-none focus:ring-2 focus:ring-[#d6b47b] disabled:cursor-not-allowed"
-value={phone}onChange={(e) => setPhone(e.target.value)} placeholder="+91" /></label><label className="flex flex-col gap-2 text-xs font-semibold text-[#5f574d] sm:col-span-2">Email address<input type="email" className="h-11 rounded-xl border border-[#e8dfd3] px-3 text-sm font-normal outline-none focus:ring-2 focus:ring-[#d6b47b] disabled:cursor-not-allowed"value={email}
-onChange={(e) => setEmail(e.target.value)} placeholder="name@email.com" /></label><label className="flex flex-col gap-2 text-xs font-semibold text-[#5f574d] sm:col-span-2">Notes <textarea rows={4} className="resize-none rounded-xl border border-[#e8dfd3] px-3 py-3 text-sm font-normal outline-none focus:ring-2 focus:ring-[#d6b47b] disabled:cursor-not-allowed"value={notes}
-onChange={(e) => setNotes(e.target.value)} placeholder="Anything important to remember about this client..." 
-   ></textarea></label></fieldset><div className="mt-6 flex items-center justify-end gap-3 border-t border-[#f1ebe2] pt-5"><Button
-  variant="outline"
-  onClick={() => setView('dashboard')}
-  className="h-10 rounded-xl border-[#e8dfd3]"
->
-  Cancel
-</Button>
-
-<Button
-  onClick={handleSave}
-  className="h-10 rounded-xl bg-[#24354c] text-white hover:bg-[#30445f]"
->
-  Save client
-</Button>
-</div>
-</div>
-</div>
-)
-}
-
 function GeneratePage({ setView, clients }: { setView: (v: View) => void; clients: Client[] }) {
   return <div className="p-5 sm:p-8 lg:p-10"><button onClick={() => setView('dashboard')} className="mb-6 flex items-center gap-2 text-xs font-semibold text-[#9a7b4f]">← Back to dashboard</button><PageIntro eyebrow="Report studio" title="Generate a report" description="Choose a client and report version. Calculation and PDF generation are handled securely by the backend." /><div className="max-w-2xl rounded-2xl border border-[#e8dfd3] bg-white p-5 sm:p-7"><fieldset disabled title={NOT_AVAILABLE} className="flex flex-col gap-5 opacity-60"><label className="flex flex-col gap-2 text-xs font-semibold text-[#5f574d]">Select client<select className="h-11 rounded-xl border border-[#e8dfd3] bg-white px-3 text-sm font-normal outline-none focus:ring-2 focus:ring-[#d6b47b] disabled:cursor-not-allowed">{clients.length === 0 ? <option>No clients available</option> : clients.map((client) => <option key={client.id} value={client.id}>{client.name}</option>)}</select></label><div><p className="mb-3 text-xs font-semibold text-[#5f574d]">Report version</p><div className="grid gap-3 sm:grid-cols-2"><label className="flex cursor-not-allowed items-center gap-3 rounded-xl border border-[#d6b47b] bg-[#fcf7ed] p-4"><input type="radio" name="version" defaultChecked className="accent-[#24354c]" /><span><span className="block text-sm font-semibold text-[#3f3932]">Version 3</span><span className="mt-1 block text-xs text-[#958878]">Comprehensive client report</span></span><Check className="ml-auto size-4 text-[#ad7b40]" /></label><label className="flex cursor-not-allowed items-center gap-3 rounded-xl border border-[#e8dfd3] p-4"><input type="radio" name="version" className="accent-[#24354c]" /><span><span className="block text-sm font-semibold text-[#3f3932]">Version 2</span><span className="mt-1 block text-xs text-[#958878]">Essential client report</span></span></label></div></div></fieldset><div className="mt-5 flex items-start gap-3 rounded-xl bg-[#f5f0e8] p-4 text-xs leading-5 text-[#7c6d5b]"><CircleHelp className="mt-0.5 size-4 shrink-0 text-[#ad7b40]" /><p>Report generation is not available yet. Once enabled, reports will be securely processed while you continue working.</p></div><div className="mt-7 flex justify-end border-t border-[#f1ebe2] pt-5"><Button disabled title={NOT_AVAILABLE} className="h-11 rounded-xl bg-[#24354c] px-5 text-white hover:bg-[#30445f]"><Sparkles data-icon="inline-start" />Generate report</Button></div></div></div>
 }
