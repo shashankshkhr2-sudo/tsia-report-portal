@@ -23,6 +23,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/portal-logo'
 import { signOut } from '@/app/actions/auth'
+import { addClient } from '@/app/actions/clients'
 import type { Client, Report, Tone } from '@/lib/portal-types'
 
 type View = 'dashboard' | 'clients' | 'reports' | 'new-client' | 'generate'
@@ -124,29 +125,49 @@ function NewClientPage({
   const [email, setEmail] = useState('')
   const [notes, setNotes] = useState('')
 
-  const handleSave = () => {
-    if (!name.trim() || !dob) return
+  const [saving, startSaving] = useTransition()
+const [saveError, setSaveError] = useState<string | null>(null)
+
+const handleSave = () => {
+  if (!name.trim() || !dob || saving) return
+
+  setSaveError(null)
+
+  startSaving(async () => {
+    const result = await addClient({
+      full_name: name.trim(),
+      date_of_birth: dob,
+      mobile: phone.trim(),
+      email: email.trim(),
+      notes: notes.trim(),
+    })
+
+    if (result.error || !result.client) {
+      setSaveError(result.error || 'Unable to save client.')
+      return
+    }
 
     onAddClient({
-      id: Date.now().toString(),
-      name: name.trim(),
-      initials: name
-        .trim()
+      id: result.client.id,
+      name: result.client.full_name,
+      initials: result.client.full_name
         .split(/\s+/)
+        .filter(Boolean)
         .map((n) => n[0])
         .join('')
         .slice(0, 2)
         .toUpperCase(),
-      phone,
-      email,
-      dob,
-      notes,
-      joined: new Date().toLocaleDateString(),
+      phone: result.client.mobile || '',
+      email: result.client.email || '',
+      dob: result.client.date_of_birth,
+      notes: result.client.notes || '',
+      joined: new Date(result.client.created_at).toLocaleDateString(),
       tone: 'navy',
     })
 
     setView('clients')
-  }
+  })
+}
 
   return (
     <div className="p-5 sm:p-8 lg:p-10">
