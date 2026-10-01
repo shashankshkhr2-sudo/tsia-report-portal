@@ -180,7 +180,6 @@ function Sidebar({
               <p className="truncate text-xs font-semibold text-[#3e3a35]">
                 {fullName}
               </p>
-
               <p className="text-[10px] text-[#9a8b7b]">
                 Administrator
               </p>
@@ -216,7 +215,6 @@ function Header({
           <p className="text-[11px] uppercase tracking-[0.18em] text-[#a79582]">
             TSIA Report Portal
           </p>
-
           <h1 className="font-serif text-xl font-semibold text-[#24354c]">
             {title}
           </h1>
@@ -227,7 +225,6 @@ function Header({
         <div className="flex size-8 items-center justify-center rounded-full bg-[#d6b47b] text-xs font-semibold text-[#24354c]">
           {getInitials(fullName)}
         </div>
-
         <span className="text-sm font-medium text-[#4b4741]">
           {fullName}
         </span>
@@ -370,90 +367,6 @@ function ClientsPage({
   clients: Client[]
   setView: (view: View) => void
 }) {
-  return (
-    <div className="p-5 sm:p-8 lg:p-10">
-      <PageTitle
-        eyebrow="Client management"
-        title="Clients"
-        description="Manage clients, reports and customer interactions."
-      >
-        <Button
-          onClick={() => setView('new-client')}
-          className="h-11 rounded-xl bg-[#24354c] px-5 text-white hover:bg-[#30445f]"
-        >
-          <Plus className="mr-2 size-4" />
-          Add Client
-        </Button>
-      </PageTitle>
-
-      <div className="mb-5 flex items-center gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-3 size-4 text-[#aa9c8c]" />
-
-          <input
-            disabled
-            placeholder="Search Client ID / Name / Mobile / Email"
-            className="h-10 w-full rounded-xl border border-[#e8dfd3] bg-white pl-10 pr-4 text-sm opacity-60"
-          />
-        </div>
-
-        <span className="hidden text-xs text-[#9a8d7e] sm:block">
-          {clients.length} {clients.length === 1 ? 'client' : 'clients'}
-        </span>
-      </div>
-
-      {clients.length === 0 ? (
-        <div className="rounded-2xl border border-[#e8dfd3] bg-white p-10 text-center text-sm text-[#9a8d7e]">
-          No clients to show yet.
-        </div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {clients.map((client) => (
-            <div
-              key={client.id}
-              className="rounded-2xl border border-[#e8dfd3] bg-white p-5"
-            >
-              <div className="flex items-start justify-between">
-                <div
-                  className={`flex size-11 items-center justify-center rounded-full text-xs font-semibold ${toneClasses[client.tone]}`}
-                >
-                  {client.initials}
-                </div>
-
-                {client.clientNumber && (
-                  <span className="rounded-full bg-[#f5f0e8] px-2.5 py-1 text-[10px] font-semibold text-[#8a765c]">
-                    {client.clientNumber}
-                  </span>
-                )}
-              </div>
-
-              <h3 className="mt-5 font-serif text-lg font-semibold text-[#24354c]">
-                {client.name}
-              </h3>
-
-              <p className="mt-1 text-xs text-[#8d8275]">
-                {client.email || 'No email provided'}
-              </p>
-
-              <div className="mt-5 flex items-center justify-between border-t border-[#f1ebe2] pt-4 text-[11px] text-[#9a8d7e]">
-                <span>{client.phone || 'No mobile'}</span>
-                <span>Joined {client.joined}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function ClientsPage({
-  clients,
-  setView,
-}: {
-  clients: Client[]
-  setView: (view: View) => void
-}) {
   const [searchTerm, setSearchTerm] = useState('')
 
   const normalizedSearch = searchTerm
@@ -491,7 +404,6 @@ function ClientsPage({
         </Button>
       </PageTitle>
 
-      {/* Search and filter */}
       <div className="mb-6 flex gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3.5 top-3 size-4 text-[#aa9c8c]" />
@@ -516,7 +428,6 @@ function ClientsPage({
         </button>
       </div>
 
-      {/* Client count and sorting */}
       <div className="mb-4 flex items-center justify-between">
         <div>
           <span className="text-sm font-semibold text-[#24354c]">
@@ -539,7 +450,6 @@ function ClientsPage({
         </div>
       </div>
 
-      {/* Empty state */}
       {filteredClients.length === 0 ? (
         <div className="rounded-2xl border border-[#e8dfd3] bg-white p-10 text-center">
           <Users className="mx-auto mb-3 size-8 text-[#b89a61]" />
@@ -580,13 +490,11 @@ function ClientsPage({
               >
                 <div className="p-4 sm:p-5">
                   <div className="flex items-start gap-3 sm:gap-4">
-                    {/* Initials */}
                     <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#24354c] text-sm font-semibold text-white sm:size-12">
                       {client.initials || 'C'}
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      {/* Main client information */}
                       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
@@ -624,7 +532,6 @@ function ClientsPage({
                           </div>
                         </div>
 
-                        {/* Last activity */}
                         <div className="shrink-0 lg:text-right">
                           <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#aaa095]">
                             Last activity
@@ -638,7 +545,6 @@ function ClientsPage({
                         </div>
                       </div>
 
-                      {/* Client summary */}
                       <div className="mt-4 grid grid-cols-3 gap-2 sm:max-w-xl">
                         <div className="rounded-xl border border-[#eadfc9] bg-[#fcf8ef] px-3 py-2.5">
                           <div className="text-[10px] font-semibold uppercase tracking-wide text-[#a38a5b]">
@@ -671,7 +577,6 @@ function ClientsPage({
                         </div>
                       </div>
 
-                      {/* Assignment */}
                       <div className="mt-3 flex items-center justify-between gap-3 border-t border-[#f0ebe4] pt-3">
                         <div className="min-w-0 text-xs text-[#94887b]">
                           Assigned to{' '}
@@ -683,7 +588,7 @@ function ClientsPage({
 
                         <button
                           type="button"
-                          title="Client Profile will open here after the profile page is connected."
+                          title="Client Profile will be connected next."
                           className="flex size-8 shrink-0 items-center justify-center rounded-full border border-[#e4d8c5] bg-[#fffdf9] text-[#8f7445] transition group-hover:border-[#cdb47f] group-hover:bg-[#fbf4e6]"
                         >
                           <ArrowRight className="size-4" />
@@ -695,6 +600,83 @@ function ClientsPage({
               </div>
             )
           })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ReportsPage({
+  reports,
+  setView,
+}: {
+  reports: Report[]
+  setView: (view: View) => void
+}) {
+  return (
+    <div className="p-5 sm:p-8 lg:p-10">
+      <PageTitle
+        eyebrow="Workspace"
+        title="Reports"
+        description="Review and manage client reports."
+      >
+        <Button
+          onClick={() => setView('generate')}
+          className="h-11 rounded-xl bg-[#24354c] px-5 text-white hover:bg-[#30445f]"
+        >
+          <Sparkles className="mr-2 size-4" />
+          Generate Report
+        </Button>
+      </PageTitle>
+
+      {reports.length === 0 ? (
+        <div className="rounded-2xl border border-[#e8dfd3] bg-white p-10 text-center">
+          <FileText className="mx-auto mb-3 size-8 text-[#b89a61]" />
+
+          <h3 className="font-serif text-lg font-semibold text-[#24354c]">
+            No reports yet
+          </h3>
+
+          <p className="mx-auto mt-2 max-w-md text-sm text-[#948779]">
+            Client report generation will be connected as we build the Reports module.
+          </p>
+
+          <Button
+            onClick={() => setView('generate')}
+            className="mt-5 rounded-xl bg-[#24354c] px-5 text-white hover:bg-[#30445f]"
+          >
+            <Sparkles className="mr-2 size-4" />
+            Generate Report
+          </Button>
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-2xl border border-[#e8dfd3] bg-white">
+          {reports.map((report) => (
+            <div
+              key={report.id}
+              className="flex items-center gap-4 border-b border-[#eee7dc] p-5 last:border-b-0"
+            >
+              <div
+                className={`flex size-11 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${toneClasses[report.tone]}`}
+              >
+                {report.initials}
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <h3 className="truncate font-serif text-base font-semibold text-[#24354c]">
+                  {report.client}
+                </h3>
+
+                <p className="mt-1 text-xs text-[#948779]">
+                  {report.version} · {report.date}
+                </p>
+              </div>
+
+              <span className="rounded-full bg-[#f5f0e8] px-3 py-1 text-xs font-medium text-[#786b5c]">
+                {report.status}
+              </span>
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -805,27 +787,47 @@ function NewClientPage({
         return
       }
 
+      const assignedEmployee = employees.find(
+        (employee) =>
+          employee.id === result.client?.primary_employee_id
+      )
+
       onAddClient({
         id: result.client.id,
-        clientNumber: result.client.client_number || undefined,
+        clientNumber:
+          result.client.client_number || undefined,
         name: result.client.full_name,
-        currentName: result.client.current_name || undefined,
+        currentName:
+          result.client.current_name || undefined,
         initials: getInitials(result.client.full_name),
         dob: result.client.date_of_birth,
         gender: result.client.gender || undefined,
-        birthTime: result.client.birth_time || undefined,
-        birthPlace: result.client.birth_place_name || undefined,
+        birthTime:
+          result.client.birth_time || undefined,
+        birthPlace:
+          result.client.birth_place_name || undefined,
         birthStateRegion:
           result.client.birth_state_region || undefined,
-        birthCountry: result.client.birth_country || undefined,
+        birthCountry:
+          result.client.birth_country || undefined,
         phone: result.client.mobile || '',
-        whatsapp: result.client.whatsapp_number || undefined,
+        whatsapp:
+          result.client.whatsapp_number || undefined,
         email: result.client.email || '',
-        sourceId: result.client.source_id || undefined,
+        sourceId:
+          result.client.source_id || undefined,
         sourceName: selectedSource?.name,
-        referredBy: result.client.referred_by || undefined,
+        referredBy:
+          result.client.referred_by || undefined,
         primaryEmployeeId:
           result.client.primary_employee_id || undefined,
+        primaryEmployeeName:
+          assignedEmployee?.fullName,
+        reportCount: 0,
+        questionCount: 0,
+        lastActivity: new Date(
+          result.client.created_at
+        ).toLocaleDateString(),
         notes: result.client.notes || '',
         status:
           result.client.status === 'inactive'
@@ -954,7 +956,9 @@ function NewClientPage({
             State / Region
             <input
               value={birthStateRegion}
-              onChange={(e) => setBirthStateRegion(e.target.value)}
+              onChange={(e) =>
+                setBirthStateRegion(e.target.value)
+              }
               placeholder="e.g. Maharashtra"
               className={inputClass}
             />
@@ -1001,7 +1005,9 @@ function NewClientPage({
             <input
               type="checkbox"
               checked={sameWhatsapp}
-              onChange={(e) => setSameWhatsapp(e.target.checked)}
+              onChange={(e) =>
+                setSameWhatsapp(e.target.checked)
+              }
               className="size-4 accent-[#24354c]"
             />
             WhatsApp number is the same as mobile
@@ -1013,118 +1019,133 @@ function NewClientPage({
               <input
                 type="tel"
                 value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
-              placeholder="+91"
-              className={inputClass}
-            />
-          </label>
-        )}
-      </Section>
+                onChange={(e) =>
+                  setWhatsapp(e.target.value)
+                }
+                placeholder="+91"
+                className={inputClass}
+              />
+            </label>
+          )}
+        </Section>
 
-      <Section
-        number={4}
-        title="Client Source"
-        description="Track how the client came to The Swastik Indian Art."
-      >
-        <label className={labelClass}>
-          Source
-          <select
-            value={sourceId}
-            onChange={(e) => setSourceId(e.target.value)}
-            className={inputClass}
-          >
-            <option value="">Select source</option>
-
-            {clientSources.map((source) => (
-              <option key={source.id} value={source.id}>
-                {source.name}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        {referral && (
+        <Section
+          number={4}
+          title="Client Source"
+          description="Track how the client came to The Swastik Indian Art."
+        >
           <label className={labelClass}>
-            Referred By
-            <input
-              value={referredBy}
-              onChange={(e) => setReferredBy(e.target.value)}
-              placeholder="Name of referrer"
+            Source
+            <select
+              value={sourceId}
+              onChange={(e) => setSourceId(e.target.value)}
               className={inputClass}
+            >
+              <option value="">Select source</option>
+
+              {clientSources.map((source) => (
+                <option
+                  key={source.id}
+                  value={source.id}
+                >
+                  {source.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {referral && (
+            <label className={labelClass}>
+              Referred By
+              <input
+                value={referredBy}
+                onChange={(e) =>
+                  setReferredBy(e.target.value)
+                }
+                placeholder="Name of referrer"
+                className={inputClass}
+              />
+            </label>
+          )}
+        </Section>
+
+        <Section
+          number={5}
+          title="Assignment"
+          description="Select the primary TSIA employee responsible for this client."
+        >
+          <label className={`${labelClass} sm:col-span-2`}>
+            Primary Assigned Employee
+            <select
+              value={employeeId}
+              onChange={(e) =>
+                setEmployeeId(e.target.value)
+              }
+              className={inputClass}
+            >
+              <option value="">Assign to me</option>
+
+              {employees.map((employee) => (
+                <option
+                  key={employee.id}
+                  value={employee.id}
+                >
+                  {employee.fullName}
+                  {employee.specialization
+                    ? ` — ${employee.specialization}`
+                    : ''}
+                </option>
+              ))}
+            </select>
+          </label>
+        </Section>
+
+        <Section
+          number={6}
+          title="Internal Notes"
+          description="Private notes for the TSIA team. Not visible to the customer."
+        >
+          <label className={`${labelClass} sm:col-span-2`}>
+            Notes
+            <textarea
+              rows={4}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Internal notes..."
+              className="w-full resize-none rounded-xl border border-[#e5dccf] px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-[#d6b47b]/20"
             />
           </label>
+        </Section>
+
+        {error && (
+          <div className="mx-5 mt-5 rounded-xl border border-[#ead0c7] bg-[#fff5f1] px-4 py-3 text-sm text-[#a55f46] sm:mx-8">
+            {error}
+          </div>
         )}
-      </Section>
 
-      <Section
-        number={5}
-        title="Assignment"
-        description="Select the primary TSIA employee responsible for this client."
-      >
-        <label className={`${labelClass} sm:col-span-2`}>
-          Primary Assigned Employee
-          <select
-            value={employeeId}
-            onChange={(e) => setEmployeeId(e.target.value)}
-            className={inputClass}
+        <div className="flex flex-col-reverse gap-3 bg-[#fcfaf6] px-5 py-5 sm:flex-row sm:justify-end sm:px-8">
+          <Button
+            variant="outline"
+            disabled={saving}
+            onClick={() => setView('clients')}
+            className="h-11 rounded-xl"
           >
-            <option value="">Assign to me</option>
+            Cancel
+          </Button>
 
-            {employees.map((employee) => (
-              <option key={employee.id} value={employee.id}>
-                {employee.fullName}
-                {employee.specialization
-                  ? ` — ${employee.specialization}`
-                  : ''}
-              </option>
-            ))}
-          </select>
-        </label>
-      </Section>      <Section
-        number={6}
-        title="Internal Notes"
-        description="Private notes for the TSIA team. Not visible to the customer."
-      >
-        <label className={`${labelClass} sm:col-span-2`}>
-          Notes
-          <textarea
-            rows={4}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Internal notes..."
-            className="w-full resize-none rounded-xl border border-[#e5dccf] px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-[#d6b47b]/20"
-          />
-        </label>
-      </Section>
-
-      {error && (
-        <div className="mx-5 mt-5 rounded-xl border border-[#ead0c7] bg-[#fff5f1] px-4 py-3 text-sm text-[#a55f46] sm:mx-8">
-          {error}
+          <Button
+            disabled={saving || !fullName.trim() || !dob}
+            onClick={save}
+            className="h-11 rounded-xl bg-[#24354c] px-6 text-white hover:bg-[#30445f]"
+          >
+            {saving ? 'Saving…' : 'Save Client'}
+          </Button>
         </div>
-      )}
-
-      <div className="flex flex-col-reverse gap-3 bg-[#fcfaf6] px-5 py-5 sm:flex-row sm:justify-end sm:px-8">
-        <Button
-          variant="outline"
-          disabled={saving}
-          onClick={() => setView('clients')}
-          className="h-11 rounded-xl"
-        >
-          Cancel
-        </Button>
-
-        <Button
-          disabled={saving || !fullName.trim() || !dob}
-          onClick={save}
-          className="h-11 rounded-xl bg-[#24354c] px-6 text-white hover:bg-[#30445f]"
-        >
-          {saving ? 'Saving…' : 'Save Client'}
-        </Button>
       </div>
     </div>
-  </div>
   )
 }
+
 function GeneratePage({
   clients,
   setView,
@@ -1198,10 +1219,14 @@ export function ReportPortal({
 }) {
   const [view, setView] = useState<View>('dashboard')
   const [open, setOpen] = useState(false)
-  const [clientList, setClientList] = useState<Client[]>(clients)
+  const [clientList, setClientList] =
+    useState<Client[]>(clients)
 
   const addLocalClient = (client: Client) => {
-    setClientList((current) => [client, ...current])
+    setClientList((current) => [
+      client,
+      ...current,
+    ])
   }
 
   return (
@@ -1267,4 +1292,3 @@ export function ReportPortal({
     </div>
   )
 }
-                
