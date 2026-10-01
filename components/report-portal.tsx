@@ -141,7 +141,7 @@ placeholder="Client's full name"
 value={phone}onChange={(e) => setPhone(e.target.value)} placeholder="+91" /></label><label className="flex flex-col gap-2 text-xs font-semibold text-[#5f574d] sm:col-span-2">Email address<input type="email" className="h-11 rounded-xl border border-[#e8dfd3] px-3 text-sm font-normal outline-none focus:ring-2 focus:ring-[#d6b47b] disabled:cursor-not-allowed"value={email}
 onChange={(e) => setEmail(e.target.value)} placeholder="name@email.com" /></label><label className="flex flex-col gap-2 text-xs font-semibold text-[#5f574d] sm:col-span-2">Notes <textarea rows={4} className="resize-none rounded-xl border border-[#e8dfd3] px-3 py-3 text-sm font-normal outline-none focus:ring-2 focus:ring-[#d6b47b] disabled:cursor-not-allowed"value={notes}
 onChange={(e) => setNotes(e.target.value)} placeholder="Anything important to remember about this client..." 
-   /></label></fieldset><div className="mt-6 flex items-center justify-end gap-3 border-t border-[#f1ebe2] pt-5"><Button
+   ></textarea></label></fieldset><div className="mt-6 flex items-center justify-end gap-3 border-t border-[#f1ebe2] pt-5"><Button
   variant="outline"
   onClick={() => setView('dashboard')}
   className="h-10 rounded-xl border-[#e8dfd3]"
