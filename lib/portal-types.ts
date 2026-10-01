@@ -1,4 +1,8 @@
-export type Tone = 'plum' | 'terracotta' | 'olive' | 'navy'
+export type Tone =
+  | 'plum'
+  | 'terracotta'
+  | 'olive'
+  | 'navy'
 
 export type Report = {
   id: string
@@ -13,14 +17,49 @@ export type Report = {
 
 export type Client = {
   id: string
+
+  clientNumber?: string
+
   name: string
+  currentName?: string
+
   initials: string
-  phone: string
-  email: string
   dob: string
+  gender?: string
+
+  birthTime?: string
+  birthPlace?: string
+  birthStateRegion?: string
+  birthCountry?: string
+
+  phone: string
+  whatsapp?: string
+  email: string
+
+  sourceId?: string
+  sourceName?: string
+  referredBy?: string
+
+  primaryEmployeeId?: string
+
   notes: string
+  status?: 'active' | 'inactive'
+
   joined: string
   tone: Tone
+}
+
+export type ClientSourceOption = {
+  id: string
+  name: string
+}
+
+export type EmployeeOption = {
+  id: string
+  fullName: string
+  role: string
+  specialization: string | null
+  locationId: string | null
 }
 
 export type PortalData = {
