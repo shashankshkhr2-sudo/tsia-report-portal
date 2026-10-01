@@ -22,8 +22,8 @@ export type Client = {
 
   name: string
   currentName?: string
-
   initials: string
+
   dob: string
   gender?: string
 
@@ -41,8 +41,15 @@ export type Client = {
   referredBy?: string
 
   primaryEmployeeId?: string
+  primaryEmployeeName?: string
+
+  reportCount?: number
+  questionCount?: number
+
+  lastActivity?: string
 
   notes: string
+
   status?: 'active' | 'inactive'
 
   joined: string
@@ -66,3 +73,11 @@ export type PortalData = {
   reports: Report[]
   clients: Client[]
 }
+
+export type PortalFormData = {
+  clientSources: ClientSourceOption[]
+  employees: EmployeeOption[]
+}
+
+export type FullPortalData =
+  PortalData & PortalFormData
