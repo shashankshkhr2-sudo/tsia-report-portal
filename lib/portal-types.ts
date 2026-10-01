@@ -17,6 +17,8 @@ export type Client = {
   initials: string
   phone: string
   email: string
+  dob: string
+  notes: string
   joined: string
   tone: Tone
 }
