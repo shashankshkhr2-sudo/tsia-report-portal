@@ -23,6 +23,11 @@ import { Logo } from '@/components/portal-logo'
 import { signOut } from '@/app/actions/auth'
 import { addClient } from '@/app/actions/clients'
 
+
+import {
+  generateNumerologyV2,
+} from '@/app/actions/numerology'
+
 import type {
   Client,
   ClientSourceOption,
