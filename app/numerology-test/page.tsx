@@ -10,8 +10,8 @@ import {
 
 export default function NumerologyTestPage() {
   const result = calculateNumerologyV2({
-    fullName: 'Anita Goel',
-    dateOfBirth: '15/03/1956',
+    fullName: 'Anushka Das',
+    dateOfBirth: '29/03/1983',
   })
 
   const validation =
@@ -28,8 +28,8 @@ export default function NumerologyTestPage() {
     >
       <h1>TSIA V2 Calculator Test</h1>
 
-      <h2>Anita Goel</h2>
-      <p>DOB: 15/03/1956</p>
+      <h2>Anushka Das</h2>
+      <p>DOB: 29/03/1983</p>
 
       <hr />
 
@@ -98,6 +98,7 @@ export default function NumerologyTestPage() {
       </p>
 
       <h3>Rows</h3>
+
       <pre>
         {JSON.stringify(
           result.rows,
@@ -107,6 +108,7 @@ export default function NumerologyTestPage() {
       </pre>
 
       <h3>Columns</h3>
+
       <pre>
         {JSON.stringify(
           result.columns,
@@ -116,6 +118,7 @@ export default function NumerologyTestPage() {
       </pre>
 
       <h3>Rajyog</h3>
+
       <pre>
         {JSON.stringify(
           result.rajyog,
