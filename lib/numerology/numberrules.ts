@@ -1,0 +1,121 @@
+// lib/numerology/numberrules.ts
+
+import type {
+  GrahaName,
+  NumerologyDigit,
+} from './types'
+
+export type NumberRule = {
+  number: NumerologyDigit
+  graha: GrahaName
+
+  strengths: string[]
+  themes: string[]
+
+  repetitionStrengths: string[]
+  possibleExcess: string[]
+
+  developmentAreas: string[]
+}
+
+export const NUMBER_RULES: Record<
+  NumerologyDigit,
+  NumberRule
+> = {
+  1: {
+    number: 1,
+    graha: 'Surya',
+
+    strengths: [
+      'initiative',
+      'individuality',
+      'confidence',
+      'leadership',
+      'self-direction',
+    ],
+
+    themes: [
+      'independent action',
+      'personal identity',
+      'decision-making',
+      'taking initiative',
+    ],
+
+    repetitionStrengths: [
+      'stronger initiative',
+      'greater self-direction',
+      'stronger independent decision-making',
+    ],
+
+    possibleExcess: [
+      'excessive self-reliance',
+      'difficulty accepting support',
+      'overemphasis on personal direction',
+    ],
+
+    developmentAreas: [
+      'initiative',
+      'confident expression',
+      'independent decision-making',
+    ],
+  },
+
+  2: {
+    number: 2,
+    graha: 'Chandra',
+
+    strengths: [
+      'sensitivity',
+      'cooperation',
+      'emotional awareness',
+      'receptivity',
+      'relationship awareness',
+    ],
+
+    themes: [
+      'emotional connection',
+      'cooperation',
+      'receptive communication',
+      'partnership',
+    ],
+
+    repetitionStrengths: [
+      'stronger emotional awareness',
+      'greater sensitivity to others',
+      'stronger cooperative instinct',
+    ],
+
+    possibleExcess: [
+      'emotional over-absorption',
+      'over-sensitivity',
+      'difficulty separating personal feelings from others',
+    ],
+
+    developmentAreas: [
+      'receptive listening',
+      'emotional awareness',
+      'cooperation',
+    ],
+  },
+
+  3: {
+    number: 3,
+    graha: 'Guru',
+
+    strengths: [
+      'learning',
+      'expression',
+      'creativity',
+      'communication',
+      'guidance',
+      'knowledge',
+    ],
+
+    themes: [
+      'creative expression',
+      'communication',
+      'learning',
+      'sharing knowledge',
+    ],
+
+    repetitionStrength
