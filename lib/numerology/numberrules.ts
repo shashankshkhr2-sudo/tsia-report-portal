@@ -8,13 +8,10 @@ import type {
 export type NumberRule = {
   number: NumerologyDigit
   graha: GrahaName
-
   strengths: string[]
   themes: string[]
-
   repetitionStrengths: string[]
   possibleExcess: string[]
-
   developmentAreas: string[]
 }
 
@@ -93,29 +90,4 @@ export const NUMBER_RULES: Record<
 
     developmentAreas: [
       'receptive listening',
-      'emotional awareness',
-      'cooperation',
-    ],
-  },
-
-  3: {
-    number: 3,
-    graha: 'Guru',
-
-    strengths: [
-      'learning',
-      'expression',
-      'creativity',
-      'communication',
-      'guidance',
-      'knowledge',
-    ],
-
-    themes: [
-      'creative expression',
-      'communication',
-      'learning',
-      'sharing knowledge',
-    ],
-
-    repetitionStrengths: [
+      '
