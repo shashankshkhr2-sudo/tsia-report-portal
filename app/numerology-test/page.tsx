@@ -1,151 +1,102 @@
 // app/numerology-test/page.tsx
 
 import {
-  calculateNumerologyV2,
-} from '@/lib/numerology/calculations'
-
-import {
-  validateNumerologyV2,
-} from '@/lib/numerology/validation'
+  runNumerologyRegressionTests,
+} from '@/lib/numerology/test-cases'
 
 export default function NumerologyTestPage() {
-  const result = calculateNumerologyV2({
-    fullName: 'Anushka Das',
-    dateOfBirth: '29/03/1983',
-  })
-
-  const validation =
-    validateNumerologyV2(result)
+  const suite = runNumerologyRegressionTests()
 
   return (
     <main
       style={{
-        maxWidth: 900,
+        maxWidth: 800,
         margin: '0 auto',
         padding: 24,
         fontFamily: 'Arial, sans-serif',
       }}
     >
-      <h1>TSIA V2 Calculator Test</h1>
+      <h1>TSIA Numerology V2</h1>
 
-      <h2>Anushka Das</h2>
-      <p>DOB: 29/03/1983</p>
+      <h2>Permanent Calculation Tests</h2>
 
-      <hr />
+      <div
+        style={{
+          padding: 20,
+          marginTop: 20,
+          marginBottom: 24,
+          border: '2px solid',
+          borderRadius: 12,
+        }}
+      >
+        <h2>
+          {suite.passed
+            ? '✅ ALL TESTS PASSED'
+            : '❌ TEST FAILURE'}
+        </h2>
 
-      <h3>Core Numbers</h3>
-
-      <p>
-        <strong>Mulank:</strong>{' '}
-        {result.mulank.compound} →{' '}
-        {result.mulank.final}
-      </p>
-
-      <p>
-        <strong>Bhagyank:</strong>{' '}
-        {result.bhagyank.compound} →{' '}
-        {result.bhagyank.final}
-      </p>
-
-      <p>
-        <strong>Name Number:</strong>{' '}
-        {result.nameNumber.compoundTotal} →{' '}
-        {result.nameNumber.finalNumber}
-      </p>
-
-      <h3>Chaldean Name Calculation</h3>
-
-      {result.nameNumber.words.map((word) => (
-        <div key={word.word}>
-          <strong>{word.word}</strong>
-          {' = '}
-          {word.letters
-            .map(
-              (item) =>
-                `${item.letter}${item.value}`
-            )
-            .join(' + ')}
-          {' = '}
-          {word.total}
-        </div>
-      ))}
-
-      <h3>Personal Lo Shu Counts</h3>
-
-      <pre>
-        {JSON.stringify(
-          result.loShu.counts,
-          null,
-          2
-        )}
-      </pre>
-
-      <p>
-        <strong>Present:</strong>{' '}
-        {result.loShu.presentNumbers.join(', ')}
-      </p>
-
-      <p>
-        <strong>Missing:</strong>{' '}
-        {result.loShu.missingNumbers.join(', ')}
-      </p>
-
-      <p>
-        <strong>Repeated:</strong>{' '}
-        {JSON.stringify(
-          result.loShu.repeatedNumbers
-        )}
-      </p>
-
-      <h3>Rows</h3>
-
-      <pre>
-        {JSON.stringify(
-          result.rows,
-          null,
-          2
-        )}
-      </pre>
-
-      <h3>Columns</h3>
-
-      <pre>
-        {JSON.stringify(
-          result.columns,
-          null,
-          2
-        )}
-      </pre>
-
-      <h3>Rajyog</h3>
-
-      <pre>
-        {JSON.stringify(
-          result.rajyog,
-          null,
-          2
-        )}
-      </pre>
-
-      <hr />
-
-      <h2>
-        Validation: {validation.status}
-      </h2>
-
-      {validation.checks.map((check) => (
-        <p key={check.name}>
-          {check.passed ? '✅' : '❌'}{' '}
-          <strong>{check.name}:</strong>{' '}
-          {check.message}
+        <p>
+          <strong>
+            {suite.passedTests}/{suite.totalTests}
+          </strong>{' '}
+          tests passed
         </p>
+      </div>
+
+      {suite.results.map((test) => (
+        <section
+          key={test.name}
+          style={{
+            padding: 18,
+            marginBottom: 18,
+            border: '1px solid #ccc',
+            borderRadius: 10,
+          }}
+        >
+          <h3>
+            {test.passed ? '✅' : '❌'}{' '}
+            {test.name}
+          </h3>
+
+          <p>
+            Status:{' '}
+            <strong>
+              {test.passed
+                ? 'PASSED'
+                : 'FAILED'}
+            </strong>
+          </p>
+
+          {test.errors.length > 0 && (
+            <>
+              <h4>Errors</h4>
+
+              {test.errors.map(
+                (error, index) => (
+                  <p key={index}>
+                    ❌ {error}
+                  </p>
+                )
+              )}
+            </>
+          )}
+        </section>
       ))}
 
       <hr />
 
       <p>
-        Calculator Version:{' '}
-        {result.calculationVersion}
+        Calculator Version:
+        {' '}
+        <strong>
+          TSIA_V2_CALC_1.0
+        </strong>
+      </p>
+
+      <p>
+        These tests compare the calculator
+        against independently locked expected
+        TSIA results.
       </p>
     </main>
   )
