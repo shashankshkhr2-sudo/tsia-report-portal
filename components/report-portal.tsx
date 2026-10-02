@@ -1241,11 +1241,13 @@ function GeneratePage({
     useState<string | null>(null)
 
   const [generated, setGenerated] =
-    useState<Awaited<
-      ReturnType<
-        typeof generateNumerologyV2
-      >
-    >['result']>(null)
+    useState<
+      Awaited<
+        ReturnType<
+          typeof generateNumerologyV2
+        >
+      >['result']
+    >(null)
 
   const [generating, startGenerating] =
     useTransition()
@@ -1287,6 +1289,55 @@ function GeneratePage({
     })
   }
 
+  const grahaNames: Record<
+    number,
+    string
+  > = {
+    1: 'Surya',
+    2: 'Chandra',
+    3: 'Guru',
+    4: 'Rahu',
+    5: 'Budh',
+    6: 'Shukra',
+    7: 'Ketu',
+    8: 'Shani',
+    9: 'Mangal',
+  }
+
+  const standardGrid = [
+    [4, 9, 2],
+    [3, 5, 7],
+    [8, 1, 6],
+  ]
+
+  const personalCell = (
+    number: number
+  ) => {
+    if (!generated) {
+      return ''
+    }
+
+    const count =
+      generated.calculation.loShu
+        .counts[number] || 0
+
+    if (count === 0) {
+      return ''
+    }
+
+    return String(number).repeat(
+      count
+    )
+  }
+
+  const repeatedNumbers =
+    generated
+      ? Object.entries(
+          generated.calculation.loShu
+            .repeatedNumbers
+        )
+      : []
+
   return (
     <div className="p-5 sm:p-8 lg:p-10">
       <button
@@ -1299,12 +1350,12 @@ function GeneratePage({
       </button>
 
       <PageTitle
-        eyebrow="Report studio"
-        title="Generate Numerology V2"
-        description="The selected client's saved Full Name and Date of Birth will be used automatically."
+        eyebrow="Employee Analysis"
+        title="Numerology V2 Analysis"
+        description="Review the client's verified numerology calculations and interpretation."
       />
 
-      <div className="max-w-3xl space-y-5">
+      <div className="mx-auto max-w-4xl space-y-5">
         <div className="rounded-2xl border border-[#e8dfd3] bg-white p-6">
           <label className={labelClass}>
             Client
@@ -1324,17 +1375,19 @@ function GeneratePage({
                 Select client
               </option>
 
-              {clients.map((client) => (
-                <option
-                  key={client.id}
-                  value={client.id}
-                >
-                  {client.name}
-                  {client.clientNumber
-                    ? ` — ${client.clientNumber}`
-                    : ''}
-                </option>
-              ))}
+              {clients.map(
+                (client) => (
+                  <option
+                    key={client.id}
+                    value={client.id}
+                  >
+                    {client.name}
+                    {client.clientNumber
+                      ? ` — ${client.clientNumber}`
+                      : ''}
+                  </option>
+                )
+              )}
             </select>
           </label>
 
@@ -1367,11 +1420,10 @@ function GeneratePage({
 
             <span>
               The verified TSIA Version 2
-              engine will calculate Mulank,
-              Bhagyank, Chaldean Name Number,
-              Personal Lo Shu, patterns,
-              Rajyog and the interpretation
-              automatically.
+              engine calculates the core
+              numbers, Personal Lo Shu,
+              patterns, Rajyog and detailed
+              interpretation automatically.
             </span>
           </div>
 
@@ -1401,7 +1453,7 @@ function GeneratePage({
           <div className="overflow-hidden rounded-2xl border border-[#e1d5c4] bg-white shadow-sm">
             <div className="bg-[#24354c] p-6 text-white">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#d6b47b]">
-                TSIA Numerology Version 2
+                TSIA · Employee Analysis
               </p>
 
               <h3 className="mt-2 font-serif text-2xl">
@@ -1416,6 +1468,7 @@ function GeneratePage({
                   .clientNumber ||
                   'TSIA Client'}
                 {' · '}
+                DOB{' '}
                 {
                   generated.client
                     .dateOfBirth
@@ -1425,7 +1478,7 @@ function GeneratePage({
 
             <div className="p-5 sm:p-6">
               <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9a7b4f]">
-                At a Glance
+                Core Numbers
               </p>
 
               <div className="grid grid-cols-3 gap-2">
@@ -1434,11 +1487,21 @@ function GeneratePage({
                     Mulank
                   </p>
 
-                  <p className="mt-1 font-serif text-xl font-semibold text-[#24354c]">
+                  <p className="mt-1 font-serif text-2xl font-semibold text-[#24354c]">
                     {
                       generated
                         .calculation
                         .mulank.final
+                    }
+                  </p>
+
+                  <p className="mt-1 text-[10px] font-semibold text-[#9a7b4f]">
+                    {
+                      grahaNames[
+                        generated
+                          .calculation
+                          .mulank.final
+                      ]
                     }
                   </p>
                 </div>
@@ -1448,11 +1511,21 @@ function GeneratePage({
                     Bhagyank
                   </p>
 
-                  <p className="mt-1 font-serif text-xl font-semibold text-[#24354c]">
+                  <p className="mt-1 font-serif text-2xl font-semibold text-[#24354c]">
                     {
                       generated
                         .calculation
                         .bhagyank.final
+                    }
+                  </p>
+
+                  <p className="mt-1 text-[10px] font-semibold text-[#9a7b4f]">
+                    {
+                      grahaNames[
+                        generated
+                          .calculation
+                          .bhagyank.final
+                      ]
                     }
                   </p>
                 </div>
@@ -1462,7 +1535,7 @@ function GeneratePage({
                     Name No.
                   </p>
 
-                  <p className="mt-1 font-serif text-xl font-semibold text-[#24354c]">
+                  <p className="mt-1 font-serif text-2xl font-semibold text-[#24354c]">
                     {
                       generated
                         .calculation
@@ -1470,38 +1543,167 @@ function GeneratePage({
                         .finalNumber
                     }
                   </p>
+
+                  <p className="mt-1 text-[10px] font-semibold text-[#9a7b4f]">
+                    {
+                      grahaNames[
+                        generated
+                          .calculation
+                          .nameNumber
+                          .finalNumber
+                      ]
+                    }
+                  </p>
                 </div>
               </div>
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-[#eee5d9] p-4">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9a8b7b]">
-                    Missing Numbers
-                  </p>
+              <div className="mt-8 border-t border-[#eee7dc] pt-7">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9a7b4f]">
+                  Lo Shu Analysis
+                </p>
 
-                  <p className="mt-2 text-sm font-semibold text-[#24354c]">
-                    {generated
-                      .calculation
-                      .loShu
-                      .missingNumbers
-                      .length
-                      ? generated
-                          .calculation
-                          .loShu
-                          .missingNumbers
-                          .join(', ')
-                      : 'None'}
-                  </p>
+                <h3 className="mt-2 font-serif text-2xl font-semibold text-[#24354c]">
+                  Standard & Personal Lo Shu
+                </h3>
+
+                <p className="mt-2 text-sm leading-6 text-[#7c7064]">
+                  The Personal Lo Shu uses
+                  the client's DOB digits,
+                  final Mulank and final
+                  Bhagyank. Zero is excluded.
+                </p>
+
+                <div className="mt-6 grid gap-7 sm:grid-cols-2">
+                  <div>
+                    <p className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.12em] text-[#756a5f]">
+                      Standard Lo Shu Grid
+                    </p>
+
+                    <div className="mx-auto grid aspect-square w-full max-w-[280px] grid-cols-3 overflow-hidden rounded-xl border-2 border-[#d3b87e] bg-[#fffdf9]">
+                      {standardGrid
+                        .flat()
+                        .map(
+                          (
+                            number,
+                            index
+                          ) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-center border border-[#e1cfaa] font-serif text-2xl font-semibold text-[#24354c]"
+                            >
+                              {number}
+                            </div>
+                          )
+                        )}
+                    </div>
+
+                    <p className="mt-3 text-center text-[11px] text-[#948779]">
+                      Original reference grid
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.12em] text-[#9a7b4f]">
+                      Personal Lo Shu Grid
+                    </p>
+
+                    <div className="mx-auto grid aspect-square w-full max-w-[280px] grid-cols-3 overflow-hidden rounded-xl border-2 border-[#b28a4b] bg-[#fbf6ec] shadow-sm">
+                      {standardGrid
+                        .flat()
+                        .map(
+                          (
+                            number,
+                            index
+                          ) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-center border border-[#dcc69a] px-1 font-serif text-2xl font-bold text-[#24354c]"
+                            >
+                              {
+                                personalCell(
+                                  number
+                                )
+                              }
+                            </div>
+                          )
+                        )}
+                    </div>
+
+                    <p className="mt-3 text-center text-[11px] text-[#948779]">
+                      DOB + Mulank + Bhagyank
+                    </p>
+                  </div>
                 </div>
 
-                <div className="rounded-xl border border-[#eee5d9] p-4">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9a8b7b]">
-                    Rajyog
-                  </p>
+                <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-xl border border-[#e9dfd0] bg-[#fcfaf6] p-4">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9a8b7b]">
+                      Present
+                    </p>
 
-                  <p className="mt-2 text-xs text-[#5f574d]">
-                    Golden:{' '}
-                    <strong>
+                    <p className="mt-2 text-sm font-semibold text-[#24354c]">
+                      {generated
+                        .calculation
+                        .loShu
+                        .presentNumbers
+                        .join(', ')}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-[#e9dfd0] bg-[#fcfaf6] p-4">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9a8b7b]">
+                      Missing
+                    </p>
+
+                    <p className="mt-2 text-sm font-semibold text-[#24354c]">
+                      {generated
+                        .calculation
+                        .loShu
+                        .missingNumbers
+                        .length
+                        ? generated
+                            .calculation
+                            .loShu
+                            .missingNumbers
+                            .join(', ')
+                        : 'None'}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-[#e9dfd0] bg-[#fcfaf6] p-4">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9a8b7b]">
+                      Repeated
+                    </p>
+
+                    <p className="mt-2 text-sm font-semibold text-[#24354c]">
+                      {repeatedNumbers.length
+                        ? repeatedNumbers
+                            .map(
+                              ([
+                                number,
+                                count,
+                              ]) =>
+                                `${number} × ${count}`
+                            )
+                            .join(' · ')
+                        : 'None'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 border-t border-[#eee7dc] pt-7">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9a7b4f]">
+                  Rajyog
+                </p>
+
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-xl border border-[#e8dfd3] bg-[#fcfaf6] p-4">
+                    <p className="text-xs text-[#8d8174]">
+                      Golden Rajyog · 4-5-6
+                    </p>
+
+                    <p className="mt-1 font-serif text-lg font-semibold capitalize text-[#24354c]">
                       {
                         generated
                           .calculation
@@ -1509,12 +1711,15 @@ function GeneratePage({
                           .golden
                           .status
                       }
-                    </strong>
-                  </p>
+                    </p>
+                  </div>
 
-                  <p className="mt-1 text-xs text-[#5f574d]">
-                    Silver:{' '}
-                    <strong>
+                  <div className="rounded-xl border border-[#e8dfd3] bg-[#fcfaf6] p-4">
+                    <p className="text-xs text-[#8d8174]">
+                      Silver Rajyog · 2-5-8
+                    </p>
+
+                    <p className="mt-1 font-serif text-lg font-semibold capitalize text-[#24354c]">
                       {
                         generated
                           .calculation
@@ -1522,12 +1727,16 @@ function GeneratePage({
                           .silver
                           .status
                       }
-                    </strong>
-                  </p>
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              <div className="mt-6 border-t border-[#eee7dc] pt-6">
+              <div className="mt-8 border-t border-[#eee7dc] pt-7">
+                <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9a7b4f]">
+                  Detailed Employee Analysis
+                </p>
+
                 <p className="text-sm leading-6 text-[#6f665d]">
                   {
                     generated
@@ -1536,7 +1745,7 @@ function GeneratePage({
                   }
                 </p>
 
-                <div className="mt-6 space-y-6">
+                <div className="mt-7 space-y-8">
                   {generated.narrative.sections.map(
                     (section) => (
                       <section
@@ -1544,27 +1753,23 @@ function GeneratePage({
                           section.title
                         }
                       >
-                        <h4 className="font-serif text-lg font-semibold text-[#24354c]">
+                        <h4 className="font-serif text-xl font-semibold text-[#24354c]">
                           {
                             section.title
                           }
                         </h4>
 
-                        <div className="mt-2 space-y-3">
+                        <div className="mt-3 space-y-4">
                           {section.paragraphs.map(
                             (
                               paragraph,
                               index
                             ) => (
                               <p
-                                key={
-                                  index
-                                }
-                                className="text-sm leading-6 text-[#6f665d]"
+                                key={index}
+                                className="text-sm leading-7 text-[#6f665d]"
                               >
-                                {
-                                  paragraph
-                                }
+                                {paragraph}
                               </p>
                             )
                           )}
@@ -1575,11 +1780,12 @@ function GeneratePage({
                 </div>
               </div>
 
-              <div className="mt-7 rounded-xl border border-[#e6d8bd] bg-[#fbf6ec] p-4 text-xs leading-5 text-[#806b48]">
-                Report generated from the
-                verified TSIA Version 2 engine.
-                Saving and PDF generation will
-                be connected next.
+              <div className="mt-8 rounded-xl border border-[#e6d8bd] bg-[#fbf6ec] p-4 text-xs leading-5 text-[#806b48]">
+                Employee analysis generated
+                from the verified TSIA
+                Version 2 engine. The final
+                client report will be
+                generated separately.
               </div>
             </div>
           </div>
