@@ -1,6 +1,10 @@
 // app/numerology-test/page.tsx
 
 import {
+  runNumerologyRegressionTests,
+} from '@/lib/numerology/testcases'
+
+import {
   calculateNumerologyV2,
 } from '@/lib/numerology/calculations'
 
@@ -8,13 +12,32 @@ import {
   buildNumerologyEvidence,
 } from '@/lib/numerology/evidenceengine'
 
-function ClientTest({
-  name,
-  dob,
-}: {
+type EvidenceTestResult = {
   name: string
-  dob: string
-}) {
+  passed: boolean
+  errors: string[]
+}
+
+function sameNumbers(
+  actual: number[],
+  expected: number[]
+) {
+  return (
+    JSON.stringify([...actual].sort()) ===
+    JSON.stringify([...expected].sort())
+  )
+}
+
+function runEvidenceTest(
+  name: string,
+  dob: string,
+  expected: {
+    mulank: number
+    bhagyank: number
+    nameNumber: number
+    developmentNumbers: number[]
+  }
+): EvidenceTestResult {
   const calculation =
     calculateNumerologyV2({
       fullName: name,
@@ -24,144 +47,269 @@ function ClientTest({
   const evidence =
     buildNumerologyEvidence(calculation)
 
-  return (
-    <section
-      style={{
-        border: '1px solid #ccc',
-        borderRadius: 12,
-        padding: 20,
-        marginBottom: 30,
-      }}
-    >
-      <h2>{name}</h2>
-      <p>DOB: {dob}</p>
+  const errors: string[] = []
 
-      <h3>Core Numbers</h3>
+  if (
+    evidence.coreNumbers.mulank !==
+    expected.mulank
+  ) {
+    errors.push(
+      `Mulank expected ${expected.mulank}, got ${evidence.coreNumbers.mulank}.`
+    )
+  }
 
-      <p>
-        Mulank: <strong>
-          {evidence.coreNumbers.mulank}
-        </strong>
-      </p>
+  if (
+    evidence.coreNumbers.bhagyank !==
+    expected.bhagyank
+  ) {
+    errors.push(
+      `Bhagyank expected ${expected.bhagyank}, got ${evidence.coreNumbers.bhagyank}.`
+    )
+  }
 
-      <p>
-        Bhagyank: <strong>
-          {evidence.coreNumbers.bhagyank}
-        </strong>
-      </p>
+  if (
+    evidence.coreNumbers.nameNumber !==
+    expected.nameNumber
+  ) {
+    errors.push(
+      `Name Number expected ${expected.nameNumber}, got ${evidence.coreNumbers.nameNumber}.`
+    )
+  }
 
-      <p>
-        Name Number: <strong>
-          {evidence.coreNumbers.nameNumber}
-        </strong>
-      </p>
+  if (
+    !sameNumbers(
+      evidence.developmentNumbers,
+      expected.developmentNumbers
+    )
+  ) {
+    errors.push(
+      `Development numbers expected ${expected.developmentNumbers.join(
+        ', '
+      )}, got ${evidence.developmentNumbers.join(
+        ', '
+      )}.`
+    )
+  }
 
-      <h3>Strongest Number(s)</h3>
+  if (
+    evidence.numbers.length !== 9
+  ) {
+    errors.push(
+      `Expected 9 number profiles, got ${evidence.numbers.length}.`
+    )
+  }
 
-      <p>
-        <strong>
-          {evidence.strongestNumbers.join(', ')}
-        </strong>
-      </p>
+  if (
+    evidence.rankedNumbers.length !== 9
+  ) {
+    errors.push(
+      `Expected 9 ranked numbers, got ${evidence.rankedNumbers.length}.`
+    )
+  }
 
-      <h3>Development Numbers</h3>
+  if (
+    evidence.strongestNumbers.length === 0
+  ) {
+    errors.push(
+      'No strongest number was identified.'
+    )
+  }
 
-      <p>
-        <strong>
-          {evidence.developmentNumbers.length
-            ? evidence.developmentNumbers.join(', ')
-            : 'None'}
-        </strong>
-      </p>
+  return {
+    name,
+    passed: errors.length === 0,
+    errors,
+  }
+}
 
-      <h3>Evidence Ranking</h3>
+function runEvidenceTests() {
+  const tests: EvidenceTestResult[] = [
+    runEvidenceTest(
+      'Anita Goel',
+      '15/03/1956',
+      {
+        mulank: 6,
+        bhagyank: 3,
+        nameNumber: 3,
+        developmentNumbers: [
+          2, 4, 7, 8,
+        ],
+      }
+    ),
 
-      {evidence.rankedNumbers.map(
-        (item) => (
-          <div
-            key={item.number}
-            style={{
-              marginBottom: 18,
-              paddingBottom: 12,
-              borderBottom:
-                '1px solid #eee',
-            }}
-          >
-            <strong>
-              {item.number} — {item.graha}
-            </strong>
+    runEvidenceTest(
+      'Anushka Das',
+      '29/03/1983',
+      {
+        mulank: 2,
+        bhagyank: 8,
+        nameNumber: 4,
+        developmentNumbers: [
+          4, 5, 6, 7,
+        ],
+      }
+    ),
+  ]
 
-            <div>
-              Internal Score: {item.score}
-            </div>
+  const passedTests =
+    tests.filter(
+      (test) => test.passed
+    ).length
 
-            <div>
-              Lo Shu Count: {item.loShuCount}
-            </div>
+  return {
+    passed:
+      passedTests === tests.length,
 
-            <div>
-              Core:
-              {' '}
-              {item.isMulank
-                ? 'Mulank '
-                : ''}
-              {item.isBhagyank
-                ? 'Bhagyank '
-                : ''}
-              {item.isNameNumber
-                ? 'Name Number'
-                : ''}
-            </div>
+    totalTests:
+      tests.length,
 
-            {item.evidence.length > 0 && (
-              <ul>
-                {item.evidence.map(
-                  (e, index) => (
-                    <li key={index}>
-                      {e.description}
-                      {' '}
-                      (+{e.weight})
-                    </li>
-                  )
-                )}
-              </ul>
-            )}
-          </div>
-        )
-      )}
-    </section>
-  )
+    passedTests,
+
+    failedTests:
+      tests.length - passedTests,
+
+    results: tests,
+  }
 }
 
 export default function NumerologyTestPage() {
+  const calculatorSuite =
+    runNumerologyRegressionTests()
+
+  const evidenceSuite =
+    runEvidenceTests()
+
+  const allPassed =
+    calculatorSuite.passed &&
+    evidenceSuite.passed
+
   return (
     <main
       style={{
         maxWidth: 800,
         margin: '0 auto',
         padding: 24,
-        fontFamily: 'Arial, sans-serif',
+        fontFamily:
+          'Arial, sans-serif',
       }}
     >
       <h1>
-        TSIA V2 Evidence Engine Test
+        TSIA Numerology V2
       </h1>
 
-      <p>
-        Internal development test only.
-        Scores will not appear in client
-        reports.
-      </p>
+      <h2>
+        Permanent Engine Tests
+      </h2>
 
-      <ClientTest
-        name="Anita Goel"
-        dob="15/03/1956"
-      />
+      <div
+        style={{
+          padding: 20,
+          marginTop: 20,
+          marginBottom: 24,
+          border: '2px solid',
+          borderRadius: 12,
+        }}
+      >
+        <h2>
+          {allPassed
+            ? '✅ ALL ENGINE TESTS PASSED'
+            : '❌ ENGINE TEST FAILURE'}
+        </h2>
 
-      <ClientTest
-        name="Anushka Das"
-        dob="29/03/1983"
-      />
-    </main>
-  )
-}
+        <p>
+          Calculator:{' '}
+          <strong>
+            {calculatorSuite.passedTests}/
+            {calculatorSuite.totalTests}
+          </strong>
+        </p>
+
+        <p>
+          Evidence Engine:{' '}
+          <strong>
+            {evidenceSuite.passedTests}/
+            {evidenceSuite.totalTests}
+          </strong>
+        </p>
+      </div>
+
+      <h2>
+        Calculation Tests
+      </h2>
+
+      {calculatorSuite.results.map(
+        (test) => (
+          <section
+            key={`calc-${test.name}`}
+            style={{
+              padding: 18,
+              marginBottom: 18,
+              border:
+                '1px solid #ccc',
+              borderRadius: 10,
+            }}
+          >
+            <h3>
+              {test.passed
+                ? '✅'
+                : '❌'}{' '}
+              {test.name}
+            </h3>
+
+            <p>
+              Status:{' '}
+              <strong>
+                {test.passed
+                  ? 'PASSED'
+                  : 'FAILED'}
+              </strong>
+            </p>
+
+            {test.errors.map(
+              (error, index) => (
+                <p key={index}>
+                  ❌ {error}
+                </p>
+              )
+            )}
+          </section>
+        )
+      )}
+
+      <h2>
+        Evidence Engine Tests
+      </h2>
+
+      {evidenceSuite.results.map(
+        (test) => (
+          <section
+            key={`evidence-${test.name}`}
+            style={{
+              padding: 18,
+              marginBottom: 18,
+              border:
+                '1px solid #ccc',
+              borderRadius: 10,
+            }}
+          >
+            <h3>
+              {test.passed
+                ? '✅'
+                : '❌'}{' '}
+              {test.name}
+            </h3>
+
+            <p>
+              Status:{' '}
+              <strong>
+                {test.passed
+                  ? 'PASSED'
+                  : 'FAILED'}
+              </strong>
+            </p>
+
+            {test.errors.map(
+              (error, index) => (
+                <p key={index}>
+                  ❌ {error}
+                </p>
