@@ -113,9 +113,7 @@ function Sidebar({
 
       <aside
         className={`fixed inset-y-0 left-0 z-40 flex w-[252px] flex-col border-r border-[#e8dfd3] bg-[#fbf8f2] px-5 py-7 transition-transform lg:static lg:translate-x-0 ${
-          open
-            ? 'translate-x-0'
-            : '-translate-x-full'
+          open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="mb-12 flex items-center justify-between px-2">
@@ -135,25 +133,23 @@ function Sidebar({
         </p>
 
         <nav className="flex flex-col gap-1">
-          {items.map(
-            ({ id, label, icon: Icon }) => (
-              <button
-                key={id}
-                onClick={() => {
-                  setView(id)
-                  setOpen(false)
-                }}
-                className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm ${
-                  view === id
-                    ? 'bg-[#24354c] font-medium text-white'
-                    : 'text-[#6d665d] hover:bg-[#f0e9de]'
-                }`}
-              >
-                <Icon className="size-[18px]" />
-                {label}
-              </button>
-            )
-          )}
+          {items.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => {
+                setView(id)
+                setOpen(false)
+              }}
+              className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm ${
+                view === id
+                  ? 'bg-[#24354c] font-medium text-white'
+                  : 'text-[#6d665d] hover:bg-[#f0e9de]'
+              }`}
+            >
+              <Icon className="size-[18px]" />
+              {label}
+            </button>
+          ))}
         </nav>
 
         <div className="mt-auto border-t border-[#e8dfd3] pt-5">
@@ -175,9 +171,7 @@ function Sidebar({
             className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-[#6d665d]"
           >
             <LogOut className="size-[18px]" />
-            {signingOut
-              ? 'Signing out…'
-              : 'Sign out'}
+            {signingOut ? 'Signing out…' : 'Sign out'}
           </button>
 
           <div className="mt-5 flex items-center gap-3 rounded-xl bg-[#f0e9de]/70 p-3">
@@ -282,17 +276,14 @@ function Dashboard({
   fullName,
   clients,
   reports,
-  clearSelectedClient,
 }: {
   setView: (view: View) => void
   fullName: string
   clients: Client[]
   reports: Report[]
-  clearSelectedClient: () => void
 }) {
   const processing = reports.filter(
-    (report) =>
-      report.status === 'Processing'
+    (report) => report.status === 'Processing'
   ).length
 
   return (
@@ -305,9 +296,7 @@ function Dashboard({
         description="Manage clients and prepare personalized TSIA reports."
       >
         <Button
-          onClick={() =>
-            setView('new-client')
-          }
+          onClick={() => setView('new-client')}
           className="h-11 rounded-xl bg-[#24354c] px-5 text-white hover:bg-[#30445f]"
         >
           <Plus className="mr-2 size-4" />
@@ -332,34 +321,28 @@ function Dashboard({
             value: processing,
             icon: Clock3,
           },
-        ].map(
-          ({
-            label,
-            value,
-            icon: Icon,
-          }) => (
-            <div
-              key={label}
-              className="rounded-2xl border border-[#e8dfd3] bg-white p-5"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs text-[#8e8478]">
-                    {label}
-                  </p>
+        ].map(({ label, value, icon: Icon }) => (
+          <div
+            key={label}
+            className="rounded-2xl border border-[#e8dfd3] bg-white p-5"
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs text-[#8e8478]">
+                  {label}
+                </p>
 
-                  <p className="mt-3 font-serif text-3xl font-semibold text-[#24354c]">
-                    {value}
-                  </p>
-                </div>
+                <p className="mt-3 font-serif text-3xl font-semibold text-[#24354c]">
+                  {value}
+                </p>
+              </div>
 
-                <div className="flex size-9 items-center justify-center rounded-xl bg-[#f3eadc] text-[#ad7b40]">
-                  <Icon className="size-[18px]" />
-                </div>
+              <div className="flex size-9 items-center justify-center rounded-xl bg-[#f3eadc] text-[#ad7b40]">
+                <Icon className="size-[18px]" />
               </div>
             </div>
-          )
-        )}
+          </div>
+        ))}
       </div>
 
       <div className="mt-8 rounded-2xl bg-[#24354c] p-6 text-white">
@@ -370,15 +353,11 @@ function Dashboard({
         </h3>
 
         <p className="mt-2 text-sm text-[#c6cbd1]">
-          Generate a personalized report for
-          an existing client.
+          Generate a personalized report for an existing client.
         </p>
 
         <Button
-          onClick={() => {
-            clearSelectedClient()
-            setView('generate')
-          }}
+          onClick={() => setView('generate')}
           className="mt-6 rounded-xl bg-[#d6b47b] text-[#24354c] hover:bg-[#e6c98f]"
         >
           Generate Report
@@ -396,33 +375,28 @@ function ClientsPage({
 }: {
   clients: Client[]
   setView: (view: View) => void
-  onGenerateClient: (
-    clientId: string
-  ) => void
+  onGenerateClient: (clientId: string) => void
 }) {
-  const [searchTerm, setSearchTerm] =
-    useState('')
+  const [searchTerm, setSearchTerm] = useState('')
 
   const normalizedSearch = searchTerm
     .trim()
     .toLowerCase()
 
-  const filteredClients = clients.filter(
-    (client) => {
-      if (!normalizedSearch) return true
+  const filteredClients = clients.filter((client) => {
+    if (!normalizedSearch) return true
 
-      return [
-        client.clientNumber,
-        client.name,
-        client.phone,
-        client.email,
-      ].some((value) =>
-        String(value || '')
-          .toLowerCase()
-          .includes(normalizedSearch)
-      )
-    }
-  )
+    return [
+      client.clientNumber,
+      client.name,
+      client.phone,
+      client.email,
+    ].some((value) =>
+      String(value || '')
+        .toLowerCase()
+        .includes(normalizedSearch)
+    )
+  })
 
   return (
     <div className="p-5 sm:p-8 lg:p-10">
@@ -432,9 +406,7 @@ function ClientsPage({
         description="Manage clients, reports and customer interactions."
       >
         <Button
-          onClick={() =>
-            setView('new-client')
-          }
+          onClick={() => setView('new-client')}
           className="h-11 rounded-xl bg-[#24354c] px-5 text-white hover:bg-[#30445f]"
         >
           <Plus className="mr-2 size-4" />
@@ -449,9 +421,7 @@ function ClientsPage({
           <input
             value={searchTerm}
             onChange={(event) =>
-              setSearchTerm(
-                event.target.value
-              )
+              setSearchTerm(event.target.value)
             }
             placeholder="Search Client ID / Name / Mobile / Email"
             className="h-10 w-full rounded-xl border border-[#e4dbcf] bg-white pl-10 pr-4 text-sm text-[#24354c] outline-none transition focus:border-[#b89a61] focus:ring-2 focus:ring-[#b89a61]/10"
@@ -508,9 +478,7 @@ function ClientsPage({
 
           {clients.length === 0 && (
             <Button
-              onClick={() =>
-                setView('new-client')
-              }
+              onClick={() => setView('new-client')}
               className="mt-5 rounded-xl bg-[#24354c] px-5 text-white hover:bg-[#30445f]"
             >
               <Plus className="mr-2 size-4" />
@@ -520,153 +488,132 @@ function ClientsPage({
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredClients.map(
-            (client) => {
-              const hasWhatsApp =
-                Boolean(
-                  client.whatsapp ||
-                    client.phone
-                )
+          {filteredClients.map((client) => {
+            const hasWhatsApp = Boolean(
+              client.whatsapp || client.phone
+            )
 
-              return (
-                <div
-                  key={client.id}
-                  className="group overflow-hidden rounded-2xl border border-[#e8dfd3] bg-white shadow-sm transition hover:border-[#d9c49b] hover:shadow-md"
-                >
-                  <div className="p-4 sm:p-5">
-                    <div className="flex items-start gap-3 sm:gap-4">
-                      <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#24354c] text-sm font-semibold text-white sm:size-12">
-                        {client.initials ||
-                          'C'}
+            return (
+              <div
+                key={client.id}
+                className="group overflow-hidden rounded-2xl border border-[#e8dfd3] bg-white shadow-sm transition hover:border-[#d9c49b] hover:shadow-md"
+              >
+                <div className="p-4 sm:p-5">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#24354c] text-sm font-semibold text-white sm:size-12">
+                      {client.initials || 'C'}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="truncate font-serif text-lg font-semibold text-[#24354c]">
+                              {client.name}
+                            </h3>
+
+                            {client.clientNumber && (
+                              <span className="rounded-full border border-[#e6d8bd] bg-[#fbf6ec] px-2.5 py-1 text-[10px] font-semibold tracking-wide text-[#8b6d37]">
+                                {client.clientNumber}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#766d63]">
+                            {client.phone ? (
+                              <span>{client.phone}</span>
+                            ) : (
+                              <span className="text-[#aaa095]">
+                                No mobile number
+                              </span>
+                            )}
+
+                            {hasWhatsApp && (
+                              <span className="rounded-full bg-[#f1f7f1] px-2 py-0.5 text-[10px] font-semibold text-[#55705a]">
+                                WhatsApp
+                              </span>
+                            )}
+
+                            {client.email && (
+                              <span className="hidden truncate text-xs text-[#a09588] md:inline">
+                                {client.email}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="shrink-0 lg:text-right">
+                          <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#aaa095]">
+                            Last activity
+                          </div>
+
+                          <div className="mt-1 text-sm font-medium text-[#4e5b6d]">
+                            {client.lastActivity ||
+                              client.joined ||
+                              '—'}
+                          </div>
+                        </div>
                       </div>
 
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                          <div className="min-w-0">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <h3 className="truncate font-serif text-lg font-semibold text-[#24354c]">
-                                {
-                                  client.name
-                                }
-                              </h3>
-
-                              {client.clientNumber && (
-                                <span className="rounded-full border border-[#e6d8bd] bg-[#fbf6ec] px-2.5 py-1 text-[10px] font-semibold tracking-wide text-[#8b6d37]">
-                                  {
-                                    client.clientNumber
-                                  }
-                                </span>
-                              )}
-                            </div>
-
-                            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#766d63]">
-                              {client.phone ? (
-                                <span>
-                                  {
-                                    client.phone
-                                  }
-                                </span>
-                              ) : (
-                                <span className="text-[#aaa095]">
-                                  No mobile
-                                  number
-                                </span>
-                              )}
-
-                              {hasWhatsApp && (
-                                <span className="rounded-full bg-[#f1f7f1] px-2 py-0.5 text-[10px] font-semibold text-[#55705a]">
-                                  WhatsApp
-                                </span>
-                              )}
-
-                              {client.email && (
-                                <span className="hidden truncate text-xs text-[#a09588] md:inline">
-                                  {
-                                    client.email
-                                  }
-                                </span>
-                              )}
-                            </div>
+                      <div className="mt-4 grid grid-cols-3 gap-2 sm:max-w-xl">
+                        <div className="rounded-xl border border-[#eadfc9] bg-[#fcf8ef] px-3 py-2.5">
+                          <div className="text-[10px] font-semibold uppercase tracking-wide text-[#a38a5b]">
+                            Source
                           </div>
 
-                          <div className="shrink-0 lg:text-right">
-                            <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#aaa095]">
-                              Last activity
-                            </div>
-
-                            <div className="mt-1 text-sm font-medium text-[#4e5b6d]">
-                              {client.lastActivity ||
-                                client.joined ||
-                                '—'}
-                            </div>
+                          <div className="mt-1 truncate text-xs font-semibold text-[#5d554b] sm:text-sm">
+                            {client.sourceName || '—'}
                           </div>
                         </div>
 
-                        <div className="mt-4 grid grid-cols-3 gap-2 sm:max-w-xl">
-                          <div className="rounded-xl border border-[#eadfc9] bg-[#fcf8ef] px-3 py-2.5">
-                            <div className="text-[10px] font-semibold uppercase tracking-wide text-[#a38a5b]">
-                              Source
-                            </div>
-
-                            <div className="mt-1 truncate text-xs font-semibold text-[#5d554b] sm:text-sm">
-                              {client.sourceName ||
-                                '—'}
-                            </div>
+                        <div className="rounded-xl border border-[#e2e6ea] bg-[#f7f9fb] px-3 py-2.5">
+                          <div className="text-[10px] font-semibold uppercase tracking-wide text-[#7c8795]">
+                            Reports
                           </div>
 
-                          <div className="rounded-xl border border-[#e2e6ea] bg-[#f7f9fb] px-3 py-2.5">
-                            <div className="text-[10px] font-semibold uppercase tracking-wide text-[#7c8795]">
-                              Reports
-                            </div>
-
-                            <div className="mt-1 text-sm font-semibold text-[#24354c]">
-                              {client.reportCount ??
-                                0}
-                            </div>
-                          </div>
-
-                          <div className="rounded-xl border border-[#ece3da] bg-[#fbf8f5] px-3 py-2.5">
-                            <div className="text-[10px] font-semibold uppercase tracking-wide text-[#97897b]">
-                              Questions
-                            </div>
-
-                            <div className="mt-1 text-sm font-semibold text-[#24354c]">
-                              {client.questionCount ??
-                                0}
-                            </div>
+                          <div className="mt-1 text-sm font-semibold text-[#24354c]">
+                            {client.reportCount ?? 0}
                           </div>
                         </div>
 
-                        <div className="mt-3 flex items-center justify-between gap-3 border-t border-[#f0ebe4] pt-3">
-                          <div className="min-w-0 text-xs text-[#94887b]">
-                            Assigned to{' '}
-                            <span className="font-semibold text-[#5d574f]">
-                              {client.primaryEmployeeName ||
-                                'Not assigned'}
-                            </span>
+                        <div className="rounded-xl border border-[#ece3da] bg-[#fbf8f5] px-3 py-2.5">
+                          <div className="text-[10px] font-semibold uppercase tracking-wide text-[#97897b]">
+                            Questions
                           </div>
 
-                          <button
-                            type="button"
-                            onClick={() =>
-                              onGenerateClient(
-                                client.id
-                              )
-                            }
-                            title={`Generate report for ${client.name}`}
-                            aria-label={`Generate report for ${client.name}`}
-                            className="flex size-9 shrink-0 items-center justify-center rounded-full border border-[#e4d8c5] bg-[#fffdf9] text-[#8f7445] transition group-hover:border-[#cdb47f] group-hover:bg-[#fbf4e6]"
-                          >
-                            <ArrowRight className="size-4" />
-                          </button>
+                          <div className="mt-1 text-sm font-semibold text-[#24354c]">
+                            {client.questionCount ?? 0}
+                          </div>
                         </div>
+                      </div>
+
+                      <div className="mt-3 flex items-center justify-between gap-3 border-t border-[#f0ebe4] pt-3">
+                        <div className="min-w-0 text-xs text-[#94887b]">
+                          Assigned to{' '}
+                          <span className="font-semibold text-[#5d574f]">
+                            {client.primaryEmployeeName ||
+                              'Not assigned'}
+                          </span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            onGenerateClient(client.id)
+                          }
+                          title={`Generate report for ${client.name}`}
+                          aria-label={`Generate report for ${client.name}`}
+                          className="flex size-9 shrink-0 items-center justify-center rounded-full border border-[#e4d8c5] bg-[#fffdf9] text-[#8f7445] transition group-hover:border-[#cdb47f] group-hover:bg-[#fbf4e6]"
+                        >
+                          <ArrowRight className="size-4" />
+                        </button>
                       </div>
                     </div>
                   </div>
                 </div>
-              )
-            }
-          )}
+              </div>
+            )
+          })}
         </div>
       )}
     </div>
@@ -676,11 +623,9 @@ function ClientsPage({
 function ReportsPage({
   reports,
   setView,
-  clearSelectedClient,
 }: {
   reports: Report[]
   setView: (view: View) => void
-  clearSelectedClient: () => void
 }) {
   return (
     <div className="p-5 sm:p-8 lg:p-10">
@@ -690,10 +635,7 @@ function ReportsPage({
         description="Review and manage client reports."
       >
         <Button
-          onClick={() => {
-            clearSelectedClient()
-            setView('generate')
-          }}
+          onClick={() => setView('generate')}
           className="h-11 rounded-xl bg-[#24354c] px-5 text-white hover:bg-[#30445f]"
         >
           <Sparkles className="mr-2 size-4" />
@@ -710,15 +652,11 @@ function ReportsPage({
           </h3>
 
           <p className="mx-auto mt-2 max-w-md text-sm text-[#948779]">
-            Generate a Numerology Version 2
-            report for an existing client.
+            Generate your first Numerology Version 2 report.
           </p>
 
           <Button
-            onClick={() => {
-              clearSelectedClient()
-              setView('generate')
-            }}
+            onClick={() => setView('generate')}
             className="mt-5 rounded-xl bg-[#24354c] px-5 text-white hover:bg-[#30445f]"
           >
             <Sparkles className="mr-2 size-4" />
@@ -744,8 +682,7 @@ function ReportsPage({
                 </h3>
 
                 <p className="mt-1 text-xs text-[#948779]">
-                  {report.version} ·{' '}
-                  {report.date}
+                  {report.version} · {report.date}
                 </p>
               </div>
 
@@ -807,78 +744,47 @@ function NewClientPage({
   clientSources: ClientSourceOption[]
   employees: EmployeeOption[]
 }) {
-  const [fullName, setFullName] =
-    useState('')
-  const [currentName, setCurrentName] =
-    useState('')
+  const [fullName, setFullName] = useState('')
+  const [currentName, setCurrentName] = useState('')
   const [dob, setDob] = useState('')
   const [gender, setGender] = useState('')
-  const [birthTime, setBirthTime] =
-    useState('')
-  const [birthPlace, setBirthPlace] =
-    useState('')
-  const [
-    birthStateRegion,
-    setBirthStateRegion,
-  ] = useState('')
-  const [
-    birthCountry,
-    setBirthCountry,
-  ] = useState('India')
+  const [birthTime, setBirthTime] = useState('')
+  const [birthPlace, setBirthPlace] = useState('')
+  const [birthStateRegion, setBirthStateRegion] = useState('')
+  const [birthCountry, setBirthCountry] = useState('India')
   const [mobile, setMobile] = useState('')
   const [email, setEmail] = useState('')
-  const [sameWhatsapp, setSameWhatsapp] =
-    useState(true)
-  const [whatsapp, setWhatsapp] =
-    useState('')
-  const [sourceId, setSourceId] =
-    useState('')
-  const [referredBy, setReferredBy] =
-    useState('')
-  const [employeeId, setEmployeeId] =
-    useState('')
+  const [sameWhatsapp, setSameWhatsapp] = useState(true)
+  const [whatsapp, setWhatsapp] = useState('')
+  const [sourceId, setSourceId] = useState('')
+  const [referredBy, setReferredBy] = useState('')
+  const [employeeId, setEmployeeId] = useState('')
   const [notes, setNotes] = useState('')
-  const [error, setError] =
-    useState<string | null>(null)
-  const [saving, startSaving] =
-    useTransition()
+  const [error, setError] = useState<string | null>(null)
+  const [saving, startSaving] = useTransition()
 
-  const selectedSource =
-    clientSources.find(
-      (source) =>
-        source.id === sourceId
-    )
+  const selectedSource = clientSources.find(
+    (source) => source.id === sourceId
+  )
 
   const referral =
-    selectedSource?.name
-      .trim()
-      .toLowerCase() === 'referral'
+    selectedSource?.name.trim().toLowerCase() === 'referral'
 
   const save = () => {
-    if (
-      !fullName.trim() ||
-      !dob ||
-      saving
-    ) {
-      return
-    }
+    if (!fullName.trim() || !dob || saving) return
 
     setError(null)
 
     startSaving(async () => {
       const result = await addClient({
         full_name: fullName.trim(),
-        current_name:
-          currentName.trim(),
+        current_name: currentName.trim(),
         date_of_birth: dob,
         gender,
         birth_time: birthTime,
-        birth_place_name:
-          birthPlace.trim(),
-        birth_state_region:
-          birthStateRegion.trim(),
-        birth_country:
-          birthCountry.trim(),
+        birth_place_name: birthPlace.trim(),
+        birth_state_region: birthStateRegion.trim(),
+        birth_country: birthCountry.trim(),
         mobile: mobile.trim(),
         whatsapp_number: sameWhatsapp
           ? mobile.trim()
@@ -888,15 +794,11 @@ function NewClientPage({
         referred_by: referral
           ? referredBy.trim()
           : '',
-        primary_employee_id:
-          employeeId,
+        primary_employee_id: employeeId,
         notes: notes.trim(),
       })
 
-      if (
-        result.error ||
-        !result.client
-      ) {
+      if (result.error || !result.client) {
         setError(
           result.error ||
             'Unable to save client.'
@@ -904,71 +806,53 @@ function NewClientPage({
         return
       }
 
-      const assignedEmployee =
-        employees.find(
-          (employee) =>
-            employee.id ===
-            result.client
-              ?.primary_employee_id
-        )
+      const assignedEmployee = employees.find(
+        (employee) =>
+          employee.id ===
+          result.client?.primary_employee_id
+      )
 
       onAddClient({
         id: result.client.id,
         clientNumber:
-          result.client
-            .client_number ||
+          result.client.client_number ||
           undefined,
-        name:
-          result.client.full_name,
+        name: result.client.full_name,
         currentName:
-          result.client
-            .current_name ||
+          result.client.current_name ||
           undefined,
         initials: getInitials(
           result.client.full_name
         ),
-        dob:
-          result.client
-            .date_of_birth,
+        dob: result.client.date_of_birth,
         gender:
-          result.client.gender ||
-          undefined,
+          result.client.gender || undefined,
         birthTime:
-          result.client
-            .birth_time ||
+          result.client.birth_time ||
           undefined,
         birthPlace:
-          result.client
-            .birth_place_name ||
+          result.client.birth_place_name ||
           undefined,
         birthStateRegion:
-          result.client
-            .birth_state_region ||
+          result.client.birth_state_region ||
           undefined,
         birthCountry:
-          result.client
-            .birth_country ||
+          result.client.birth_country ||
           undefined,
-        phone:
-          result.client.mobile || '',
+        phone: result.client.mobile || '',
         whatsapp:
-          result.client
-            .whatsapp_number ||
+          result.client.whatsapp_number ||
           undefined,
-        email:
-          result.client.email || '',
+        email: result.client.email || '',
         sourceId:
           result.client.source_id ||
           undefined,
-        sourceName:
-          selectedSource?.name,
+        sourceName: selectedSource?.name,
         referredBy:
-          result.client
-            .referred_by ||
+          result.client.referred_by ||
           undefined,
         primaryEmployeeId:
-          result.client
-            .primary_employee_id ||
+          result.client.primary_employee_id ||
           undefined,
         primaryEmployeeName:
           assignedEmployee?.fullName,
@@ -977,11 +861,9 @@ function NewClientPage({
         lastActivity: new Date(
           result.client.created_at
         ).toLocaleDateString(),
-        notes:
-          result.client.notes || '',
+        notes: result.client.notes || '',
         status:
-          result.client.status ===
-          'inactive'
+          result.client.status === 'inactive'
             ? 'inactive'
             : 'active',
         joined: new Date(
@@ -997,9 +879,7 @@ function NewClientPage({
   return (
     <div className="p-5 sm:p-8 lg:p-10">
       <button
-        onClick={() =>
-          setView('clients')
-        }
+        onClick={() => setView('clients')}
         className="mb-6 text-xs font-semibold text-[#9a7b4f]"
       >
         ← Back to Clients
@@ -1019,8 +899,7 @@ function NewClientPage({
             </p>
 
             <p className="mt-1 text-xs text-[#948779]">
-              Generated automatically after
-              saving.
+              Generated automatically after saving.
             </p>
           </div>
 
@@ -1034,16 +913,12 @@ function NewClientPage({
           title="Personal Details"
           description="Basic identity information for the master client record."
         >
-          <label
-            className={`${labelClass} sm:col-span-2`}
-          >
+          <label className={`${labelClass} sm:col-span-2`}>
             Full Name / Birth Name *
             <input
               value={fullName}
               onChange={(e) =>
-                setFullName(
-                  e.target.value
-                )
+                setFullName(e.target.value)
               }
               placeholder="Enter client's full name"
               className={inputClass}
@@ -1055,9 +930,7 @@ function NewClientPage({
             <input
               value={currentName}
               onChange={(e) =>
-                setCurrentName(
-                  e.target.value
-                )
+                setCurrentName(e.target.value)
               }
               placeholder="If different"
               className={inputClass}
@@ -1081,24 +954,16 @@ function NewClientPage({
             <select
               value={gender}
               onChange={(e) =>
-                setGender(
-                  e.target.value
-                )
+                setGender(e.target.value)
               }
               className={inputClass}
             >
-              <option value="">
-                Select
-              </option>
-              <option value="male">
-                Male
-              </option>
+              <option value="">Select</option>
+              <option value="male">Male</option>
               <option value="female">
                 Female
               </option>
-              <option value="other">
-                Other
-              </option>
+              <option value="other">Other</option>
               <option value="prefer_not_to_say">
                 Prefer not to say
               </option>
@@ -1117,9 +982,7 @@ function NewClientPage({
               type="time"
               value={birthTime}
               onChange={(e) =>
-                setBirthTime(
-                  e.target.value
-                )
+                setBirthTime(e.target.value)
               }
               className={inputClass}
             />
@@ -1130,9 +993,7 @@ function NewClientPage({
             <input
               value={birthPlace}
               onChange={(e) =>
-                setBirthPlace(
-                  e.target.value
-                )
+                setBirthPlace(e.target.value)
               }
               placeholder="City / Town"
               className={inputClass}
@@ -1158,9 +1019,7 @@ function NewClientPage({
             <input
               value={birthCountry}
               onChange={(e) =>
-                setBirthCountry(
-                  e.target.value
-                )
+                setBirthCountry(e.target.value)
               }
               className={inputClass}
             />
@@ -1178,9 +1037,7 @@ function NewClientPage({
               type="tel"
               value={mobile}
               onChange={(e) =>
-                setMobile(
-                  e.target.value
-                )
+                setMobile(e.target.value)
               }
               placeholder="+91"
               className={inputClass}
@@ -1193,9 +1050,7 @@ function NewClientPage({
               type="email"
               value={email}
               onChange={(e) =>
-                setEmail(
-                  e.target.value
-                )
+                setEmail(e.target.value)
               }
               placeholder="name@email.com"
               className={inputClass}
@@ -1213,22 +1068,18 @@ function NewClientPage({
               }
               className="size-4 accent-[#24354c]"
             />
-            WhatsApp number is the same as
-            mobile
+
+            WhatsApp number is the same as mobile
           </label>
 
           {!sameWhatsapp && (
-            <label
-              className={`${labelClass} sm:col-span-2`}
-            >
+            <label className={`${labelClass} sm:col-span-2`}>
               WhatsApp Number
               <input
                 type="tel"
                 value={whatsapp}
                 onChange={(e) =>
-                  setWhatsapp(
-                    e.target.value
-                  )
+                  setWhatsapp(e.target.value)
                 }
                 placeholder="+91"
                 className={inputClass}
@@ -1247,9 +1098,7 @@ function NewClientPage({
             <select
               value={sourceId}
               onChange={(e) =>
-                setSourceId(
-                  e.target.value
-                )
+                setSourceId(e.target.value)
               }
               className={inputClass}
             >
@@ -1257,16 +1106,14 @@ function NewClientPage({
                 Select source
               </option>
 
-              {clientSources.map(
-                (source) => (
-                  <option
-                    key={source.id}
-                    value={source.id}
-                  >
-                    {source.name}
-                  </option>
-                )
-              )}
+              {clientSources.map((source) => (
+                <option
+                  key={source.id}
+                  value={source.id}
+                >
+                  {source.name}
+                </option>
+              ))}
             </select>
           </label>
 
@@ -1292,16 +1139,13 @@ function NewClientPage({
           title="Assignment"
           description="Select the primary TSIA employee responsible for this client."
         >
-          <label
-            className={`${labelClass} sm:col-span-2`}
-          >
+          <label className={`${labelClass} sm:col-span-2`}>
             Primary Assigned Employee
+
             <select
               value={employeeId}
               onChange={(e) =>
-                setEmployeeId(
-                  e.target.value
-                )
+                setEmployeeId(e.target.value)
               }
               className={inputClass}
             >
@@ -1309,19 +1153,17 @@ function NewClientPage({
                 Assign to me
               </option>
 
-              {employees.map(
-                (employee) => (
-                  <option
-                    key={employee.id}
-                    value={employee.id}
-                  >
-                    {employee.fullName}
-                    {employee.specialization
-                      ? ` — ${employee.specialization}`
-                      : ''}
-                  </option>
-                )
-              )}
+              {employees.map((employee) => (
+                <option
+                  key={employee.id}
+                  value={employee.id}
+                >
+                  {employee.fullName}
+                  {employee.specialization
+                    ? ` — ${employee.specialization}`
+                    : ''}
+                </option>
+              ))}
             </select>
           </label>
         </Section>
@@ -1331,17 +1173,14 @@ function NewClientPage({
           title="Internal Notes"
           description="Private notes for the TSIA team. Not visible to the customer."
         >
-          <label
-            className={`${labelClass} sm:col-span-2`}
-          >
+          <label className={`${labelClass} sm:col-span-2`}>
             Notes
+
             <textarea
               rows={4}
               value={notes}
               onChange={(e) =>
-                setNotes(
-                  e.target.value
-                )
+                setNotes(e.target.value)
               }
               placeholder="Internal notes..."
               className="w-full resize-none rounded-xl border border-[#e5dccf] px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-[#d6b47b]/20"
@@ -1395,33 +1234,26 @@ function GeneratePage({
   setView: (view: View) => void
   initialClientId: string
 }) {
-  const [
-    selectedClientId,
-    setSelectedClientId,
-  ] = useState(initialClientId)
+  const [selectedClientId, setSelectedClientId] =
+    useState(initialClientId)
 
   const [error, setError] =
     useState<string | null>(null)
 
   const [generated, setGenerated] =
-    useState<
-      Awaited<
-        ReturnType<
-          typeof generateNumerologyV2
-        >
-      >['result']
-    >(null)
+    useState<Awaited<
+      ReturnType<
+        typeof generateNumerologyV2
+      >
+    >['result']>(null)
 
-  const [
-    generating,
-    startGenerating,
-  ] = useTransition()
+  const [generating, startGenerating] =
+    useTransition()
 
-  const selectedClient =
-    clients.find(
-      (client) =>
-        client.id === selectedClientId
-    )
+  const selectedClient = clients.find(
+    (client) =>
+      client.id === selectedClientId
+  )
 
   const generate = () => {
     if (
@@ -1469,80 +1301,65 @@ function GeneratePage({
       <PageTitle
         eyebrow="Report studio"
         title="Generate Numerology V2"
-        description={
-          selectedClient
-            ? `Generate the verified TSIA Numerology Version 2 report for ${selectedClient.name}.`
-            : 'Select a client to generate a verified TSIA Numerology Version 2 report.'
-        }
+        description="The selected client's saved Full Name and Date of Birth will be used automatically."
       />
 
       <div className="max-w-3xl space-y-5">
         <div className="rounded-2xl border border-[#e8dfd3] bg-white p-6">
-          {selectedClient ? (
-            <div className="rounded-xl border border-[#eadfc9] bg-[#fcf8ef] p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#24354c] text-sm font-semibold text-white">
-                  {selectedClient.initials ||
-                    getInitials(
-                      selectedClient.name
-                    )}
-                </div>
+          <label className={labelClass}>
+            Client
 
-                <div className="min-w-0">
-                  <p className="font-serif text-lg font-semibold text-[#24354c]">
-                    {selectedClient.name}
+            <select
+              value={selectedClientId}
+              onChange={(event) => {
+                setSelectedClientId(
+                  event.target.value
+                )
+                setError(null)
+                setGenerated(null)
+              }}
+              className={inputClass}
+            >
+              <option value="">
+                Select client
+              </option>
+
+              {clients.map((client) => (
+                <option
+                  key={client.id}
+                  value={client.id}
+                >
+                  {client.name}
+                  {client.clientNumber
+                    ? ` — ${client.clientNumber}`
+                    : ''}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {selectedClient && (
+            <div className="mt-4 rounded-xl border border-[#eee4d6] bg-[#f8f4ed] p-4">
+              <p className="font-serif text-lg font-semibold text-[#24354c]">
+                {selectedClient.name}
+              </p>
+
+              <div className="mt-2 space-y-1 text-xs text-[#7c7064]">
+                {selectedClient.clientNumber && (
+                  <p>
+                    Client ID:{' '}
+                    {
+                      selectedClient.clientNumber
+                    }
                   </p>
+                )}
 
-                  <p className="mt-1 text-xs text-[#84776a]">
-                    {selectedClient.clientNumber ||
-                      'TSIA Client'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-4 border-t border-[#eadfc9] pt-3">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#a38a5b]">
-                  Date of Birth
-                </p>
-
-                <p className="mt-1 text-sm font-medium text-[#4f4a44]">
+                <p>
+                  Date of Birth:{' '}
                   {selectedClient.dob}
                 </p>
               </div>
             </div>
-          ) : (
-            <label className={labelClass}>
-              Client
-              <select
-                value={selectedClientId}
-                onChange={(event) => {
-                  setSelectedClientId(
-                    event.target.value
-                  )
-                  setError(null)
-                  setGenerated(null)
-                }}
-                className={inputClass}
-              >
-                <option value="">
-                  Select client
-                </option>
-
-                {clients.map(
-                  (client) => (
-                    <option
-                      key={client.id}
-                      value={client.id}
-                    >
-                      {client.name}
-                      {client.clientNumber
-                        ? ` — ${client.clientNumber}`
-                        : ''}
-                    </option>
-                  )
-                )}
-              </select>
-            </label>
           )}
 
           <div className="mt-5 flex gap-3 rounded-xl bg-[#f5f0e8] p-4 text-xs leading-5 text-[#7c6d5b]">
@@ -1550,9 +1367,11 @@ function GeneratePage({
 
             <span>
               The verified TSIA Version 2
-              engine will use the saved Full
-              Name and Date of Birth. No data
-              needs to be entered again.
+              engine will calculate Mulank,
+              Bhagyank, Chaldean Name Number,
+              Personal Lo Shu, patterns,
+              Rajyog and the interpretation
+              automatically.
             </span>
           </div>
 
@@ -1718,53 +1537,49 @@ function GeneratePage({
                 </p>
 
                 <div className="mt-6 space-y-6">
-                  {generated
-                    .narrative
-                    .sections
-                    .map(
-                      (section) => (
-                        <section
-                          key={
+                  {generated.narrative.sections.map(
+                    (section) => (
+                      <section
+                        key={
+                          section.title
+                        }
+                      >
+                        <h4 className="font-serif text-lg font-semibold text-[#24354c]">
+                          {
                             section.title
                           }
-                        >
-                          <h4 className="font-serif text-lg font-semibold text-[#24354c]">
-                            {
-                              section.title
-                            }
-                          </h4>
+                        </h4>
 
-                          <div className="mt-2 space-y-3">
-                            {section.paragraphs.map(
-                              (
-                                paragraph,
-                                index
-                              ) => (
-                                <p
-                                  key={
-                                    index
-                                  }
-                                  className="text-sm leading-6 text-[#6f665d]"
-                                >
-                                  {
-                                    paragraph
-                                  }
-                                </p>
-                              )
-                            )}
-                          </div>
-                        </section>
-                      )
-                    )}
+                        <div className="mt-2 space-y-3">
+                          {section.paragraphs.map(
+                            (
+                              paragraph,
+                              index
+                            ) => (
+                              <p
+                                key={
+                                  index
+                                }
+                                className="text-sm leading-6 text-[#6f665d]"
+                              >
+                                {
+                                  paragraph
+                                }
+                              </p>
+                            )
+                          )}
+                        </div>
+                      </section>
+                    )
+                  )}
                 </div>
               </div>
 
               <div className="mt-7 rounded-xl border border-[#e6d8bd] bg-[#fbf6ec] p-4 text-xs leading-5 text-[#806b48]">
                 Report generated from the
-                verified TSIA Version 2
-                engine. Saving and PDF
-                generation will be connected
-                next.
+                verified TSIA Version 2 engine.
+                Saving and PDF generation will
+                be connected next.
               </div>
             </div>
           </div>
@@ -1801,13 +1616,13 @@ export function ReportPortal({
   const [open, setOpen] =
     useState(false)
 
-  const [
-    selectedClientId,
-    setSelectedClientId,
-  ] = useState('')
-
   const [clientList, setClientList] =
     useState<Client[]>(clients)
+
+  const [
+    selectedReportClientId,
+    setSelectedReportClientId,
+  ] = useState('')
 
   const addLocalClient = (
     client: Client
@@ -1818,15 +1633,23 @@ export function ReportPortal({
     ])
   }
 
-  const openClientReport = (
+  const openGenerateForClient = (
     clientId: string
   ) => {
-    setSelectedClientId(clientId)
+    setSelectedReportClientId(
+      clientId
+    )
     setView('generate')
   }
 
-  const clearSelectedClient = () => {
-    setSelectedClientId('')
+  const changeView = (
+    nextView: View
+  ) => {
+    if (nextView === 'generate') {
+      setSelectedReportClientId('')
+    }
+
+    setView(nextView)
   }
 
   return (
@@ -1834,7 +1657,7 @@ export function ReportPortal({
       <div className="flex min-h-screen">
         <Sidebar
           view={view}
-          setView={setView}
+          setView={changeView}
           open={open}
           setOpen={setOpen}
           fullName={fullName}
@@ -1851,32 +1674,42 @@ export function ReportPortal({
             {view ===
               'dashboard' && (
               <Dashboard
-                setView={setView}
-                fullName={fullName}
-                clients={clientList}
-                reports={reports}
-                clearSelectedClient={
-                  clearSelectedClient
+                setView={
+                  changeView
+                }
+                fullName={
+                  fullName
+                }
+                clients={
+                  clientList
+                }
+                reports={
+                  reports
                 }
               />
             )}
 
             {view === 'clients' && (
               <ClientsPage
-                clients={clientList}
-                setView={setView}
+                clients={
+                  clientList
+                }
+                setView={
+                  changeView
+                }
                 onGenerateClient={
-                  openClientReport
+                  openGenerateForClient
                 }
               />
             )}
 
             {view === 'reports' && (
               <ReportsPage
-                reports={reports}
-                setView={setView}
-                clearSelectedClient={
-                  clearSelectedClient
+                reports={
+                  reports
+                }
+                setView={
+                  changeView
                 }
               />
             )}
@@ -1884,27 +1717,36 @@ export function ReportPortal({
             {view ===
               'new-client' && (
               <NewClientPage
-                setView={setView}
+                setView={
+                  changeView
+                }
                 onAddClient={
                   addLocalClient
                 }
                 clientSources={
                   clientSources
                 }
-                employees={employees}
+                employees={
+                  employees
+                }
               />
             )}
 
-            {view === 'generate' && (
+            {view ===
+              'generate' && (
               <GeneratePage
                 key={
-                  selectedClientId ||
-                  'manual'
+                  selectedReportClientId ||
+                  'general'
                 }
-                clients={clientList}
-                setView={setView}
+                clients={
+                  clientList
+                }
+                setView={
+                  changeView
+                }
                 initialClientId={
-                  selectedClientId
+                  selectedReportClientId
                 }
               />
             )}
