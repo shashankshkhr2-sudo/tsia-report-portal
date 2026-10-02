@@ -2,7 +2,7 @@
 
 import {
   runNumerologyRegressionTests,
-} from '@/lib/numerology/test-cases'
+} from '@/lib/numerology/testcases'
 
 export default function NumerologyTestPage() {
   const suite = runNumerologyRegressionTests()
@@ -17,7 +17,6 @@ export default function NumerologyTestPage() {
       }}
     >
       <h1>TSIA Numerology V2</h1>
-
       <h2>Permanent Calculation Tests</h2>
 
       <div
@@ -86,11 +85,8 @@ export default function NumerologyTestPage() {
       <hr />
 
       <p>
-        Calculator Version:
-        {' '}
-        <strong>
-          TSIA_V2_CALC_1.0
-        </strong>
+        Calculator Version:{' '}
+        <strong>TSIA_V2_CALC_1.0</strong>
       </p>
 
       <p>
