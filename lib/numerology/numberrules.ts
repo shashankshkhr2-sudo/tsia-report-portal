@@ -118,4 +118,4 @@ export const NUMBER_RULES: Record<
       'sharing knowledge',
     ],
 
-    repetitionStrength
+    repetitionStrengths: [
