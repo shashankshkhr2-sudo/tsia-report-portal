@@ -10,6 +10,10 @@ import {
   buildNumerologyEvidence,
 } from '@/lib/numerology/evidenceengine'
 
+import {
+  buildNumerologyV2ReportContent,
+} from '@/lib/numerology/reportcontent'
+
 type TestResult = {
   name: string
   passed: boolean
@@ -93,11 +97,140 @@ function evidenceTest(
     )
   }
 
+  return {
+    name,
+    passed: errors.length === 0,
+    errors,
+  }
+}
+
+function reportContentTest(
+  name: string,
+  dob: string,
+  expected: {
+    mulank: string
+    bhagyank: string
+    nameNumber: string
+    missing: number[]
+    golden: string
+    silver: string
+  }
+): TestResult {
+  const calculation =
+    calculateNumerologyV2({
+      fullName: name,
+      dateOfBirth: dob,
+    })
+
+  const evidence =
+    buildNumerologyEvidence(calculation)
+
+  const report =
+    buildNumerologyV2ReportContent(
+      calculation,
+      evidence
+    )
+
+  const errors: string[] = []
+
   if (
-    evidence.strongestNumbers.length < 1
+    report.reportVersion !==
+    'TSIA_NUMEROLOGY_V2'
   ) {
     errors.push(
-      'Strongest number missing'
+      'Report version mismatch'
+    )
+  }
+
+  if (
+    report.client.fullName !== name
+  ) {
+    errors.push(
+      'Client name mismatch'
+    )
+  }
+
+  if (
+    report.atAGlance.mulank.value !==
+    expected.mulank
+  ) {
+    errors.push(
+      'Report Mulank mismatch'
+    )
+  }
+
+  if (
+    report.atAGlance.bhagyank.value !==
+    expected.bhagyank
+  ) {
+    errors.push(
+      'Report Bhagyank mismatch'
+    )
+  }
+
+  if (
+    report.atAGlance.nameNumber.value !==
+    expected.nameNumber
+  ) {
+    errors.push(
+      'Report Name Number mismatch'
+    )
+  }
+
+  if (
+    !sameNumbers(
+      report.loShu.missingNumbers,
+      expected.missing
+    )
+  ) {
+    errors.push(
+      'Report missing numbers mismatch'
+    )
+  }
+
+  const golden =
+    report.patterns.rajyogs.find(
+      (item) =>
+        item.name === 'Golden Rajyog'
+    )
+
+  const silver =
+    report.patterns.rajyogs.find(
+      (item) =>
+        item.name === 'Silver Rajyog'
+    )
+
+  if (
+    golden?.status !==
+    expected.golden
+  ) {
+    errors.push(
+      'Golden Rajyog mismatch'
+    )
+  }
+
+  if (
+    silver?.status !==
+    expected.silver
+  ) {
+    errors.push(
+      'Silver Rajyog mismatch'
+    )
+  }
+
+  if (
+    report.coreNumbers.length < 1
+  ) {
+    errors.push(
+      'Core number profiles missing'
+    )
+  }
+
+  if (
+    report.grahaAnalysis.length < 1
+  ) {
+    errors.push(
+      'Graha analysis missing'
     )
   }
 
@@ -109,7 +242,7 @@ function evidenceTest(
 }
 
 function runEvidenceTests() {
-  const results = [
+  return [
     evidenceTest(
       'Anita Goel',
       '15/03/1956',
@@ -132,17 +265,44 @@ function runEvidenceTests() {
       }
     ),
   ]
+}
 
-  const passed =
-    results.filter(
-      (item) => item.passed
-    ).length
+function runReportTests() {
+  return [
+    reportContentTest(
+      'Anita Goel',
+      '15/03/1956',
+      {
+        mulank: '15/6',
+        bhagyank: '30/3',
+        nameNumber: '30/3',
+        missing: [2, 4, 7, 8],
+        golden: 'partial',
+        silver: 'absent',
+      }
+    ),
 
-  return {
-    results,
-    passed,
-    total: results.length,
-  }
+    reportContentTest(
+      'Anushka Das',
+      '29/03/1983',
+      {
+        mulank: '29/2',
+        bhagyank: '35/8',
+        nameNumber: '31/4',
+        missing: [4, 5, 6, 7],
+        golden: 'absent',
+        silver: 'partial',
+      }
+    ),
+  ]
+}
+
+function countPassed(
+  tests: TestResult[]
+) {
+  return tests.filter(
+    (test) => test.passed
+  ).length
 }
 
 export default function NumerologyTestPage() {
@@ -152,9 +312,45 @@ export default function NumerologyTestPage() {
   const evidence =
     runEvidenceTests()
 
+  const reports =
+    runReportTests()
+
+  const evidencePassed =
+    countPassed(evidence)
+
+  const reportPassed =
+    countPassed(reports)
+
   const allPassed =
     calculator.passed &&
-    evidence.passed === evidence.total
+    evidencePassed === evidence.length &&
+    reportPassed === reports.length
+
+  const showTests = (
+    title: string,
+    tests: TestResult[]
+  ) => (
+    <>
+      <h2>{title}</h2>
+
+      {tests.map((test) => (
+        <div key={`${title}-${test.name}`}>
+          <p>
+            {test.passed ? '✅' : '❌'}{' '}
+            <strong>{test.name}</strong>
+          </p>
+
+          {test.errors.map(
+            (error, index) => (
+              <p key={index}>
+                ❌ {error}
+              </p>
+            )
+          )}
+        </div>
+      ))}
+    </>
+  )
 
   return (
     <main
@@ -194,8 +390,16 @@ export default function NumerologyTestPage() {
         <p>
           Evidence Engine:{' '}
           <strong>
-            {evidence.passed}/
-            {evidence.total}
+            {evidencePassed}/
+            {evidence.length}
+          </strong>
+        </p>
+
+        <p>
+          Report Content:{' '}
+          <strong>
+            {reportPassed}/
+            {reports.length}
           </strong>
         </p>
       </div>
@@ -204,7 +408,7 @@ export default function NumerologyTestPage() {
 
       {calculator.results.map(
         (test) => (
-          <div key={test.name}>
+          <div key={`calc-${test.name}`}>
             <p>
               {test.passed ? '✅' : '❌'}{' '}
               <strong>{test.name}</strong>
@@ -221,32 +425,23 @@ export default function NumerologyTestPage() {
         )
       )}
 
-      <h2>Evidence Engine Tests</h2>
+      {showTests(
+        'Evidence Engine Tests',
+        evidence
+      )}
 
-      {evidence.results.map(
-        (test) => (
-          <div key={test.name}>
-            <p>
-              {test.passed ? '✅' : '❌'}{' '}
-              <strong>{test.name}</strong>
-            </p>
-
-            {test.errors.map(
-              (error, index) => (
-                <p key={index}>
-                  ❌ {error}
-                </p>
-              )
-            )}
-          </div>
-        )
+      {showTests(
+        'Report Content Tests',
+        reports
       )}
 
       <hr />
 
       <p>
         Calculator Version:{' '}
-        <strong>TSIA_V2_CALC_1.0</strong>
+        <strong>
+          TSIA_V2_CALC_1.0
+        </strong>
       </p>
     </main>
   )
