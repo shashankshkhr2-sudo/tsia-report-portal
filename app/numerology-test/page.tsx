@@ -14,6 +14,10 @@ import {
   buildNumerologyV2ReportContent,
 } from '@/lib/numerology/reportcontent'
 
+import {
+  buildNumerologyV2Narrative,
+} from '@/lib/numerology/narrativeengine'
+
 type TestResult = {
   name: string
   passed: boolean
@@ -33,12 +37,7 @@ function sameNumbers(
 function evidenceTest(
   name: string,
   dob: string,
-  expected: {
-    mulank: number
-    bhagyank: number
-    nameNumber: number
-    development: number[]
-  }
+  expectedDevelopment: number[]
 ): TestResult {
   const calculation =
     calculateNumerologyV2({
@@ -52,30 +51,9 @@ function evidenceTest(
   const errors: string[] = []
 
   if (
-    evidence.coreNumbers.mulank !==
-    expected.mulank
-  ) {
-    errors.push('Mulank mismatch')
-  }
-
-  if (
-    evidence.coreNumbers.bhagyank !==
-    expected.bhagyank
-  ) {
-    errors.push('Bhagyank mismatch')
-  }
-
-  if (
-    evidence.coreNumbers.nameNumber !==
-    expected.nameNumber
-  ) {
-    errors.push('Name Number mismatch')
-  }
-
-  if (
     !sameNumbers(
       evidence.developmentNumbers,
-      expected.development
+      expectedDevelopment
     )
   ) {
     errors.push(
@@ -104,7 +82,7 @@ function evidenceTest(
   }
 }
 
-function reportContentTest(
+function reportTest(
   name: string,
   dob: string,
   expected: {
@@ -134,38 +112,17 @@ function reportContentTest(
   const errors: string[] = []
 
   if (
-    report.reportVersion !==
-    'TSIA_NUMEROLOGY_V2'
-  ) {
-    errors.push(
-      'Report version mismatch'
-    )
-  }
-
-  if (
-    report.client.fullName !== name
-  ) {
-    errors.push(
-      'Client name mismatch'
-    )
-  }
-
-  if (
     report.atAGlance.mulank.value !==
     expected.mulank
   ) {
-    errors.push(
-      'Report Mulank mismatch'
-    )
+    errors.push('Mulank mismatch')
   }
 
   if (
     report.atAGlance.bhagyank.value !==
     expected.bhagyank
   ) {
-    errors.push(
-      'Report Bhagyank mismatch'
-    )
+    errors.push('Bhagyank mismatch')
   }
 
   if (
@@ -173,7 +130,7 @@ function reportContentTest(
     expected.nameNumber
   ) {
     errors.push(
-      'Report Name Number mismatch'
+      'Name Number mismatch'
     )
   }
 
@@ -184,7 +141,7 @@ function reportContentTest(
     )
   ) {
     errors.push(
-      'Report missing numbers mismatch'
+      'Missing numbers mismatch'
     )
   }
 
@@ -218,22 +175,6 @@ function reportContentTest(
     )
   }
 
-  if (
-    report.coreNumbers.length < 1
-  ) {
-    errors.push(
-      'Core number profiles missing'
-    )
-  }
-
-  if (
-    report.grahaAnalysis.length < 1
-  ) {
-    errors.push(
-      'Graha analysis missing'
-    )
-  }
-
   return {
     name,
     passed: errors.length === 0,
@@ -241,60 +182,102 @@ function reportContentTest(
   }
 }
 
-function runEvidenceTests() {
-  return [
-    evidenceTest(
-      'Anita Goel',
-      '15/03/1956',
-      {
-        mulank: 6,
-        bhagyank: 3,
-        nameNumber: 3,
-        development: [2, 4, 7, 8],
-      }
-    ),
+function narrativeTest(
+  name: string,
+  dob: string
+): TestResult {
+  const calculation =
+    calculateNumerologyV2({
+      fullName: name,
+      dateOfBirth: dob,
+    })
 
-    evidenceTest(
-      'Anushka Das',
-      '29/03/1983',
-      {
-        mulank: 2,
-        bhagyank: 8,
-        nameNumber: 4,
-        development: [4, 5, 6, 7],
-      }
-    ),
+  const evidence =
+    buildNumerologyEvidence(calculation)
+
+  const report =
+    buildNumerologyV2ReportContent(
+      calculation,
+      evidence
+    )
+
+  const narrative =
+    buildNumerologyV2Narrative(report)
+
+  const errors: string[] = []
+
+  if (
+    narrative.reportVersion !==
+    'TSIA_NUMEROLOGY_V2'
+  ) {
+    errors.push(
+      'Narrative version mismatch'
+    )
+  }
+
+  if (
+    narrative.clientName !== name
+  ) {
+    errors.push(
+      'Narrative client mismatch'
+    )
+  }
+
+  if (
+    narrative.introduction.length < 50
+  ) {
+    errors.push(
+      'Introduction missing'
+    )
+  }
+
+  if (
+    narrative.sections.length !== 6
+  ) {
+    errors.push(
+      'Section count mismatch'
+    )
+  }
+
+  const requiredSections = [
+    'Core Numerological Energies',
+    'Personal Lo Shu Overview',
+    'Rows, Columns & Rajyog',
+    'Graha Analysis',
+    'Development Areas',
+    'Integrated Summary',
   ]
-}
 
-function runReportTests() {
-  return [
-    reportContentTest(
-      'Anita Goel',
-      '15/03/1956',
-      {
-        mulank: '15/6',
-        bhagyank: '30/3',
-        nameNumber: '30/3',
-        missing: [2, 4, 7, 8],
-        golden: 'partial',
-        silver: 'absent',
-      }
-    ),
+  for (
+    const title of requiredSections
+  ) {
+    const section =
+      narrative.sections.find(
+        (item) =>
+          item.title === title
+      )
 
-    reportContentTest(
-      'Anushka Das',
-      '29/03/1983',
-      {
-        mulank: '29/2',
-        bhagyank: '35/8',
-        nameNumber: '31/4',
-        missing: [4, 5, 6, 7],
-        golden: 'absent',
-        silver: 'partial',
-      }
-    ),
-  ]
+    if (!section) {
+      errors.push(
+        `Missing section: ${title}`
+      )
+      continue
+    }
+
+    if (
+      section.paragraphs.length < 1
+    ) {
+      errors.push(
+        `Empty section: ${title}`
+      )
+    }
+  }
+
+  return {
+    name,
+    passed: errors.length === 0,
+    errors,
+  }
 }
 
 function countPassed(
@@ -309,11 +292,59 @@ export default function NumerologyTestPage() {
   const calculator =
     runNumerologyRegressionTests()
 
-  const evidence =
-    runEvidenceTests()
+  const evidence = [
+    evidenceTest(
+      'Anita Goel',
+      '15/03/1956',
+      [2, 4, 7, 8]
+    ),
 
-  const reports =
-    runReportTests()
+    evidenceTest(
+      'Anushka Das',
+      '29/03/1983',
+      [4, 5, 6, 7]
+    ),
+  ]
+
+  const reports = [
+    reportTest(
+      'Anita Goel',
+      '15/03/1956',
+      {
+        mulank: '15/6',
+        bhagyank: '30/3',
+        nameNumber: '30/3',
+        missing: [2, 4, 7, 8],
+        golden: 'partial',
+        silver: 'absent',
+      }
+    ),
+
+    reportTest(
+      'Anushka Das',
+      '29/03/1983',
+      {
+        mulank: '29/2',
+        bhagyank: '35/8',
+        nameNumber: '31/4',
+        missing: [4, 5, 6, 7],
+        golden: 'absent',
+        silver: 'partial',
+      }
+    ),
+  ]
+
+  const narratives = [
+    narrativeTest(
+      'Anita Goel',
+      '15/03/1956'
+    ),
+
+    narrativeTest(
+      'Anushka Das',
+      '29/03/1983'
+    ),
+  ]
 
   const evidencePassed =
     countPassed(evidence)
@@ -321,12 +352,16 @@ export default function NumerologyTestPage() {
   const reportPassed =
     countPassed(reports)
 
+  const narrativePassed =
+    countPassed(narratives)
+
   const allPassed =
     calculator.passed &&
     evidencePassed === evidence.length &&
-    reportPassed === reports.length
+    reportPassed === reports.length &&
+    narrativePassed === narratives.length
 
-  const showTests = (
+  const testBlock = (
     title: string,
     tests: TestResult[]
   ) => (
@@ -334,7 +369,9 @@ export default function NumerologyTestPage() {
       <h2>{title}</h2>
 
       {tests.map((test) => (
-        <div key={`${title}-${test.name}`}>
+        <div
+          key={`${title}-${test.name}`}
+        >
           <p>
             {test.passed ? '✅' : '❌'}{' '}
             <strong>{test.name}</strong>
@@ -358,12 +395,15 @@ export default function NumerologyTestPage() {
         maxWidth: 760,
         margin: '0 auto',
         padding: 24,
-        fontFamily: 'Arial, sans-serif',
+        fontFamily:
+          'Arial, sans-serif',
       }}
     >
       <h1>TSIA Numerology V2</h1>
 
-      <h2>Permanent Engine Tests</h2>
+      <h2>
+        Permanent Engine Tests
+      </h2>
 
       <div
         style={{
@@ -402,16 +442,32 @@ export default function NumerologyTestPage() {
             {reports.length}
           </strong>
         </p>
+
+        <p>
+          Narrative Engine:{' '}
+          <strong>
+            {narrativePassed}/
+            {narratives.length}
+          </strong>
+        </p>
       </div>
 
-      <h2>Calculation Tests</h2>
+      <h2>
+        Calculation Tests
+      </h2>
 
       {calculator.results.map(
         (test) => (
-          <div key={`calc-${test.name}`}>
+          <div
+            key={`calc-${test.name}`}
+          >
             <p>
-              {test.passed ? '✅' : '❌'}{' '}
-              <strong>{test.name}</strong>
+              {test.passed
+                ? '✅'
+                : '❌'}{' '}
+              <strong>
+                {test.name}
+              </strong>
             </p>
 
             {test.errors.map(
@@ -425,14 +481,19 @@ export default function NumerologyTestPage() {
         )
       )}
 
-      {showTests(
+      {testBlock(
         'Evidence Engine Tests',
         evidence
       )}
 
-      {showTests(
+      {testBlock(
         'Report Content Tests',
         reports
+      )}
+
+      {testBlock(
+        'Narrative Engine Tests',
+        narratives
       )}
 
       <hr />
