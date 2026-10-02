@@ -1,5 +1,3 @@
-// app/numerology-test/page.tsx
-
 import {
   runNumerologyRegressionTests,
 } from '@/lib/numerology/testcases'
@@ -12,32 +10,32 @@ import {
   buildNumerologyEvidence,
 } from '@/lib/numerology/evidenceengine'
 
-type EvidenceTestResult = {
+type TestResult = {
   name: string
   passed: boolean
   errors: string[]
 }
 
 function sameNumbers(
-  actual: number[],
-  expected: number[]
+  a: number[],
+  b: number[]
 ) {
   return (
-    JSON.stringify([...actual].sort()) ===
-    JSON.stringify([...expected].sort())
+    [...a].sort().join(',') ===
+    [...b].sort().join(',')
   )
 }
 
-function runEvidenceTest(
+function evidenceTest(
   name: string,
   dob: string,
   expected: {
     mulank: number
     bhagyank: number
     nameNumber: number
-    developmentNumbers: number[]
+    development: number[]
   }
-): EvidenceTestResult {
+): TestResult {
   const calculation =
     calculateNumerologyV2({
       fullName: name,
@@ -53,49 +51,37 @@ function runEvidenceTest(
     evidence.coreNumbers.mulank !==
     expected.mulank
   ) {
-    errors.push(
-      `Mulank expected ${expected.mulank}, got ${evidence.coreNumbers.mulank}.`
-    )
+    errors.push('Mulank mismatch')
   }
 
   if (
     evidence.coreNumbers.bhagyank !==
     expected.bhagyank
   ) {
-    errors.push(
-      `Bhagyank expected ${expected.bhagyank}, got ${evidence.coreNumbers.bhagyank}.`
-    )
+    errors.push('Bhagyank mismatch')
   }
 
   if (
     evidence.coreNumbers.nameNumber !==
     expected.nameNumber
   ) {
-    errors.push(
-      `Name Number expected ${expected.nameNumber}, got ${evidence.coreNumbers.nameNumber}.`
-    )
+    errors.push('Name Number mismatch')
   }
 
   if (
     !sameNumbers(
       evidence.developmentNumbers,
-      expected.developmentNumbers
+      expected.development
     )
   ) {
     errors.push(
-      `Development numbers expected ${expected.developmentNumbers.join(
-        ', '
-      )}, got ${evidence.developmentNumbers.join(
-        ', '
-      )}.`
+      'Development numbers mismatch'
     )
   }
 
-  if (
-    evidence.numbers.length !== 9
-  ) {
+  if (evidence.numbers.length !== 9) {
     errors.push(
-      `Expected 9 number profiles, got ${evidence.numbers.length}.`
+      'Number profile count mismatch'
     )
   }
 
@@ -103,15 +89,15 @@ function runEvidenceTest(
     evidence.rankedNumbers.length !== 9
   ) {
     errors.push(
-      `Expected 9 ranked numbers, got ${evidence.rankedNumbers.length}.`
+      'Ranking count mismatch'
     )
   }
 
   if (
-    evidence.strongestNumbers.length === 0
+    evidence.strongestNumbers.length < 1
   ) {
     errors.push(
-      'No strongest number was identified.'
+      'Strongest number missing'
     )
   }
 
@@ -123,91 +109,72 @@ function runEvidenceTest(
 }
 
 function runEvidenceTests() {
-  const tests: EvidenceTestResult[] = [
-    runEvidenceTest(
+  const results = [
+    evidenceTest(
       'Anita Goel',
       '15/03/1956',
       {
         mulank: 6,
         bhagyank: 3,
         nameNumber: 3,
-        developmentNumbers: [
-          2, 4, 7, 8,
-        ],
+        development: [2, 4, 7, 8],
       }
     ),
 
-    runEvidenceTest(
+    evidenceTest(
       'Anushka Das',
       '29/03/1983',
       {
         mulank: 2,
         bhagyank: 8,
         nameNumber: 4,
-        developmentNumbers: [
-          4, 5, 6, 7,
-        ],
+        development: [4, 5, 6, 7],
       }
     ),
   ]
 
-  const passedTests =
-    tests.filter(
-      (test) => test.passed
+  const passed =
+    results.filter(
+      (item) => item.passed
     ).length
 
   return {
-    passed:
-      passedTests === tests.length,
-
-    totalTests:
-      tests.length,
-
-    passedTests,
-
-    failedTests:
-      tests.length - passedTests,
-
-    results: tests,
+    results,
+    passed,
+    total: results.length,
   }
 }
 
 export default function NumerologyTestPage() {
-  const calculatorSuite =
+  const calculator =
     runNumerologyRegressionTests()
 
-  const evidenceSuite =
+  const evidence =
     runEvidenceTests()
 
   const allPassed =
-    calculatorSuite.passed &&
-    evidenceSuite.passed
+    calculator.passed &&
+    evidence.passed === evidence.total
 
   return (
     <main
       style={{
-        maxWidth: 800,
+        maxWidth: 760,
         margin: '0 auto',
         padding: 24,
-        fontFamily:
-          'Arial, sans-serif',
+        fontFamily: 'Arial, sans-serif',
       }}
     >
-      <h1>
-        TSIA Numerology V2
-      </h1>
+      <h1>TSIA Numerology V2</h1>
 
-      <h2>
-        Permanent Engine Tests
-      </h2>
+      <h2>Permanent Engine Tests</h2>
 
       <div
         style={{
           padding: 20,
-          marginTop: 20,
-          marginBottom: 24,
           border: '2px solid',
           borderRadius: 12,
+          marginBottom: 24,
         }}
       >
         <h2>
@@ -219,50 +186,28 @@ export default function NumerologyTestPage() {
         <p>
           Calculator:{' '}
           <strong>
-            {calculatorSuite.passedTests}/
-            {calculatorSuite.totalTests}
+            {calculator.passedTests}/
+            {calculator.totalTests}
           </strong>
         </p>
 
         <p>
           Evidence Engine:{' '}
           <strong>
-            {evidenceSuite.passedTests}/
-            {evidenceSuite.totalTests}
+            {evidence.passed}/
+            {evidence.total}
           </strong>
         </p>
       </div>
 
-      <h2>
-        Calculation Tests
-      </h2>
+      <h2>Calculation Tests</h2>
 
-      {calculatorSuite.results.map(
+      {calculator.results.map(
         (test) => (
-          <section
-            key={`calc-${test.name}`}
-            style={{
-              padding: 18,
-              marginBottom: 18,
-              border:
-                '1px solid #ccc',
-              borderRadius: 10,
-            }}
-          >
-            <h3>
-              {test.passed
-                ? '✅'
-                : '❌'}{' '}
-              {test.name}
-            </h3>
-
+          <div key={test.name}>
             <p>
-              Status:{' '}
-              <strong>
-                {test.passed
-                  ? 'PASSED'
-                  : 'FAILED'}
-              </strong>
+              {test.passed ? '✅' : '❌'}{' '}
+              <strong>{test.name}</strong>
             </p>
 
             {test.errors.map(
@@ -272,40 +217,18 @@ export default function NumerologyTestPage() {
                 </p>
               )
             )}
-          </section>
+          </div>
         )
       )}
 
-      <h2>
-        Evidence Engine Tests
-      </h2>
+      <h2>Evidence Engine Tests</h2>
 
-      {evidenceSuite.results.map(
+      {evidence.results.map(
         (test) => (
-          <section
-            key={`evidence-${test.name}`}
-            style={{
-              padding: 18,
-              marginBottom: 18,
-              border:
-                '1px solid #ccc',
-              borderRadius: 10,
-            }}
-          >
-            <h3>
-              {test.passed
-                ? '✅'
-                : '❌'}{' '}
-              {test.name}
-            </h3>
-
+          <div key={test.name}>
             <p>
-              Status:{' '}
-              <strong>
-                {test.passed
-                  ? 'PASSED'
-                  : 'FAILED'}
-              </strong>
+              {test.passed ? '✅' : '❌'}{' '}
+              <strong>{test.name}</strong>
             </p>
 
             {test.errors.map(
@@ -313,3 +236,18 @@ export default function NumerologyTestPage() {
                 <p key={index}>
                   ❌ {error}
                 </p>
+              )
+            )}
+          </div>
+        )
+      )}
+
+      <hr />
+
+      <p>
+        Calculator Version:{' '}
+        <strong>TSIA_V2_CALC_1.0</strong>
+      </p>
+    </main>
+  )
+}
