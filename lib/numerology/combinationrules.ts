@@ -88,4 +88,209 @@ export const CORE_ROLE_RULES: Record<
     interpretationFocus: [
       'external expression',
       'communication of personal energy',
-      ''social or professional presentation',
+      'social or professional presentation',
+      'interaction between identity and expression',
+    ],
+  },
+}
+
+export const EVIDENCE_WEIGHTS: EvidenceWeight[] = [
+  {
+    source: 'mulank',
+    weight: 5,
+    purpose:
+      'Primary core behavioural evidence.',
+  },
+
+  {
+    source: 'bhagyank',
+    weight: 5,
+    purpose:
+      'Primary broader directional evidence.',
+  },
+
+  {
+    source: 'nameNumber',
+    weight: 4,
+    purpose:
+      'Strong name-expression evidence.',
+  },
+
+  {
+    source: 'loshu',
+    weight: 1,
+    purpose:
+      'Base support when a number is present in the Personal Lo Shu grid.',
+  },
+
+  {
+    source: 'repetition',
+    weight: 2,
+    purpose:
+      'Additional reinforcement when a Lo Shu number repeats.',
+  },
+
+  {
+    source: 'row',
+    weight: 2,
+    purpose:
+      'Structural reinforcement from a complete Lo Shu row.',
+  },
+
+  {
+    source: 'column',
+    weight: 2,
+    purpose:
+      'Structural reinforcement from a complete Lo Shu column.',
+  },
+
+  {
+    source: 'goldenRajyog',
+    weight: 3,
+    purpose:
+      'Additional structural reinforcement when Golden Rajyog is complete.',
+  },
+
+  {
+    source: 'silverRajyog',
+    weight: 3,
+    purpose:
+      'Additional structural reinforcement when Silver Rajyog is complete.',
+  },
+]
+
+export const COMBINATION_PRINCIPLES:
+  CombinationPrinciple[] = [
+    {
+      key: 'positiveFirst',
+
+      title: 'Positive First',
+
+      description:
+        'Interpret strengths and available energies before discussing development areas.',
+    },
+
+    {
+      key: 'coreBeforeGrid',
+
+      title: 'Core Numbers Before Grid',
+
+      description:
+        'Mulank, Bhagyank and Name Number are interpreted before Lo Shu development signals.',
+    },
+
+    {
+      key: 'reinforcement',
+
+      title: 'Reinforcement',
+
+      description:
+        'When the same number or theme appears through multiple independent indicators, treat the theme as reinforced rather than repeating the same interpretation.',
+    },
+
+    {
+      key: 'complementary',
+
+      title: 'Complementary Energies',
+
+      description:
+        'Different core numbers should be combined by explaining how their qualities can support one another.',
+    },
+
+    {
+      key: 'balance',
+
+      title: 'Balance',
+
+      description:
+        'When different indicators pull in different behavioural directions, explain how both tendencies may coexist and require balance.',
+    },
+
+    {
+      key: 'missingNotAbsolute',
+
+      title: 'Missing Number Is Not Absolute',
+
+      description:
+        'A number missing from the Personal Lo Shu grid must not automatically be treated as absent from the person if the same energy is reinforced through Mulank, Bhagyank, Name Number or another strong pattern.',
+    },
+
+    {
+      key: 'noDuplicateParagraphs',
+
+      title: 'Avoid Duplication',
+
+      description:
+        'A theme supported by several indicators should be synthesized into one stronger conclusion instead of repeated in multiple sections.',
+    },
+
+    {
+      key: 'developmentAfterStrength',
+
+      title: 'Development After Strength',
+
+      description:
+        'Development guidance should follow the explanation of existing strengths and supporting energies.',
+    },
+
+    {
+      key: 'noDeterministicPrediction',
+
+      title: 'No Deterministic Prediction',
+
+      description:
+        'Numerological patterns should describe tendencies, strengths and development areas rather than guarantee specific life events.',
+    },
+  ]
+
+export function analyzeCoreCombination(
+  mulank: NumerologyDigit,
+  bhagyank: NumerologyDigit,
+  nameNumber: NumerologyDigit
+): CoreCombinationResult {
+  const uniqueCoreNumbers =
+    Array.from(
+      new Set([
+        mulank,
+        bhagyank,
+        nameNumber,
+      ])
+    ) as NumerologyDigit[]
+
+  return {
+    mulank,
+    bhagyank,
+    nameNumber,
+
+    allSame:
+      mulank === bhagyank &&
+      bhagyank === nameNumber,
+
+    mulankBhagyankSame:
+      mulank === bhagyank,
+
+    mulankNameSame:
+      mulank === nameNumber,
+
+    bhagyankNameSame:
+      bhagyank === nameNumber,
+
+    uniqueCoreNumbers,
+  }
+}
+
+export function getEvidenceWeight(
+  source: EvidenceSource
+): number {
+  return (
+    EVIDENCE_WEIGHTS.find(
+      (item) => item.source === source
+    )?.weight ?? 0
+  )
+}
+
+export function getCoreRoleRule(
+  role: CoreRole
+) {
+  return CORE_ROLE_RULES[role]
+}
