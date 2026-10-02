@@ -1,179 +1,276 @@
-// lib/numerology/combinationrules.ts
+// lib/numerology/numberrules.ts
 
 import type {
+  GrahaName,
   NumerologyDigit,
 } from './types'
 
-export type CoreRole =
-  | 'mulank'
-  | 'bhagyank'
-  | 'nameNumber'
-
-export type EvidenceSource =
-  | CoreRole
-  | 'loshu'
-  | 'repetition'
-  | 'row'
-  | 'column'
-  | 'goldenRajyog'
-  | 'silverRajyog'
-
-export type EvidenceWeight = {
-  source: EvidenceSource
-  weight: number
-  purpose: string
+export type NumberRule = {
+  number: NumerologyDigit
+  graha: GrahaName
+  strengths: string[]
+  themes: string[]
+  repetitionStrengths: string[]
+  possibleExcess: string[]
+  developmentAreas: string[]
 }
 
-export type CombinationPrinciple = {
-  key: string
-  title: string
-  description: string
-}
-
-export type CoreCombinationResult = {
-  mulank: NumerologyDigit
-  bhagyank: NumerologyDigit
-  nameNumber: NumerologyDigit
-
-  allSame: boolean
-  mulankBhagyankSame: boolean
-  mulankNameSame: boolean
-  bhagyankNameSame: boolean
-
-  uniqueCoreNumbers: NumerologyDigit[]
-}
-
-export const CORE_ROLE_RULES: Record<
-  CoreRole,
-  {
-    title: string
-    role: string
-    interpretationFocus: string[]
-  }
+export const NUMBER_RULES: Record<
+  NumerologyDigit,
+  NumberRule
 > = {
-  mulank: {
-    title: 'Mulank',
-
-    role:
-      'Primary behavioural and personal operating energy.',
-
-    interpretationFocus: [
-      'natural behavioural style',
-      'personal response pattern',
-      'day-to-day expression',
-      'core personal tendencies',
+  1: {
+    number: 1,
+    graha: 'Surya',
+    strengths: [
+      'initiative',
+      'individuality',
+      'confidence',
+      'leadership',
+      'self-direction',
+    ],
+    themes: [
+      'independent action',
+      'personal identity',
+      'decision-making',
+      'taking initiative',
+    ],
+    repetitionStrengths: [
+      'stronger initiative',
+      'greater self-direction',
+      'stronger independent decision-making',
+    ],
+    possibleExcess: [
+      'excessive self-reliance',
+      'difficulty accepting support',
+      'overemphasis on personal direction',
+    ],
+    developmentAreas: [
+      'initiative',
+      'confident expression',
+      'independent decision-making',
     ],
   },
 
-  bhagyank: {
-    title: 'Bhagyank',
-
-    role:
-      'Broader life-path and directional energy.',
-
-    interpretationFocus: [
-      'long-term direction',
-      'broader life approach',
-      'development over time',
-      'larger behavioural direction',
+  2: {
+    number: 2,
+    graha: 'Chandra',
+    strengths: [
+      'sensitivity',
+      'cooperation',
+      'emotional awareness',
+      'receptivity',
+      'relationship awareness',
+    ],
+    themes: [
+      'emotional connection',
+      'cooperation',
+      'receptive communication',
+      'partnership',
+    ],
+    repetitionStrengths: [
+      'stronger emotional awareness',
+      'greater sensitivity to others',
+      'stronger cooperative instinct',
+    ],
+    possibleExcess: [
+      'emotional over-absorption',
+      'over-sensitivity',
+      'difficulty separating personal feelings from others',
+    ],
+    developmentAreas: [
+      'receptive listening',
+      'emotional awareness',
+      'cooperation',
     ],
   },
 
-  nameNumber: {
-    title: 'Name Number',
-
-    role:
-      'Name-based expression and the way personal energy is projected or expressed.',
-
-    interpretationFocus: [
-      'external expression',
-      'communication of personal energy',
-      'social or professional presentation',
-      'interaction between identity and expression',
+  3: {
+    number: 3,
+    graha: 'Guru',
+    strengths: [
+      'learning',
+      'expression',
+      'creativity',
+      'communication',
+      'guidance',
+      'knowledge',
+    ],
+    themes: [
+      'creative expression',
+      'communication',
+      'learning',
+      'sharing knowledge',
+    ],
+    repetitionStrengths: [
+      'strong creativity',
+      'strong communication potential',
+      'greater expressive ability',
+    ],
+    possibleExcess: [
+      'scattered focus',
+      'too many ideas at once',
+      'difficulty maintaining structured expression',
+    ],
+    developmentAreas: [
+      'structured expression',
+      'communication',
+      'learning',
+      'creative development',
     ],
   },
-}
 
-export const EVIDENCE_WEIGHTS: EvidenceWeight[] = [
-  {
-    source: 'mulank',
-    weight: 5,
-    purpose:
-      'Primary core behavioural evidence.',
+  4: {
+    number: 4,
+    graha: 'Rahu',
+    strengths: [
+      'structure',
+      'organisation',
+      'systems',
+      'discipline',
+      'problem-solving',
+    ],
+    themes: [
+      'organisation',
+      'systematic thinking',
+      'discipline',
+      'unconventional problem-solving',
+    ],
+    repetitionStrengths: [
+      'strong organisation',
+      'greater discipline',
+      'strong system-building ability',
+    ],
+    possibleExcess: [
+      'rigidity',
+      'over-structuring',
+      'difficulty adapting when plans change',
+    ],
+    developmentAreas: [
+      'routines',
+      'organisation',
+      'systems',
+      'follow-through',
+    ],
   },
 
-  {
-    source: 'bhagyank',
-    weight: 5,
-    purpose:
-      'Primary broader directional evidence.',
+  5: {
+    number: 5,
+    graha: 'Budh',
+    strengths: [
+      'communication',
+      'adaptability',
+      'practical intelligence',
+      'flexibility',
+      'balance',
+    ],
+    themes: [
+      'adaptability',
+      'communication',
+      'balanced thinking',
+      'flexible decision-making',
+    ],
+    repetitionStrengths: [
+      'strong adaptability',
+      'strong communication ability',
+      'greater practical flexibility',
+    ],
+    possibleExcess: [
+      'restlessness',
+      'inconsistency',
+      'frequent changes of direction',
+    ],
+    developmentAreas: [
+      'adaptability',
+      'balanced communication',
+      'flexible decision-making',
+    ],
   },
 
-  {
-    source: 'nameNumber',
-    weight: 4,
-    purpose:
-      'Strong name-expression evidence.',
+  6: {
+    number: 6,
+    graha: 'Shukra',
+    strengths: [
+      'relationships',
+      'responsibility',
+      'harmony',
+      'family',
+      'care',
+      'aesthetics',
+    ],
+    themes: [
+      'relationship harmony',
+      'family responsibility',
+      'care',
+      'shared responsibility',
+    ],
+    repetitionStrengths: [
+      'strong sense of responsibility',
+      'greater family orientation',
+      'stronger caring instinct',
+    ],
+    possibleExcess: [
+      'over-responsibility',
+      'taking on too much for others',
+      'difficulty maintaining personal boundaries',
+    ],
+    developmentAreas: [
+      'shared responsibility',
+      'relationship harmony',
+      'care without overburdening oneself',
+    ],
   },
 
-  {
-    source: 'loshu',
-    weight: 1,
-    purpose:
-      'Base support when a number is present in the Personal Lo Shu grid.',
+  7: {
+    number: 7,
+    graha: 'Ketu',
+    strengths: [
+      'analysis',
+      'reflection',
+      'research',
+      'intuition',
+      'introspection',
+    ],
+    themes: [
+      'deep thinking',
+      'research',
+      'reflection',
+      'inner understanding',
+    ],
+    repetitionStrengths: [
+      'strong analytical ability',
+      'greater depth of reflection',
+      'stronger intuitive observation',
+    ],
+    possibleExcess: [
+      'overthinking',
+      'withdrawal',
+      'excessive isolation',
+    ],
+    developmentAreas: [
+      'reflection',
+      'research',
+      'introspection',
+      'patient review',
+    ],
   },
 
-  {
-    source: 'repetition',
-    weight: 2,
-    purpose:
-      'Additional reinforcement when a Lo Shu number repeats.',
-  },
-
-  {
-    source: 'row',
-    weight: 2,
-    purpose:
-      'Structural reinforcement from a complete Lo Shu row.',
-  },
-
-  {
-    source: 'column',
-    weight: 2,
-    purpose:
-      'Structural reinforcement from a complete Lo Shu column.',
-  },
-
-  {
-    source: 'goldenRajyog',
-    weight: 3,
-    purpose:
-      'Additional structural reinforcement when Golden Rajyog is complete.',
-  },
-
-  {
-    source: 'silverRajyog',
-    weight: 3,
-    purpose:
-      'Additional structural reinforcement when Silver Rajyog is complete.',
-  },
-]
-
-export const COMBINATION_PRINCIPLES:
-  CombinationPrinciple[] = [
-    {
-      key: 'positiveFirst',
-
-      title: 'Positive First',
-
-      description:
-        'Interpret strengths and available energies before discussing development areas.',
-    },
-
-    {
-      key: 'coreBeforeGrid',
-
-      title: 'Core Numbers Before Grid',
-
-      description:
-        'Mulank, Bhagyank and Name
+  8: {
+    number: 8,
+    graha: 'Shani',
+    strengths: [
+      'discipline',
+      'management',
+      'endurance',
+      'material responsibility',
+      'patience',
+    ],
+    themes: [
+      'long-term discipline',
+      'management',
+      'material responsibility',
+      'endurance',
+    ],
+    repetitionStrengths: [
+      'strong management capacity',
+      '
