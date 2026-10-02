@@ -88,4 +88,4 @@ export const CORE_ROLE_RULES: Record<
     interpretationFocus: [
       'external expression',
       'communication of personal energy',
-      'social or professional
+      ''social or professional presentation',
