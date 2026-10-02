@@ -1158,6 +1158,46 @@ function GeneratePage({
   clients: Client[]
   setView: (view: View) => void
 }) {
+  const [selectedClientId, setSelectedClientId] =
+    useState('')
+  const [error, setError] =
+    useState<string | null>(null)
+  const [generated, setGenerated] =
+    useState<Awaited<
+      ReturnType<typeof generateNumerologyV2>
+    >['result']>(null)
+
+  const [generating, startGenerating] =
+    useTransition()
+
+  const selectedClient = clients.find(
+    (client) => client.id === selectedClientId
+  )
+
+  const generate = () => {
+    if (!selectedClientId || generating) return
+
+    setError(null)
+    setGenerated(null)
+
+    startGenerating(async () => {
+      const result =
+        await generateNumerologyV2(
+          selectedClientId
+        )
+
+      if (result.error || !result.result) {
+        setError(
+          result.error ||
+            'Unable to generate report.'
+        )
+        return
+      }
+
+      setGenerated(result.result)
+    })
+  }
+
   return (
     <div className="p-5 sm:p-8 lg:p-10">
       <button
@@ -1169,33 +1209,249 @@ function GeneratePage({
 
       <PageTitle
         eyebrow="Report studio"
-        title="Generate a Report"
-        description="Report generation will be connected after the client module is complete."
+        title="Generate Numerology V2"
+        description="Select a client. TSIA will use the saved Full Name and Date of Birth automatically."
       />
 
-      <div className="max-w-2xl rounded-2xl border border-[#e8dfd3] bg-white p-6">
-        <label className={labelClass}>
-          Client
-          <select
-            disabled
-            className={`${inputClass} opacity-60`}
-          >
-            {clients.length === 0 ? (
-              <option>No clients available</option>
-            ) : (
-              clients.map((client) => (
-                <option key={client.id}>
-                  {client.name}
-                </option>
-              ))
-            )}
-          </select>
-        </label>
+      <div className="max-w-3xl space-y-5">
+        <div className="rounded-2xl border border-[#e8dfd3] bg-white p-6">
+          <label className={labelClass}>
+            Client
+            <select
+              value={selectedClientId}
+              onChange={(event) => {
+                setSelectedClientId(
+                  event.target.value
+                )
+                setError(null)
+                setGenerated(null)
+              }}
+              className={inputClass}
+            >
+              <option value="">
+                Select client
+              </option>
 
-        <div className="mt-5 flex gap-3 rounded-xl bg-[#f5f0e8] p-4 text-xs leading-5 text-[#7c6d5b]">
-          <CircleHelp className="size-4 shrink-0 text-[#ad7b40]" />
-          Numerology Version 2 will be connected in the Reports module.
+              {clients.map((client) => (
+                <option
+                  key={client.id}
+                  value={client.id}
+                >
+                  {client.name}
+                  {client.clientNumber
+                    ? ` — ${client.clientNumber}`
+                    : ''}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {selectedClient && (
+            <div className="mt-4 rounded-xl bg-[#f8f4ed] p-4">
+              <p className="font-serif text-lg font-semibold text-[#24354c]">
+                {selectedClient.name}
+              </p>
+
+              <div className="mt-2 space-y-1 text-xs text-[#7c7064]">
+                {selectedClient.clientNumber && (
+                  <p>
+                    Client ID:{' '}
+                    {selectedClient.clientNumber}
+                  </p>
+                )}
+
+                <p>
+                  Date of Birth:{' '}
+                  {selectedClient.dob}
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-5 flex gap-3 rounded-xl bg-[#f5f0e8] p-4 text-xs leading-5 text-[#7c6d5b]">
+            <CircleHelp className="size-4 shrink-0 text-[#ad7b40]" />
+            The verified TSIA Version 2 engine
+            will calculate Mulank, Bhagyank,
+            Chaldean Name Number, Personal Lo
+            Shu, patterns, Rajyog and the
+            interpretation automatically.
+          </div>
+
+          {error && (
+            <div className="mt-4 rounded-xl border border-[#ead0c7] bg-[#fff5f1] px-4 py-3 text-sm text-[#a55f46]">
+              {error}
+            </div>
+          )}
+
+          <Button
+            disabled={
+              !selectedClientId || generating
+            }
+            onClick={generate}
+            className="mt-5 h-11 w-full rounded-xl bg-[#24354c] text-white hover:bg-[#30445f]"
+          >
+            <Sparkles className="mr-2 size-4" />
+
+            {generating
+              ? 'Generating…'
+              : 'Generate Numerology V2'}
+          </Button>
         </div>
+
+        {generated && (
+          <div className="overflow-hidden rounded-2xl border border-[#e1d5c4] bg-white shadow-sm">
+            <div className="bg-[#24354c] p-6 text-white">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#d6b47b]">
+                TSIA Numerology Version 2
+              </p>
+
+              <h3 className="mt-2 font-serif text-2xl">
+                {generated.client.fullName}
+              </h3>
+
+              <p className="mt-1 text-xs text-[#c9d0d8]">
+                {generated.client.clientNumber ||
+                  'TSIA Client'}
+                {' · '}
+                {generated.client.dateOfBirth}
+              </p>
+            </div>
+
+            <div className="p-5 sm:p-6">
+              <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9a7b4f]">
+                At a Glance
+              </p>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div className="rounded-xl bg-[#f8f4ed] p-3 text-center">
+                  <p className="text-[10px] text-[#8d8174]">
+                    Mulank
+                  </p>
+                  <p className="mt-1 font-serif text-xl font-semibold text-[#24354c]">
+                    {
+                      generated.calculation
+                        .mulank.final
+                    }
+                  </p>
+                </div>
+
+                <div className="rounded-xl bg-[#f8f4ed] p-3 text-center">
+                  <p className="text-[10px] text-[#8d8174]">
+                    Bhagyank
+                  </p>
+                  <p className="mt-1 font-serif text-xl font-semibold text-[#24354c]">
+                    {
+                      generated.calculation
+                        .bhagyank.final
+                    }
+                  </p>
+                </div>
+
+                <div className="rounded-xl bg-[#f8f4ed] p-3 text-center">
+                  <p className="text-[10px] text-[#8d8174]">
+                    Name No.
+                  </p>
+                  <p className="mt-1 font-serif text-xl font-semibold text-[#24354c]">
+                    {
+                      generated.calculation
+                        .nameNumber.finalNumber
+                    }
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-xl border border-[#eee5d9] p-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9a8b7b]">
+                    Missing Numbers
+                  </p>
+
+                  <p className="mt-2 text-sm font-semibold text-[#24354c]">
+                    {generated.calculation.loShu
+                      .missingNumbers.length
+                      ? generated.calculation.loShu
+                          .missingNumbers.join(
+                            ', '
+                          )
+                      : 'None'}
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-[#eee5d9] p-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9a8b7b]">
+                    Rajyog
+                  </p>
+
+                  <p className="mt-2 text-xs text-[#5f574d]">
+                    Golden:{' '}
+                    <strong>
+                      {
+                        generated.calculation
+                          .rajyog.golden.status
+                      }
+                    </strong>
+                  </p>
+
+                  <p className="mt-1 text-xs text-[#5f574d]">
+                    Silver:{' '}
+                    <strong>
+                      {
+                        generated.calculation
+                          .rajyog.silver.status
+                      }
+                    </strong>
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 border-t border-[#eee7dc] pt-6">
+                <p className="text-sm leading-6 text-[#6f665d]">
+                  {
+                    generated.narrative
+                      .introduction
+                  }
+                </p>
+
+                <div className="mt-6 space-y-6">
+                  {generated.narrative.sections.map(
+                    (section) => (
+                      <section
+                        key={section.title}
+                      >
+                        <h4 className="font-serif text-lg font-semibold text-[#24354c]">
+                          {section.title}
+                        </h4>
+
+                        <div className="mt-2 space-y-3">
+                          {section.paragraphs.map(
+                            (
+                              paragraph,
+                              index
+                            ) => (
+                              <p
+                                key={index}
+                                className="text-sm leading-6 text-[#6f665d]"
+                              >
+                                {paragraph}
+                              </p>
+                            )
+                          )}
+                        </div>
+                      </section>
+                    )
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-7 rounded-xl border border-[#e6d8bd] bg-[#fbf6ec] p-4 text-xs leading-5 text-[#806b48]">
+                Report generated from the
+                verified TSIA Version 2 engine.
+                Saving and PDF generation will
+                be connected next.
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
