@@ -11,6 +11,10 @@ import {
 } from '@/components/consultation-context'
 
 import {
+  ConsultationNumerology,
+} from '@/components/consultation-numerology'
+
+import {
   ConsultationAssistant,
 } from '@/components/consultation-assistant'
 
@@ -43,6 +47,7 @@ export type ConsultationClient = {
 type ConsultationStage =
   | 'setup'
   | 'context'
+  | 'numerology'
   | 'assistant'
 
 type Props = {
@@ -74,7 +79,23 @@ export function ConsultationWorkspace({
         purpose={purpose}
         note={note}
         onBack={() =>
+          setStage('numerology')
+        }
+      />
+    )
+  }
+
+  if (stage === 'numerology') {
+    return (
+      <ConsultationNumerology
+        client={client}
+        mode={mode}
+        purpose={purpose}
+        onBack={() =>
           setStage('context')
+        }
+        onBegin={() =>
+          setStage('assistant')
         }
       />
     )
@@ -91,7 +112,7 @@ export function ConsultationWorkspace({
           setStage('setup')
         }
         onOpenAssistant={() =>
-          setStage('assistant')
+          setStage('numerology')
         }
       />
     )
