@@ -1,15 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-
 import {
   ArrowLeft,
   Check,
   ChevronRight,
-  MessageCircle,
   Mic,
-  Sparkles,
-  UserRound,
 } from 'lucide-react'
 
 import type {
@@ -26,17 +22,7 @@ type Props = {
   onBack: () => void
 }
 
-type Familiarity =
-  | 'first_time'
-  | 'little'
-  | 'before'
-  | 'well'
-  | ''
-
-const purposeLabels: Record<
-  Exclude<ConsultationPurpose, ''>,
-  string
-> = {
+const labels: Record<string, string> = {
   numerology_report: 'Numerology Report',
   future_numerology: 'Future Numerology',
   career: 'Career',
@@ -50,11 +36,7 @@ const purposeLabels: Record<
   other: 'Other',
 }
 
-const loShu = [
-  4, 9, 2,
-  3, 5, 7,
-  8, 1, 6,
-]
+const grid = [4, 9, 2, 3, 5, 7, 8, 1, 6]
 
 export function ConsultationAssistant({
   client,
@@ -63,210 +45,321 @@ export function ConsultationAssistant({
   note,
   onBack,
 }: Props) {
-  const [familiarity, setFamiliarity] =
-    useState<Familiarity>('')
-
-  const [answer, setAnswer] =
-    useState('')
-
-  const purposeLabel =
-    purpose
-      ? purposeLabels[purpose]
-      : 'General Consultation'
+  const [choice, setChoice] = useState('')
+  const [answer, setAnswer] = useState('')
 
   const modeLabel =
-    mode === 'in_person'
-      ? 'In-Person'
-      : mode === 'phone'
-        ? 'Phone'
-        : 'Consultation'
+    mode === 'in_person' ? 'In-Person' : 'Phone'
 
   return (
-    <div className="min-h-full bg-[#f7f3ed] p-4 sm:p-8">
-      <div className="mx-auto max-w-4xl">
+    <div className="min-h-full bg-[#f7f3ed] p-4">
+      <div className="mx-auto max-w-3xl">
+
         <button
-          type="button"
           onClick={onBack}
-          className="mb-5 flex items-center gap-2 text-xs font-semibold text-[#9a7b4f]"
+          className="mb-4 flex items-center gap-2 text-xs text-[#9a7b4f]"
         >
           <ArrowLeft className="size-4" />
-          Consultation Context
+          Context Check
         </button>
 
-        <div className="overflow-hidden rounded-3xl border border-[#ded3c3] bg-white shadow-sm">
-          <div className="bg-[#24354c] p-5 text-white sm:p-7">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#d6b47b]">
-                  TSIA Live Consultation
-                </p>
+        <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
 
-                <h1 className="mt-2 font-serif text-2xl font-semibold">
-                  {client.name}
-                </h1>
+          <header className="bg-[#24354c] p-5 text-white">
+            <p className="text-[10px] uppercase tracking-widest text-[#d6b47b]">
+              TSIA Live Consultation
+            </p>
 
-                <p className="mt-1 text-xs text-[#cbd2da]">
-                  {client.clientNumber || 'TSIA Client'}
-                  {' · '}
-                  Consultation #1
-                </p>
-              </div>
+            <h1 className="mt-2 font-serif text-2xl font-semibold">
+              {client.name}
+            </h1>
 
-              <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-[#d6b47b] text-[#24354c]">
-                <Sparkles className="size-5" />
-              </div>
+            <p className="mt-1 text-xs text-gray-300">
+              {client.clientNumber || 'TSIA Client'} · Consultation #1
+            </p>
+
+            <div className="mt-4 flex gap-2">
+              <Tag text={modeLabel} />
+              <Tag text={labels[purpose] || 'Consultation'} />
             </div>
+          </header>
 
-            <div className="mt-4 flex flex-wrap gap-2">
-              <span className="rounded-full bg-white/10 px-3 py-1.5 text-[11px]">
-                {modeLabel}
-              </span>
+          <main className="p-5">
 
-              <span className="rounded-full bg-white/10 px-3 py-1.5 text-[11px]">
-                {purposeLabel}
-              </span>
-            </div>
-          </div>
-
-          <div className="p-5 sm:p-7">
-            <SectionTitle
-              title="Numerology Snapshot"
-              subtitle="Keep this visible while talking"
+            <Title
+              small="Numerology Snapshot"
+              big="Client at a Glance"
             />
 
             <div className="grid grid-cols-3 gap-2">
-              {[
-                'Mulank',
-                'Bhagyank',
-                'Name Number',
-              ].map((label) => (
-                <div
-                  key={label}
-                  className="rounded-xl border border-[#e6ddd1] bg-[#fcfaf6] p-3"
-                >
-                  <p className="text-[9px] font-semibold uppercase text-[#9b8d7e]">
-                    {label}
-                  </p>
-
-                  <p className="mt-2 font-serif text-2xl font-semibold text-[#24354c]">
-                    —
-                  </p>
-
-                  <p className="mt-1 text-[9px] text-[#ad7b40]">
-                    Engine data
-                  </p>
-                </div>
-              ))}
+              <NumberBox title="Mulank" />
+              <NumberBox title="Bhagyank" />
+              <NumberBox title="Name Number" />
             </div>
 
-            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            <Title
+              small="Lo Shu"
+              big="Numerology Structure"
+            />
+
+            <div className="grid gap-4 sm:grid-cols-2">
+
               <div>
-                <p className="mb-2 text-xs font-semibold text-[#5f574d]">
-                  Standard Lo Shu
+                <p className="mb-2 text-xs font-semibold">
+                  Standard
                 </p>
 
-                <div className="grid max-w-[240px] grid-cols-3 overflow-hidden rounded-xl border border-[#ddd3c6]">
-                  {loShu.map((number) => (
+                <div className="grid max-w-[230px] grid-cols-3">
+                  {grid.map((n) => (
                     <div
-                      key={number}
-                      className="flex h-14 items-center justify-center border border-[#eee6da] font-semibold text-[#24354c]"
+                      key={n}
+                      className="flex h-14 items-center justify-center border text-sm font-semibold text-[#24354c]"
                     >
-                      {number}
+                      {n}
                     </div>
                   ))}
                 </div>
               </div>
 
               <div>
-                <p className="mb-2 text-xs font-semibold text-[#5f574d]">
-                  Personal Lo Shu
+                <p className="mb-2 text-xs font-semibold">
+                  Personal
                 </p>
 
-                <div className="rounded-xl bg-[#f8f4ed] p-4">
-                  <p className="text-xs leading-5 text-[#81766a]">
-                    Personal grid will load
-                    from the verified V2 engine.
-                  </p>
-
-                  <div className="mt-3 space-y-1 text-[11px] text-[#81766a]">
-                    <p>Present: —</p>
-                    <p>Missing: —</p>
-                    <p>Repeated: —</p>
-                  </div>
+                <div className="rounded-xl bg-[#f8f4ed] p-4 text-xs leading-6 text-[#776d61]">
+                  <p>Personal Grid: —</p>
+                  <p>Present: —</p>
+                  <p>Missing: —</p>
+                  <p>Repeated: —</p>
                 </div>
               </div>
+
             </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <InfoBox
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <MiniBox
                 title="Golden Rajyog"
                 text="4-5-6 · —"
               />
 
-              <InfoBox
+              <MiniBox
                 title="Silver Rajyog"
                 text="2-5-8 · —"
               />
             </div>
 
-            <div className="mt-4 rounded-xl border border-[#e6ddd1] p-4">
+            <div className="mt-3 rounded-xl bg-[#f8f4ed] p-4">
               <p className="text-xs font-semibold text-[#24354c]">
                 Key Graha Influence
               </p>
 
-              <p className="mt-1 text-xs text-[#81766a]">
-                Verified Graha analysis will
-                appear here.
+              <p className="mt-1 text-xs text-[#776d61]">
+                Verified V2 analysis will load here.
               </p>
             </div>
 
-            <SectionTitle
-              title="Key Client Insights"
-              subtitle="Most important things to remember"
+            <Title
+              small="Employee Brief"
+              big="5 Important Client Insights"
             />
 
             <div className="space-y-2">
-              {[1, 2, 3, 4, 5].map((number) => (
+              {[1, 2, 3, 4, 5].map((n) => (
                 <div
-                  key={number}
+                  key={n}
                   className="flex gap-3 rounded-xl bg-[#f8f4ed] p-3"
                 >
-                  <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#24354c] text-[10px] text-white">
-                    {number}
-                  </div>
+                  <span className="font-semibold text-[#ad7b40]">
+                    {n}.
+                  </span>
 
-                  <p className="text-xs leading-5 text-[#81766a]">
-                    Verified TSIA V2 insight
-                    will appear here.
+                  <p className="text-xs text-[#776d61]">
+                    Verified TSIA insight will load here.
                   </p>
                 </div>
               ))}
             </div>
 
             {note.trim() && (
-              <div className="mt-5 rounded-xl border border-[#e6d8bd] bg-[#fbf6ec] p-4">
+              <div className="mt-5 rounded-xl bg-[#fbf6ec] p-4">
                 <p className="text-[10px] font-semibold uppercase text-[#ad7b40]">
-                  Today&apos;s Note
+                  Today's Note
                 </p>
 
-                <p className="mt-2 text-xs leading-5 text-[#806f55]">
-                  {note.trim()}
+                <p className="mt-2 text-xs">
+                  {note}
                 </p>
               </div>
             )}
 
-            <SectionTitle
-              title="Live Conversation"
-              subtitle="Current consultation step"
+            <Title
+              small="Live Conversation"
+              big="Talk With Client"
             />
 
-            <div className="rounded-2xl border border-[#e6ddd1] p-5">
-              <div className="flex gap-3">
-                <MessageCircle className="mt-1 size-4 shrink-0 text-[#ad7b40]" />
+            <div className="rounded-2xl border p-4">
+              <p className="text-[10px] uppercase text-[#ad7b40]">
+                Suggested Question
+              </p>
 
-                <div>
-                  <p className="text-[10px] font-semibold uppercase text-[#9b8d7e]">
-                    Suggested Question
-                  </p>
+              <p className="mt-2 text-sm font-semibold leading-6 text-[#24354c]">
+                Have you come across numerology before,
+                or is this your first experience with it?
+              </p>
 
-                  <p className="mt-
+              <div className="mt-4 grid gap-2">
+                {[
+                  'First time',
+                  'Know a little',
+                  'Consultation before',
+                  'Know it quite well',
+                ].map((item) => (
+                  <button
+                    key={item}
+                    onClick={() => setChoice(item)}
+                    className="flex justify-between rounded-xl border p-3 text-left text-sm"
+                  >
+                    {item}
+
+                    {choice === item && (
+                      <Check className="size-4 text-[#ad7b40]" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-2xl border p-4">
+              <p className="text-[10px] uppercase text-[#ad7b40]">
+                Client Says
+              </p>
+
+              <textarea
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                rows={3}
+                placeholder="Type the client's response..."
+                className="mt-3 w-full rounded-xl border p-3 text-sm"
+              />
+
+              <p className="mt-2 flex items-center gap-2 text-xs text-[#9a7b4f]">
+                <Mic className="size-4" />
+                Voice input - future
+              </p>
+            </div>
+
+            <div className="mt-4 rounded-2xl bg-[#24354c] p-4 text-white">
+              <p className="text-[10px] uppercase text-[#d6b47b]">
+                Employee Guidance
+              </p>
+
+              <p className="mt-2 text-xs leading-5">
+                Listen first. Compare the client's
+                response with verified numerology
+                before explaining the analysis.
+              </p>
+            </div>
+
+            <div className="mt-4 rounded-2xl bg-[#fbf6ec] p-4">
+              <p className="text-[10px] uppercase text-[#ad7b40]">
+                Talking Point
+              </p>
+
+              <p className="mt-2 text-xs leading-5">
+                Use numerology as a framework for
+                discussing patterns and tendencies,
+                while validating them through the
+                client's real experience.
+              </p>
+
+              <div className="mt-3 flex gap-2">
+                <button className="rounded-lg bg-[#24354c] px-4 py-2 text-xs text-white">
+                  Mark Used
+                </button>
+
+                <button className="rounded-lg border px-4 py-2 text-xs">
+                  Skip
+                </button>
+              </div>
+            </div>
+
+            <button
+              disabled={!choice}
+              className="mt-5 flex h-12 w-full items-center justify-center rounded-xl bg-[#24354c] text-sm font-semibold text-white disabled:opacity-40"
+            >
+              Continue Consultation
+              <ChevronRight className="ml-2 size-4" />
+            </button>
+
+          </main>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Tag({ text }: { text: string }) {
+  return (
+    <span className="rounded-full bg-white/10 px-3 py-1 text-[10px]">
+      {text}
+    </span>
+  )
+}
+
+function Title({
+  small,
+  big,
+}: {
+  small: string
+  big: string
+}) {
+  return (
+    <div className="mb-4 mt-7 border-t pt-5">
+      <p className="text-[10px] uppercase text-[#ad7b40]">
+        {small}
+      </p>
+
+      <h2 className="mt-1 font-serif text-xl font-semibold text-[#24354c]">
+        {big}
+      </h2>
+    </div>
+  )
+}
+
+function NumberBox({
+  title,
+}: {
+  title: string
+}) {
+  return (
+    <div className="rounded-xl bg-[#f8f4ed] p-3">
+      <p className="text-[9px] uppercase text-[#8c8175]">
+        {title}
+      </p>
+
+      <p className="mt-2 font-serif text-2xl text-[#24354c]">
+        —
+      </p>
+    </div>
+  )
+}
+
+function MiniBox({
+  title,
+  text,
+}: {
+  title: string
+  text: string
+}) {
+  return (
+    <div className="rounded-xl border p-3">
+      <p className="text-[10px] font-semibold text-[#24354c]">
+        {title}
+      </p>
+
+      <p className="mt-1 text-xs text-[#776d61]">
+        {text}
+      </p>
+    </div>
+  )
+}
