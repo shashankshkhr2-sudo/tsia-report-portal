@@ -147,11 +147,6 @@ export function ConsultationWorkspace({
         mode={mode}
         purpose={purpose}
         note={note}
-        consultationId={consultationId}
-        consultationNumber={
-          consultationNumber
-        }
-        topic={topic}
         onBack={() =>
           setStage('context')
         }
