@@ -37,21 +37,24 @@ const purposeLabels: Record<
   Exclude<ConsultationPurpose, ''>,
   string
 > = {
-  numerology_report:
-    'Numerology Report',
-  future_numerology:
-    'Future Numerology',
+  numerology_report: 'Numerology Report',
+  future_numerology: 'Future Numerology',
   career: 'Career',
   business: 'Business',
   money: 'Money & Wealth',
   family: 'Family',
   relationship: 'Relationship',
   marriage: 'Marriage',
-  personal_direction:
-    'Personal Direction',
+  personal_direction: 'Personal Direction',
   follow_up: 'Follow-up',
   other: 'Other',
 }
+
+const loShu = [
+  4, 9, 2,
+  3, 5, 7,
+  8, 1, 6,
+]
 
 export function ConsultationAssistant({
   client,
@@ -76,11 +79,11 @@ export function ConsultationAssistant({
       ? 'In-Person'
       : mode === 'phone'
         ? 'Phone'
-        : ''
+        : 'Consultation'
 
   return (
     <div className="min-h-full bg-[#f7f3ed] p-4 sm:p-8">
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto max-w-4xl">
         <button
           type="button"
           onClick={onBack}
@@ -92,10 +95,10 @@ export function ConsultationAssistant({
 
         <div className="overflow-hidden rounded-3xl border border-[#ded3c3] bg-white shadow-sm">
           <div className="bg-[#24354c] p-5 text-white sm:p-7">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#d6b47b]">
-                  TSIA Consultation Assistant
+                  TSIA Live Consultation
                 </p>
 
                 <h1 className="mt-2 font-serif text-2xl font-semibold">
@@ -103,8 +106,7 @@ export function ConsultationAssistant({
                 </h1>
 
                 <p className="mt-1 text-xs text-[#cbd2da]">
-                  {client.clientNumber ||
-                    'TSIA Client'}
+                  {client.clientNumber || 'TSIA Client'}
                   {' · '}
                   Consultation #1
                 </p>
@@ -115,7 +117,7 @@ export function ConsultationAssistant({
               </div>
             </div>
 
-            <div className="mt-5 flex flex-wrap gap-2">
+            <div className="mt-4 flex flex-wrap gap-2">
               <span className="rounded-full bg-white/10 px-3 py-1.5 text-[11px]">
                 {modeLabel}
               </span>
@@ -127,213 +129,144 @@ export function ConsultationAssistant({
           </div>
 
           <div className="p-5 sm:p-7">
-            <div className="rounded-2xl border border-[#dce5db] bg-[#f4f8f3] p-4">
-              <div className="flex gap-3">
-                <Check className="mt-0.5 size-5 shrink-0 text-[#587054]" />
+            <SectionTitle
+              title="Numerology Snapshot"
+              subtitle="Keep this visible while talking"
+            />
 
-                <div>
-                  <p className="text-sm font-semibold text-[#425a42]">
-                    First consultation guidance
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                'Mulank',
+                'Bhagyank',
+                'Name Number',
+              ].map((label) => (
+                <div
+                  key={label}
+                  className="rounded-xl border border-[#e6ddd1] bg-[#fcfaf6] p-3"
+                >
+                  <p className="text-[9px] font-semibold uppercase text-[#9b8d7e]">
+                    {label}
                   </p>
 
-                  <p className="mt-1 text-xs leading-5 text-[#687b67]">
-                    Numerology-led hypothesis,
-                    client-validated
-                    conversation.
+                  <p className="mt-2 font-serif text-2xl font-semibold text-[#24354c]">
+                    —
                   </p>
+
+                  <p className="mt-1 text-[9px] text-[#ad7b40]">
+                    Engine data
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              <div>
+                <p className="mb-2 text-xs font-semibold text-[#5f574d]">
+                  Standard Lo Shu
+                </p>
+
+                <div className="grid max-w-[240px] grid-cols-3 overflow-hidden rounded-xl border border-[#ddd3c6]">
+                  {loShu.map((number) => (
+                    <div
+                      key={number}
+                      className="flex h-14 items-center justify-center border border-[#eee6da] font-semibold text-[#24354c]"
+                    >
+                      {number}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-2 text-xs font-semibold text-[#5f574d]">
+                  Personal Lo Shu
+                </p>
+
+                <div className="rounded-xl bg-[#f8f4ed] p-4">
+                  <p className="text-xs leading-5 text-[#81766a]">
+                    Personal grid will load
+                    from the verified V2 engine.
+                  </p>
+
+                  <div className="mt-3 space-y-1 text-[11px] text-[#81766a]">
+                    <p>Present: —</p>
+                    <p>Missing: —</p>
+                    <p>Repeated: —</p>
+                  </div>
                 </div>
               </div>
             </div>
 
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <InfoBox
+                title="Golden Rajyog"
+                text="4-5-6 · —"
+              />
+
+              <InfoBox
+                title="Silver Rajyog"
+                text="2-5-8 · —"
+              />
+            </div>
+
+            <div className="mt-4 rounded-xl border border-[#e6ddd1] p-4">
+              <p className="text-xs font-semibold text-[#24354c]">
+                Key Graha Influence
+              </p>
+
+              <p className="mt-1 text-xs text-[#81766a]">
+                Verified Graha analysis will
+                appear here.
+              </p>
+            </div>
+
+            <SectionTitle
+              title="Key Client Insights"
+              subtitle="Most important things to remember"
+            />
+
+            <div className="space-y-2">
+              {[1, 2, 3, 4, 5].map((number) => (
+                <div
+                  key={number}
+                  className="flex gap-3 rounded-xl bg-[#f8f4ed] p-3"
+                >
+                  <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#24354c] text-[10px] text-white">
+                    {number}
+                  </div>
+
+                  <p className="text-xs leading-5 text-[#81766a]">
+                    Verified TSIA V2 insight
+                    will appear here.
+                  </p>
+                </div>
+              ))}
+            </div>
+
             {note.trim() && (
-              <div className="mt-4 rounded-2xl bg-[#f8f4ed] p-4">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#9b8d7e]">
+              <div className="mt-5 rounded-xl border border-[#e6d8bd] bg-[#fbf6ec] p-4">
+                <p className="text-[10px] font-semibold uppercase text-[#ad7b40]">
                   Today&apos;s Note
                 </p>
 
-                <p className="mt-2 text-sm leading-6 text-[#61594f]">
+                <p className="mt-2 text-xs leading-5 text-[#806f55]">
                   {note.trim()}
                 </p>
               </div>
             )}
 
-            <div className="mt-7">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#ad7b40]">
-                Start Here
-              </p>
+            <SectionTitle
+              title="Live Conversation"
+              subtitle="Current consultation step"
+            />
 
-              <h2 className="mt-2 font-serif text-2xl font-semibold text-[#24354c]">
-                Understand the client first
-              </h2>
-
-              <p className="mt-2 text-sm leading-6 text-[#81776b]">
-                Ask naturally. Do not lead
-                the client toward a
-                numerology conclusion.
-              </p>
-            </div>
-
-            <div className="mt-5 rounded-2xl border border-[#e6ddd1] p-5">
-              <div className="flex items-start gap-3">
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#f8f4ed] text-[#ad7b40]">
-                  <MessageCircle className="size-4" />
-                </div>
+            <div className="rounded-2xl border border-[#e6ddd1] p-5">
+              <div className="flex gap-3">
+                <MessageCircle className="mt-1 size-4 shrink-0 text-[#ad7b40]" />
 
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9b8d7e]">
-                    Suggested Question 1
+                  <p className="text-[10px] font-semibold uppercase text-[#9b8d7e]">
+                    Suggested Question
                   </p>
 
-                  <p className="mt-2 text-base font-semibold leading-6 text-[#24354c]">
-                    Have you come across
-                    numerology before, or is
-                    this your first
-                    experience with it?
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-5 grid gap-2">
-                {[
-                  [
-                    'first_time',
-                    'First time',
-                  ],
-                  [
-                    'little',
-                    'Know a little',
-                  ],
-                  [
-                    'before',
-                    'Had a consultation before',
-                  ],
-                  [
-                    'well',
-                    'Know it quite well',
-                  ],
-                ].map(
-                  ([value, label]) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() =>
-                        setFamiliarity(
-                          value as Familiarity
-                        )
-                      }
-                      className={`flex items-center justify-between rounded-xl border px-4 py-3 text-left text-sm ${
-                        familiarity ===
-                        value
-                          ? 'border-[#b89556] bg-[#fbf5e9] text-[#24354c]'
-                          : 'border-[#e8e0d5] text-[#625a51]'
-                      }`}
-                    >
-                      {label}
-
-                      {familiarity ===
-                        value && (
-                        <Check className="size-4 text-[#ad7b40]" />
-                      )}
-                    </button>
-                  )
-                )}
-              </div>
-            </div>
-
-            <div className="mt-5 rounded-2xl border border-[#e6ddd1] p-5">
-              <div className="flex items-center gap-2">
-                <UserRound className="size-4 text-[#ad7b40]" />
-
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9b8d7e]">
-                  Client Says
-                </p>
-              </div>
-
-              <textarea
-                rows={3}
-                value={answer}
-                onChange={(event) =>
-                  setAnswer(
-                    event.target.value
-                  )
-                }
-                placeholder="Type the client's response..."
-                className="mt-4 w-full resize-none rounded-xl border border-[#e5dccf] p-3 text-sm outline-none focus:border-[#d6b47b]"
-              />
-
-              <button
-                type="button"
-                className="mt-3 flex items-center gap-2 text-xs font-semibold text-[#9a7b4f]"
-              >
-                <Mic className="size-4" />
-                Voice input — future option
-              </button>
-            </div>
-
-            <div className="mt-5 rounded-2xl bg-[#24354c] p-5 text-white">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#d6b47b]">
-                Employee Guidance
-              </p>
-
-              <p className="mt-3 text-sm leading-6 text-[#eef1f4]">
-                Listen first. Use the
-                client&apos;s answer to
-                decide how much basic
-                numerology explanation is
-                needed before discussing
-                their report.
-              </p>
-            </div>
-
-            <div className="mt-5 rounded-2xl border border-[#e5d6ba] bg-[#fbf6ec] p-5">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#ad7b40]">
-                Talking Point
-              </p>
-
-              <p className="mt-3 text-sm font-semibold leading-6 text-[#5f4d32]">
-                Numerology is used by TSIA
-                as a framework for
-                understanding patterns and
-                tendencies, while the
-                client&apos;s real
-                experience remains
-                important.
-              </p>
-
-              <div className="mt-4 flex gap-2">
-                <button
-                  type="button"
-                  className="rounded-xl bg-[#24354c] px-4 py-2 text-xs font-semibold text-white"
-                >
-                  Mark Used
-                </button>
-
-                <button
-                  type="button"
-                  className="rounded-xl border border-[#dfd1ba] px-4 py-2 text-xs font-semibold text-[#79623e]"
-                >
-                  Skip
-                </button>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              disabled={!familiarity}
-              className="mt-6 flex h-12 w-full items-center justify-center rounded-xl bg-[#24354c] text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Continue Consultation
-              <ChevronRight className="ml-2 size-4" />
-            </button>
-
-            <p className="mt-3 text-center text-[11px] leading-5 text-[#9b8f82]">
-              Prototype stage — answers and
-              talking-point usage are not
-              yet written to the database.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
+                  <p className="mt-
