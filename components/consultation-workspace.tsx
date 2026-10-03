@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+
 import {
   ArrowLeft,
   ArrowRight,
@@ -9,7 +10,9 @@ import {
   FileText,
   History,
   MapPin,
+  MessageCircle,
   Phone,
+  RotateCcw,
   Sparkles,
   UserRound,
   Video,
@@ -36,6 +39,11 @@ type ConsultationPurpose =
   | 'other'
   | ''
 
+type ConsultationStage =
+  | 'setup'
+  | 'prepared'
+  | 'assistant'
+
 type ClientSummary = {
   id: string
   clientNumber?: string
@@ -47,6 +55,35 @@ type ConsultationWorkspaceProps = {
   client: ClientSummary
   onBack: () => void
 }
+
+type Familiarity =
+  | 'first_time'
+  | 'little'
+  | 'before'
+  | 'well'
+  | ''
+
+type NumerologyView =
+  | 'believe'
+  | 'interested'
+  | 'curious'
+  | 'unsure'
+  | 'skeptical'
+  | ''
+
+type NumberInfluence =
+  | 'strongly'
+  | 'possibly'
+  | 'not_thought'
+  | 'not_really'
+  | ''
+
+type Observation =
+  | 'supports'
+  | 'partly'
+  | 'different'
+  | 'unclear'
+  | ''
 
 const purposes: {
   value: ConsultationPurpose
@@ -70,7 +107,7 @@ const purposes: {
   },
   {
     value: 'money',
-    label: 'Money',
+    label: 'Money & Wealth',
   },
   {
     value: 'family',
@@ -98,10 +135,82 @@ const purposes: {
   },
 ]
 
+function getInitials(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
+}
+
+function ClientCard({
+  client,
+}: {
+  client: ClientSummary
+}) {
+  return (
+    <div className="rounded-2xl border border-[#e7ddcf] bg-[#fcfaf6] p-5">
+      <div className="flex items-start gap-3">
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#24354c] text-sm font-semibold text-white">
+          {getInitials(client.name)}
+        </div>
+
+        <div>
+          <h2 className="font-serif text-xl font-semibold text-[#24354c]">
+            {client.name}
+          </h2>
+
+          <p className="mt-1 text-xs text-[#8b8074]">
+            {client.clientNumber ||
+              'TSIA Client'}
+          </p>
+
+          {client.dob && (
+            <p className="mt-1 text-xs text-[#8b8074]">
+              DOB {client.dob}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ChoiceButton({
+  selected,
+  onClick,
+  children,
+}: {
+  selected: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`w-full rounded-xl border px-4 py-3 text-left text-sm transition ${
+        selected
+          ? 'border-[#b89556] bg-[#fbf5e9] font-semibold text-[#24354c] ring-2 ring-[#d6b47b]/20'
+          : 'border-[#e6ddd1] bg-white text-[#625b53]'
+      }`}
+    >
+      {children}
+    </button>
+  )
+}
+
 export function ConsultationWorkspace({
   client,
   onBack,
 }: ConsultationWorkspaceProps) {
+  const [stage, setStage] =
+    useState<ConsultationStage>(
+      'setup'
+    )
+
   const [mode, setMode] =
     useState<ConsultationMode>('')
 
@@ -111,8 +220,35 @@ export function ConsultationWorkspace({
   const [note, setNote] =
     useState('')
 
-  const [prepared, setPrepared] =
-    useState(false)
+  const [
+    familiarity,
+    setFamiliarity,
+  ] = useState<Familiarity>('')
+
+  const [
+    numerologyView,
+    setNumerologyView,
+  ] = useState<NumerologyView>('')
+
+  const [
+    numberInfluence,
+    setNumberInfluence,
+  ] = useState<NumberInfluence>('')
+
+  const [
+    observation,
+    setObservation,
+  ] = useState<Observation>('')
+
+  const [
+    clientResponse,
+    setClientResponse,
+  ] = useState('')
+
+  const [
+    talkingPointUsed,
+    setTalkingPointUsed,
+  ] = useState(false)
 
   const canStart =
     Boolean(mode) &&
@@ -124,197 +260,54 @@ export function ConsultationWorkspace({
         item.value === purpose
     )?.label
 
-  if (prepared) {
+  if (stage === 'assistant') {
     return (
       <div className="min-h-full bg-[#f7f3ed] p-5 sm:p-8 lg:p-10">
         <div className="mx-auto max-w-3xl">
           <button
             type="button"
             onClick={() =>
-              setPrepared(false)
+              setStage('prepared')
             }
             className="mb-6 flex items-center gap-2 text-xs font-semibold text-[#9a7b4f]"
           >
             <ArrowLeft className="size-4" />
-            Edit Consultation Setup
+            Back to Context
           </button>
 
           <div className="overflow-hidden rounded-3xl border border-[#ded3c3] bg-white shadow-sm">
             <div className="bg-[#24354c] px-5 py-7 text-white sm:px-8">
-              <div className="flex size-11 items-center justify-center rounded-2xl bg-[#d6b47b] text-[#24354c]">
-                <Sparkles className="size-5" />
-              </div>
-
-              <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#d6b47b]">
-                Context Loaded
-              </p>
-
-              <h1 className="mt-2 font-serif text-2xl font-semibold sm:text-3xl">
-                Consultation Ready
-              </h1>
-
-              <p className="mt-2 max-w-xl text-sm leading-6 text-[#cbd2da]">
-                TSIA has prepared the
-                consultation context before
-                opening the live assistant.
-              </p>
-            </div>
-
-            <div className="p-5 sm:p-8">
-              <div className="rounded-2xl border border-[#e7ddcf] bg-[#fcfaf6] p-5">
-                <div className="flex items-start gap-3">
-                  <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#24354c] text-sm font-semibold text-white">
-                    {client.name
-                      .split(/\s+/)
-                      .filter(Boolean)
-                      .map(
-                        (part) =>
-                          part[0]
-                      )
-                      .slice(0, 2)
-                      .join('')
-                      .toUpperCase()}
-                  </div>
-
-                  <div>
-                    <h2 className="font-serif text-xl font-semibold text-[#24354c]">
-                      {client.name}
-                    </h2>
-
-                    <p className="mt-1 text-xs text-[#8b8074]">
-                      {client.clientNumber ||
-                        'TSIA Client'}
-                    </p>
-
-                    {client.dob && (
-                      <p className="mt-1 text-xs text-[#8b8074]">
-                        DOB {client.dob}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-[#e7ddcf] p-4">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9b8d7e]">
-                    Consultation
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#d6b47b]">
+                    TSIA Consultation Assistant
                   </p>
 
-                  <p className="mt-2 font-serif text-xl font-semibold text-[#24354c]">
-                    #1
-                  </p>
+                  <h1 className="mt-2 font-serif text-2xl font-semibold sm:text-3xl">
+                    Consultation #1
+                  </h1>
 
-                  <p className="mt-1 text-[11px] text-[#948779]">
-                    Automatic from history
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-[#e7ddcf] p-4">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9b8d7e]">
-                    Mode
-                  </p>
-
-                  <p className="mt-2 text-sm font-semibold text-[#24354c]">
-                    {mode ===
-                    'in_person'
+                  <p className="mt-2 text-sm text-[#cbd2da]">
+                    {selectedPurpose}
+                    {' · '}
+                    {mode === 'in_person'
                       ? 'In-Person'
                       : 'Phone'}
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-[#e7ddcf] p-4">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9b8d7e]">
-                    Purpose
-                  </p>
-
-                  <p className="mt-2 text-sm font-semibold text-[#24354c]">
-                    {selectedPurpose}
-                  </p>
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-[#d6b47b] text-[#24354c]">
+                  <MessageCircle className="size-5" />
                 </div>
               </div>
+            </div>
 
-              {note.trim() && (
-                <div className="mt-4 rounded-2xl border border-[#e7ddcf] bg-[#fffdf9] p-4">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9b8d7e]">
-                    Today's Note
-                  </p>
+            <div className="p-5 sm:p-8">
+              <ClientCard
+                client={client}
+              />
 
-                  <p className="mt-2 text-sm leading-6 text-[#61594f]">
-                    {note.trim()}
-                  </p>
-                </div>
-              )}
-
-              <div className="mt-6">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#ad7b40]">
-                  TSIA Context Check
-                </p>
-
-                <h3 className="mt-2 font-serif text-xl font-semibold text-[#24354c]">
-                  What the system will review
-                </h3>
-
-                <div className="mt-4 space-y-3">
-                  {[
-                    {
-                      icon: History,
-                      title:
-                        'Consultation History',
-                      text:
-                        'Previous consultations, topics, answers and pending follow-ups.',
-                    },
-                    {
-                      icon: FileText,
-                      title:
-                        'Reports & Products',
-                      text:
-                        'Available client reports and relevant TSIA products.',
-                    },
-                    {
-                      icon: UserRound,
-                      title:
-                        'Client Continuity',
-                      text:
-                        'Previous questions, responses and talking points already used with this client.',
-                    },
-                    {
-                      icon: Sparkles,
-                      title:
-                        'Numerology Context',
-                      text:
-                        'Verified TSIA numerology evidence available for consultation guidance.',
-                    },
-                  ].map(
-                    ({
-                      icon: Icon,
-                      title,
-                      text,
-                    }) => (
-                      <div
-                        key={title}
-                        className="flex gap-3 rounded-2xl bg-[#f8f4ed] p-4"
-                      >
-                        <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#ad7b40]">
-                          <Icon className="size-4" />
-                        </div>
-
-                        <div>
-                          <p className="text-sm font-semibold text-[#24354c]">
-                            {title}
-                          </p>
-
-                          <p className="mt-1 text-xs leading-5 text-[#81766a]">
-                            {text}
-                          </p>
-                        </div>
-                      </div>
-                    )
-                  )}
-                </div>
-              </div>
-
-              <div className="mt-6 rounded-2xl border border-[#dce5db] bg-[#f4f8f3] p-4">
+              <div className="mt-5 rounded-2xl border border-[#dce5db] bg-[#f4f8f3] p-4">
                 <div className="flex gap-3">
                   <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#dfeadd] text-[#587054]">
                     <Check className="size-4" />
@@ -322,12 +315,11 @@ export function ConsultationWorkspace({
 
                   <div>
                     <p className="text-sm font-semibold text-[#425a42]">
-                      Guidance rule ready
+                      First Consultation Rule
                     </p>
 
                     <p className="mt-1 text-xs leading-5 text-[#687b67]">
-                      First consultation:
-                      numerology-led
+                      Numerology-led
                       hypothesis,
                       client-validated
                       conversation.
@@ -336,290 +328,391 @@ export function ConsultationWorkspace({
                 </div>
               </div>
 
-              <Button
-                type="button"
-                className="mt-6 h-12 w-full rounded-xl bg-[#24354c] text-white hover:bg-[#30445f]"
-              >
-                Open Consultation Assistant
-                <ArrowRight className="ml-2 size-4" />
-              </Button>
+              <div className="mt-7">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#ad7b40]">
+                  Step 1 · Understand the Client
+                </p>
 
-              <p className="mt-3 text-center text-[11px] leading-5 text-[#9b8f82]">
-                In this design prototype,
-                no consultation record has
-                been written to the database
-                yet.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="min-h-full bg-[#f7f3ed] p-5 sm:p-8 lg:p-10">
-      <div className="mx-auto max-w-3xl">
-        <button
-          type="button"
-          onClick={onBack}
-          className="mb-6 flex items-center gap-2 text-xs font-semibold text-[#9a7b4f]"
-        >
-          <ArrowLeft className="size-4" />
-          Back to Client
-        </button>
-
-        <div className="mb-7">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#ad7b40]">
-            Consultation Workspace
-          </p>
-
-          <h1 className="mt-2 font-serif text-3xl font-semibold text-[#24354c]">
-            Start New Consultation
-          </h1>
-
-          <p className="mt-2 max-w-xl text-sm leading-6 text-[#81776b]">
-            Tell TSIA only what is new
-            today. Existing client
-            information and consultation
-            history will be loaded
-            automatically.
-          </p>
-        </div>
-
-        <div className="overflow-hidden rounded-3xl border border-[#e3d8c9] bg-white shadow-sm">
-          <div className="border-b border-[#eee6da] bg-[#fcfaf6] p-5 sm:p-6">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#9c8d7c]">
-              Selected Client
-            </p>
-
-            <div className="mt-3 flex items-center gap-3">
-              <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#24354c] text-sm font-semibold text-white">
-                {client.name
-                  .split(/\s+/)
-                  .filter(Boolean)
-                  .map(
-                    (part) =>
-                      part[0]
-                  )
-                  .slice(0, 2)
-                  .join('')
-                  .toUpperCase()}
-              </div>
-
-              <div>
-                <h2 className="font-serif text-lg font-semibold text-[#24354c]">
-                  {client.name}
+                <h2 className="mt-2 font-serif text-2xl font-semibold text-[#24354c]">
+                  Begin naturally
                 </h2>
 
-                <p className="mt-0.5 text-xs text-[#8e8275]">
-                  {client.clientNumber ||
-                    'TSIA Client'}
-                  {client.dob
-                    ? ` · DOB ${client.dob}`
-                    : ''}
+                <p className="mt-2 text-sm leading-6 text-[#81776b]">
+                  Before explaining the
+                  report, understand the
+                  client's familiarity and
+                  current view of
+                  numerology. Do not lead
+                  the client toward a
+                  particular answer.
                 </p>
               </div>
-            </div>
-          </div>
 
-          <div className="p-5 sm:p-7">
-            <div className="rounded-2xl border border-[#e6d8bd] bg-[#fbf6ec] p-4">
-              <div className="flex gap-3">
-                <CircleHelp className="mt-0.5 size-4 shrink-0 text-[#ad7b40]" />
+              <div className="mt-6 rounded-2xl border border-[#e7ddcf] p-5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9b8d7e]">
+                  Opening Question 1
+                </p>
 
-                <div>
-                  <p className="text-sm font-semibold text-[#725d3b]">
-                    Automatically prepared
-                  </p>
+                <p className="mt-2 font-serif text-lg font-semibold leading-7 text-[#24354c]">
+                  Have you come across
+                  numerology before, or is
+                  this your first
+                  experience with it?
+                </p>
 
-                  <p className="mt-1 text-xs leading-5 text-[#806f55]">
-                    Consultation number,
-                    employee, location,
-                    previous history,
-                    reports, products,
-                    follow-ups and previous
-                    talking-point usage do
-                    not need to be entered
-                    again.
-                  </p>
+                <div className="mt-4 grid gap-2">
+                  <ChoiceButton
+                    selected={
+                      familiarity ===
+                      'first_time'
+                    }
+                    onClick={() =>
+                      setFamiliarity(
+                        'first_time'
+                      )
+                    }
+                  >
+                    First time
+                  </ChoiceButton>
+
+                  <ChoiceButton
+                    selected={
+                      familiarity ===
+                      'little'
+                    }
+                    onClick={() =>
+                      setFamiliarity(
+                        'little'
+                      )
+                    }
+                  >
+                    Know a little
+                  </ChoiceButton>
+
+                  <ChoiceButton
+                    selected={
+                      familiarity ===
+                      'before'
+                    }
+                    onClick={() =>
+                      setFamiliarity(
+                        'before'
+                      )
+                    }
+                  >
+                    Had a numerology
+                    consultation before
+                  </ChoiceButton>
+
+                  <ChoiceButton
+                    selected={
+                      familiarity ===
+                      'well'
+                    }
+                    onClick={() =>
+                      setFamiliarity(
+                        'well'
+                      )
+                    }
+                  >
+                    Know numerology quite
+                    well
+                  </ChoiceButton>
                 </div>
               </div>
-            </div>
 
-            <div className="mt-7">
-              <p className="text-xs font-semibold text-[#5f574d]">
-                Consultation Mode *
-              </p>
+              <div className="mt-4 rounded-2xl border border-[#e7ddcf] p-5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9b8d7e]">
+                  Opening Question 2
+                </p>
 
-              <div className="mt-3 grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setMode(
-                      'in_person'
-                    )
-                  }
-                  className={`rounded-2xl border p-4 text-left transition ${
-                    mode ===
-                    'in_person'
-                      ? 'border-[#b89556] bg-[#fbf5e9] ring-2 ring-[#d6b47b]/20'
-                      : 'border-[#e6ddd1] bg-white'
-                  }`}
-                >
-                  <MapPin className="size-5 text-[#ad7b40]" />
+                <p className="mt-2 font-serif text-lg font-semibold leading-7 text-[#24354c]">
+                  What is your current view
+                  about numerology?
+                </p>
 
-                  <p className="mt-3 text-sm font-semibold text-[#24354c]">
-                    In-Person
-                  </p>
-
-                  <p className="mt-1 text-[11px] text-[#918578]">
-                    Face-to-face
-                    consultation
-                  </p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setMode('phone')
-                  }
-                  className={`rounded-2xl border p-4 text-left transition ${
-                    mode === 'phone'
-                      ? 'border-[#b89556] bg-[#fbf5e9] ring-2 ring-[#d6b47b]/20'
-                      : 'border-[#e6ddd1] bg-white'
-                  }`}
-                >
-                  <Phone className="size-5 text-[#ad7b40]" />
-
-                  <p className="mt-3 text-sm font-semibold text-[#24354c]">
-                    Phone
-                  </p>
-
-                  <p className="mt-1 text-[11px] text-[#918578]">
-                    Voice consultation
-                  </p>
-                </button>
-              </div>
-
-              <div className="mt-3 flex items-center gap-3 rounded-xl border border-dashed border-[#ddd3c6] px-4 py-3 text-[#9b9186]">
-                <Video className="size-4" />
-
-                <div>
-                  <p className="text-xs font-semibold">
-                    Video Consultation
-                  </p>
-
-                  <p className="text-[10px]">
-                    Future option
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-7">
-              <label className="text-xs font-semibold text-[#5f574d]">
-                Today's Main Purpose *
-              </label>
-
-              <select
-                value={purpose}
-                onChange={(event) =>
-                  setPurpose(
-                    event.target
-                      .value as ConsultationPurpose
-                  )
-                }
-                className="mt-3 h-12 w-full rounded-xl border border-[#e5dccf] bg-white px-3 text-sm text-[#3e3a35] outline-none focus:border-[#d6b47b] focus:ring-2 focus:ring-[#d6b47b]/20"
-              >
-                <option value="">
-                  Select purpose
-                </option>
-
-                {purposes.map(
-                  (item) => (
-                    <option
+                <div className="mt-4 grid gap-2">
+                  {[
+                    {
+                      value:
+                        'believe' as NumerologyView,
+                      label:
+                        'I believe in it',
+                    },
+                    {
+                      value:
+                        'interested' as NumerologyView,
+                      label:
+                        'Interested, but want to understand it',
+                    },
+                    {
+                      value:
+                        'curious' as NumerologyView,
+                      label:
+                        'Curious',
+                    },
+                    {
+                      value:
+                        'unsure' as NumerologyView,
+                      label:
+                        'Not sure',
+                    },
+                    {
+                      value:
+                        'skeptical' as NumerologyView,
+                      label:
+                        'Skeptical',
+                    },
+                  ].map((item) => (
+                    <ChoiceButton
                       key={item.value}
-                      value={item.value}
+                      selected={
+                        numerologyView ===
+                        item.value
+                      }
+                      onClick={() =>
+                        setNumerologyView(
+                          item.value
+                        )
+                      }
                     >
                       {item.label}
-                    </option>
-                  )
-                )}
-              </select>
-            </div>
-
-            <div className="mt-7">
-              <label className="text-xs font-semibold text-[#5f574d]">
-                Optional Note
-              </label>
-
-              <p className="mt-1 text-[11px] leading-5 text-[#95897c]">
-                Add only something new that
-                will help today's
-                consultation.
-              </p>
-
-              <textarea
-                rows={3}
-                value={note}
-                onChange={(event) =>
-                  setNote(
-                    event.target.value
-                  )
-                }
-                placeholder="Example: Client wants to discuss business expansion."
-                className="mt-3 w-full resize-none rounded-xl border border-[#e5dccf] bg-white px-3 py-3 text-sm text-[#3e3a35] outline-none focus:border-[#d6b47b] focus:ring-2 focus:ring-[#d6b47b]/20"
-              />
-            </div>
-
-            <div className="mt-7 border-t border-[#eee7dc] pt-6">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9b8d7e]">
-                System Context
-              </p>
-
-              <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                {[
-                  'Consultation number — automatic',
-                  'Previous consultations — automatic',
-                  'Available reports — automatic',
-                  'Pending follow-ups — automatic',
-                  'Previous Q&A — automatic',
-                  'Used talking points — automatic',
-                ].map((item) => (
-                  <div
-                    key={item}
-                    className="flex items-center gap-2 rounded-xl bg-[#f8f4ed] px-3 py-2.5 text-xs text-[#71685f]"
-                  >
-                    <Check className="size-3.5 shrink-0 text-[#708365]" />
-                    {item}
-                  </div>
-                ))}
+                    </ChoiceButton>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <Button
-              type="button"
-              disabled={!canStart}
-              onClick={() =>
-                setPrepared(true)
-              }
-              className="mt-7 h-12 w-full rounded-xl bg-[#24354c] text-white hover:bg-[#30445f] disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Start Consultation
-              <ArrowRight className="ml-2 size-4" />
-            </Button>
+              <div className="mt-4 rounded-2xl border border-[#e7ddcf] p-5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9b8d7e]">
+                  Opening Question 3
+                </p>
 
-            {!canStart && (
-              <p className="mt-3 text-center text-[11px] text-[#9b8f82]">
-                Select consultation mode
-                and today's main purpose to
-                continue.
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
+                <p className="mt-2 font-serif text-lg font-semibold leading-7 text-[#24354c]">
+                  Do you feel numbers have
+                  some importance or
+                  influence in our lives?
+                </p>
+
+                <div className="mt-4 grid gap-2">
+                  {[
+                    {
+                      value:
+                        'strongly' as NumberInfluence,
+                      label:
+                        'Yes, strongly',
+                    },
+                    {
+                      value:
+                        'possibly' as NumberInfluence,
+                      label:
+                        'Possibly',
+                    },
+                    {
+                      value:
+                        'not_thought' as NumberInfluence,
+                      label:
+                        "Haven't thought about it",
+                    },
+                    {
+                      value:
+                        'not_really' as NumberInfluence,
+                      label:
+                        'Not really',
+                    },
+                  ].map((item) => (
+                    <ChoiceButton
+                      key={item.value}
+                      selected={
+                        numberInfluence ===
+                        item.value
+                      }
+                      onClick={() =>
+                        setNumberInfluence(
+                          item.value
+                        )
+                      }
+                    >
+                      {item.label}
+                    </ChoiceButton>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-7 rounded-2xl border border-[#e6d8bd] bg-[#fbf6ec] p-5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#ad7b40]">
+                  TSIA Talking Point
+                </p>
+
+                <p className="mt-3 text-sm font-semibold leading-6 text-[#4f473d]">
+                  Numerology is used by
+                  TSIA as a framework for
+                  understanding patterns
+                  associated with numbers
+                  in a person's birth date
+                  and name.
+                </p>
+
+                <p className="mt-2 text-xs leading-5 text-[#81725d]">
+                  Use this only when it
+                  helps the conversation.
+                  Do not present it as a
+                  scientifically proven
+                  fact.
+                </p>
+
+                <div className="mt-4 flex gap-2">
+                  <Button
+                    type="button"
+                    onClick={() =>
+                      setTalkingPointUsed(
+                        true
+                      )
+                    }
+                    className={`h-10 flex-1 rounded-xl ${
+                      talkingPointUsed
+                        ? 'bg-[#65785f] text-white'
+                        : 'bg-[#24354c] text-white'
+                    }`}
+                  >
+                    {talkingPointUsed ? (
+                      <>
+                        <Check className="mr-2 size-4" />
+                        Used
+                      </>
+                    ) : (
+                      'Mark as Used'
+                    )}
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() =>
+                      setTalkingPointUsed(
+                        false
+                      )
+                    }
+                    className="h-10 rounded-xl"
+                  >
+                    Skip
+                  </Button>
+                </div>
+              </div>
+
+              <div className="mt-7">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#ad7b40]">
+                  Client Says
+                </p>
+
+                <p className="mt-2 text-sm leading-6 text-[#81776b]">
+                  Capture an important
+                  statement in the client's
+                  own words when needed.
+                </p>
+
+                <textarea
+                  rows={4}
+                  value={clientResponse}
+                  onChange={(event) =>
+                    setClientResponse(
+                      event.target.value
+                    )
+                  }
+                  placeholder="Type the client's important response here..."
+                  className="mt-3 w-full resize-none rounded-xl border border-[#e5dccf] bg-white px-3 py-3 text-sm text-[#3e3a35] outline-none focus:border-[#d6b47b] focus:ring-2 focus:ring-[#d6b47b]/20"
+                />
+              </div>
+
+              <div className="mt-7">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#ad7b40]">
+                  Employee Observation
+                </p>
+
+                <p className="mt-2 text-sm leading-6 text-[#81776b]">
+                  Keep your observation
+                  separate from what the
+                  client actually said.
+                </p>
+
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <ChoiceButton
+                    selected={
+                      observation ===
+                      'supports'
+                    }
+                    onClick={() =>
+                      setObservation(
+                        'supports'
+                      )
+                    }
+                  >
+                    Supports
+                  </ChoiceButton>
+
+                  <ChoiceButton
+                    selected={
+                      observation ===
+                      'partly'
+                    }
+                    onClick={() =>
+                      setObservation(
+                        'partly'
+                      )
+                    }
+                  >
+                    Partly
+                  </ChoiceButton>
+
+                  <ChoiceButton
+                    selected={
+                      observation ===
+                      'different'
+                    }
+                    onClick={() =>
+                      setObservation(
+                        'different'
+                      )
+                    }
+                  >
+                    Different
+                  </ChoiceButton>
+
+                  <ChoiceButton
+                    selected={
+                      observation ===
+                      'unclear'
+                    }
+                    onClick={() =>
+                      setObservation(
+                        'unclear'
+                      )
+                    }
+                  >
+                    Still unclear
+                  </ChoiceButton>
+                </div>
+              </div>
+
+              <div className="mt-7 rounded-2xl bg-[#f8f4ed] p-5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9b8d7e]">
+                  Next
+                </p>
+
+                <h3 className="mt-2 font-serif text-lg font-semibold text-[#24354c]">
+                  Move into guided analysis
+                </h3>
+
+                <p className="mt-2 text-xs leading-5 text-[#81766a]">
+                  After understanding the
+                  client's starting point,
+                  TSIA can guide the
+                  employee through the
+                  relevant numerology
+                  explanation and
+                  consultation questions.
+                </p>
+
+                <Button
+                  type="button"
+                  disabled
+                  className="mt-4 h-11 w-full rounded-xl bg-[#24354c] text-white opacity-45
