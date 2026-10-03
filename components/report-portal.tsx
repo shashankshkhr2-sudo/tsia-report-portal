@@ -1,6 +1,10 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import {
+  useState,
+  useTransition,
+} from 'react'
+
 import {
   ArrowRight,
   ChevronDown,
@@ -10,6 +14,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  MessageCircle,
   Plus,
   Search,
   Settings,
@@ -18,10 +23,26 @@ import {
   X,
 } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
-import { Logo } from '@/components/portal-logo'
-import { signOut } from '@/app/actions/auth'
-import { addClient } from '@/app/actions/clients'
+import {
+  Button,
+} from '@/components/ui/button'
+
+import {
+  Logo,
+} from '@/components/portal-logo'
+
+import {
+  ConsultationWorkspace,
+} from '@/components/consultation-workspace'
+
+import {
+  signOut,
+} from '@/app/actions/auth'
+
+import {
+  addClient,
+} from '@/app/actions/clients'
+
 import {
   generateNumerologyV2,
 } from '@/app/actions/numerology'
@@ -40,12 +61,20 @@ type View =
   | 'reports'
   | 'new-client'
   | 'generate'
+  | 'consultation'
 
-const toneClasses: Record<Tone, string> = {
-  plum: 'bg-[#eee3ee] text-[#76536f]',
-  terracotta: 'bg-[#f6e5dd] text-[#a55f46]',
-  olive: 'bg-[#e7eddf] text-[#66805c]',
-  navy: 'bg-[#e2e9f0] text-[#526b84]',
+const toneClasses: Record<
+  Tone,
+  string
+> = {
+  plum:
+    'bg-[#eee3ee] text-[#76536f]',
+  terracotta:
+    'bg-[#f6e5dd] text-[#a55f46]',
+  olive:
+    'bg-[#e7eddf] text-[#66805c]',
+  navy:
+    'bg-[#e2e9f0] text-[#526b84]',
 }
 
 const inputClass =
@@ -54,7 +83,9 @@ const inputClass =
 const labelClass =
   'flex flex-col gap-2 text-xs font-semibold text-[#5f574d]'
 
-function getInitials(name: string) {
+function getInitials(
+  name: string
+) {
   return name
     .split(/\s+/)
     .filter(Boolean)
@@ -77,7 +108,10 @@ function Sidebar({
   setOpen: (open: boolean) => void
   fullName: string
 }) {
-  const [signingOut, startSignOut] = useTransition()
+  const [
+    signingOut,
+    startSignOut,
+  ] = useTransition()
 
   const items: {
     id: View
@@ -106,21 +140,27 @@ function Sidebar({
       {open && (
         <button
           aria-label="Close menu"
-          onClick={() => setOpen(false)}
+          onClick={() =>
+            setOpen(false)
+          }
           className="fixed inset-0 z-30 bg-[#24354c]/25 lg:hidden"
         />
       )}
 
       <aside
         className={`fixed inset-y-0 left-0 z-40 flex w-[252px] flex-col border-r border-[#e8dfd3] bg-[#fbf8f2] px-5 py-7 transition-transform lg:static lg:translate-x-0 ${
-          open ? 'translate-x-0' : '-translate-x-full'
+          open
+            ? 'translate-x-0'
+            : '-translate-x-full'
         }`}
       >
         <div className="mb-12 flex items-center justify-between px-2">
           <Logo />
 
           <button
-            onClick={() => setOpen(false)}
+            onClick={() =>
+              setOpen(false)
+            }
             className="lg:hidden"
             aria-label="Close menu"
           >
@@ -133,23 +173,29 @@ function Sidebar({
         </p>
 
         <nav className="flex flex-col gap-1">
-          {items.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => {
-                setView(id)
-                setOpen(false)
-              }}
-              className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm ${
-                view === id
-                  ? 'bg-[#24354c] font-medium text-white'
-                  : 'text-[#6d665d] hover:bg-[#f0e9de]'
-              }`}
-            >
-              <Icon className="size-[18px]" />
-              {label}
-            </button>
-          ))}
+          {items.map(
+            ({
+              id,
+              label,
+              icon: Icon,
+            }) => (
+              <button
+                key={id}
+                onClick={() => {
+                  setView(id)
+                  setOpen(false)
+                }}
+                className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm ${
+                  view === id
+                    ? 'bg-[#24354c] font-medium text-white'
+                    : 'text-[#6d665d] hover:bg-[#f0e9de]'
+                }`}
+              >
+                <Icon className="size-[18px]" />
+                {label}
+              </button>
+            )
+          )}
         </nav>
 
         <div className="mt-auto border-t border-[#e8dfd3] pt-5">
@@ -164,19 +210,26 @@ function Sidebar({
           <button
             disabled={signingOut}
             onClick={() => {
-              startSignOut(async () => {
-                await signOut()
-              })
+              startSignOut(
+                async () => {
+                  await signOut()
+                }
+              )
             }}
             className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-[#6d665d]"
           >
             <LogOut className="size-[18px]" />
-            {signingOut ? 'Signing out…' : 'Sign out'}
+
+            {signingOut
+              ? 'Signing out…'
+              : 'Sign out'}
           </button>
 
           <div className="mt-5 flex items-center gap-3 rounded-xl bg-[#f0e9de]/70 p-3">
             <div className="flex size-8 items-center justify-center rounded-full bg-[#d6b47b] text-xs font-semibold text-[#24354c]">
-              {getInitials(fullName)}
+              {getInitials(
+                fullName
+              )}
             </div>
 
             <div className="min-w-0">
@@ -202,13 +255,17 @@ function Header({
 }: {
   title: string
   fullName: string
-  setOpen: (open: boolean) => void
+  setOpen: (
+    open: boolean
+  ) => void
 }) {
   return (
     <header className="flex h-[76px] items-center justify-between border-b border-[#e8dfd3] bg-[#fffdf9] px-5 sm:px-8 lg:px-10">
       <div className="flex items-center gap-4">
         <button
-          onClick={() => setOpen(true)}
+          onClick={() =>
+            setOpen(true)
+          }
           className="lg:hidden"
           aria-label="Open menu"
         >
@@ -228,7 +285,9 @@ function Header({
 
       <div className="hidden items-center gap-2 sm:flex">
         <div className="flex size-8 items-center justify-center rounded-full bg-[#d6b47b] text-xs font-semibold text-[#24354c]">
-          {getInitials(fullName)}
+          {getInitials(
+            fullName
+          )}
         </div>
 
         <span className="text-sm font-medium text-[#4b4741]">
@@ -277,26 +336,37 @@ function Dashboard({
   clients,
   reports,
 }: {
-  setView: (view: View) => void
+  setView: (
+    view: View
+  ) => void
   fullName: string
   clients: Client[]
   reports: Report[]
 }) {
-  const processing = reports.filter(
-    (report) => report.status === 'Processing'
-  ).length
+  const processing =
+    reports.filter(
+      (report) =>
+        report.status ===
+        'Processing'
+    ).length
 
   return (
     <div className="p-5 sm:p-8 lg:p-10">
       <PageTitle
         eyebrow="Your workspace"
         title={`Good morning, ${
-          fullName.split(/\s+/)[0] || 'there'
+          fullName.split(
+            /\s+/
+          )[0] || 'there'
         }`}
         description="Manage clients and prepare personalized TSIA reports."
       >
         <Button
-          onClick={() => setView('new-client')}
+          onClick={() =>
+            setView(
+              'new-client'
+            )
+          }
           className="h-11 rounded-xl bg-[#24354c] px-5 text-white hover:bg-[#30445f]"
         >
           <Plus className="mr-2 size-4" />
@@ -307,42 +377,53 @@ function Dashboard({
       <div className="grid gap-4 sm:grid-cols-3">
         {[
           {
-            label: 'My Clients',
-            value: clients.length,
+            label:
+              'My Clients',
+            value:
+              clients.length,
             icon: Users,
           },
           {
             label: 'Reports',
-            value: reports.length,
+            value:
+              reports.length,
             icon: FileText,
           },
           {
-            label: 'In Progress',
-            value: processing,
+            label:
+              'In Progress',
+            value:
+              processing,
             icon: Clock3,
           },
-        ].map(({ label, value, icon: Icon }) => (
-          <div
-            key={label}
-            className="rounded-2xl border border-[#e8dfd3] bg-white p-5"
-          >
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs text-[#8e8478]">
-                  {label}
-                </p>
+        ].map(
+          ({
+            label,
+            value,
+            icon: Icon,
+          }) => (
+            <div
+              key={label}
+              className="rounded-2xl border border-[#e8dfd3] bg-white p-5"
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs text-[#8e8478]">
+                    {label}
+                  </p>
 
-                <p className="mt-3 font-serif text-3xl font-semibold text-[#24354c]">
-                  {value}
-                </p>
-              </div>
+                  <p className="mt-3 font-serif text-3xl font-semibold text-[#24354c]">
+                    {value}
+                  </p>
+                </div>
 
-              <div className="flex size-9 items-center justify-center rounded-xl bg-[#f3eadc] text-[#ad7b40]">
-                <Icon className="size-[18px]" />
+                <div className="flex size-9 items-center justify-center rounded-xl bg-[#f3eadc] text-[#ad7b40]">
+                  <Icon className="size-[18px]" />
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          )
+        )}
       </div>
 
       <div className="mt-8 rounded-2xl bg-[#24354c] p-6 text-white">
@@ -353,14 +434,19 @@ function Dashboard({
         </h3>
 
         <p className="mt-2 text-sm text-[#c6cbd1]">
-          Generate a personalized report for an existing client.
+          Generate a personalized
+          report for an existing
+          client.
         </p>
 
         <Button
-          onClick={() => setView('generate')}
+          onClick={() =>
+            setView('generate')
+          }
           className="mt-6 rounded-xl bg-[#d6b47b] text-[#24354c] hover:bg-[#e6c98f]"
         >
           Generate Report
+
           <ArrowRight className="ml-2 size-4" />
         </Button>
       </div>
@@ -372,31 +458,52 @@ function ClientsPage({
   clients,
   setView,
   onGenerateClient,
+  onStartConsultation,
 }: {
   clients: Client[]
-  setView: (view: View) => void
-  onGenerateClient: (clientId: string) => void
+  setView: (
+    view: View
+  ) => void
+  onGenerateClient: (
+    clientId: string
+  ) => void
+  onStartConsultation: (
+    clientId: string
+  ) => void
 }) {
-  const [searchTerm, setSearchTerm] = useState('')
+  const [
+    searchTerm,
+    setSearchTerm,
+  ] = useState('')
 
-  const normalizedSearch = searchTerm
-    .trim()
-    .toLowerCase()
+  const normalizedSearch =
+    searchTerm
+      .trim()
+      .toLowerCase()
 
-  const filteredClients = clients.filter((client) => {
-    if (!normalizedSearch) return true
+  const filteredClients =
+    clients.filter(
+      (client) => {
+        if (
+          !normalizedSearch
+        ) {
+          return true
+        }
 
-    return [
-      client.clientNumber,
-      client.name,
-      client.phone,
-      client.email,
-    ].some((value) =>
-      String(value || '')
-        .toLowerCase()
-        .includes(normalizedSearch)
+        return [
+          client.clientNumber,
+          client.name,
+          client.phone,
+          client.email,
+        ].some((value) =>
+          String(value || '')
+            .toLowerCase()
+            .includes(
+              normalizedSearch
+            )
+        )
+      }
     )
-  })
 
   return (
     <div className="p-5 sm:p-8 lg:p-10">
@@ -406,7 +513,11 @@ function ClientsPage({
         description="Manage clients, reports and customer interactions."
       >
         <Button
-          onClick={() => setView('new-client')}
+          onClick={() =>
+            setView(
+              'new-client'
+            )
+          }
           className="h-11 rounded-xl bg-[#24354c] px-5 text-white hover:bg-[#30445f]"
         >
           <Plus className="mr-2 size-4" />
@@ -419,9 +530,16 @@ function ClientsPage({
           <Search className="absolute left-3.5 top-3 size-4 text-[#aa9c8c]" />
 
           <input
-            value={searchTerm}
-            onChange={(event) =>
-              setSearchTerm(event.target.value)
+            value={
+              searchTerm
+            }
+            onChange={(
+              event
+            ) =>
+              setSearchTerm(
+                event.target
+                  .value
+              )
             }
             placeholder="Search Client ID / Name / Mobile / Email"
             className="h-10 w-full rounded-xl border border-[#e4dbcf] bg-white pl-10 pr-4 text-sm text-[#24354c] outline-none transition focus:border-[#b89a61] focus:ring-2 focus:ring-[#b89a61]/10"
@@ -441,15 +559,21 @@ function ClientsPage({
       <div className="mb-4 flex items-center justify-between">
         <div>
           <span className="text-sm font-semibold text-[#24354c]">
-            {filteredClients.length}{' '}
-            {filteredClients.length === 1
+            {
+              filteredClients.length
+            }{' '}
+            {filteredClients.length ===
+            1
               ? 'Client'
               : 'Clients'}
           </span>
 
           {searchTerm && (
             <span className="ml-2 text-xs text-[#9a8d7e]">
-              of {clients.length}
+              of{' '}
+              {
+                clients.length
+              }
             </span>
           )}
         </div>
@@ -460,25 +584,33 @@ function ClientsPage({
         </div>
       </div>
 
-      {filteredClients.length === 0 ? (
+      {filteredClients.length ===
+      0 ? (
         <div className="rounded-2xl border border-[#e8dfd3] bg-white p-10 text-center">
           <Users className="mx-auto mb-3 size-8 text-[#b89a61]" />
 
           <h3 className="font-serif text-lg font-semibold text-[#24354c]">
-            {clients.length === 0
+            {clients.length ===
+            0
               ? 'No clients yet'
               : 'No matching clients'}
           </h3>
 
           <p className="mx-auto mt-1 max-w-sm text-sm text-[#95897b]">
-            {clients.length === 0
+            {clients.length ===
+            0
               ? 'Add your first client to begin managing reports and customer interactions.'
               : 'Try searching with a different Client ID, name, mobile number or email.'}
           </p>
 
-          {clients.length === 0 && (
+          {clients.length ===
+            0 && (
             <Button
-              onClick={() => setView('new-client')}
+              onClick={() =>
+                setView(
+                  'new-client'
+                )
+              }
               className="mt-5 rounded-xl bg-[#24354c] px-5 text-white hover:bg-[#30445f]"
             >
               <Plus className="mr-2 size-4" />
@@ -488,132 +620,174 @@ function ClientsPage({
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredClients.map((client) => {
-            const hasWhatsApp = Boolean(
-              client.whatsapp || client.phone
-            )
+          {filteredClients.map(
+            (client) => {
+              const hasWhatsApp =
+                Boolean(
+                  client.whatsapp ||
+                    client.phone
+                )
 
-            return (
-              <div
-                key={client.id}
-                className="group overflow-hidden rounded-2xl border border-[#e8dfd3] bg-white shadow-sm transition hover:border-[#d9c49b] hover:shadow-md"
-              >
-                <div className="p-4 sm:p-5">
-                  <div className="flex items-start gap-3 sm:gap-4">
-                    <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#24354c] text-sm font-semibold text-white sm:size-12">
-                      {client.initials || 'C'}
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="truncate font-serif text-lg font-semibold text-[#24354c]">
-                              {client.name}
-                            </h3>
-
-                            {client.clientNumber && (
-                              <span className="rounded-full border border-[#e6d8bd] bg-[#fbf6ec] px-2.5 py-1 text-[10px] font-semibold tracking-wide text-[#8b6d37]">
-                                {client.clientNumber}
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#766d63]">
-                            {client.phone ? (
-                              <span>{client.phone}</span>
-                            ) : (
-                              <span className="text-[#aaa095]">
-                                No mobile number
-                              </span>
-                            )}
-
-                            {hasWhatsApp && (
-                              <span className="rounded-full bg-[#f1f7f1] px-2 py-0.5 text-[10px] font-semibold text-[#55705a]">
-                                WhatsApp
-                              </span>
-                            )}
-
-                            {client.email && (
-                              <span className="hidden truncate text-xs text-[#a09588] md:inline">
-                                {client.email}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="shrink-0 lg:text-right">
-                          <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#aaa095]">
-                            Last activity
-                          </div>
-
-                          <div className="mt-1 text-sm font-medium text-[#4e5b6d]">
-                            {client.lastActivity ||
-                              client.joined ||
-                              '—'}
-                          </div>
-                        </div>
+              return (
+                <div
+                  key={
+                    client.id
+                  }
+                  className="group overflow-hidden rounded-2xl border border-[#e8dfd3] bg-white shadow-sm transition hover:border-[#d9c49b] hover:shadow-md"
+                >
+                  <div className="p-4 sm:p-5">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#24354c] text-sm font-semibold text-white sm:size-12">
+                        {client.initials ||
+                          'C'}
                       </div>
 
-                      <div className="mt-4 grid grid-cols-3 gap-2 sm:max-w-xl">
-                        <div className="rounded-xl border border-[#eadfc9] bg-[#fcf8ef] px-3 py-2.5">
-                          <div className="text-[10px] font-semibold uppercase tracking-wide text-[#a38a5b]">
-                            Source
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="truncate font-serif text-lg font-semibold text-[#24354c]">
+                                {
+                                  client.name
+                                }
+                              </h3>
+
+                              {client.clientNumber && (
+                                <span className="rounded-full border border-[#e6d8bd] bg-[#fbf6ec] px-2.5 py-1 text-[10px] font-semibold tracking-wide text-[#8b6d37]">
+                                  {
+                                    client.clientNumber
+                                  }
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#766d63]">
+                              {client.phone ? (
+                                <span>
+                                  {
+                                    client.phone
+                                  }
+                                </span>
+                              ) : (
+                                <span className="text-[#aaa095]">
+                                  No
+                                  mobile
+                                  number
+                                </span>
+                              )}
+
+                              {hasWhatsApp && (
+                                <span className="rounded-full bg-[#f1f7f1] px-2 py-0.5 text-[10px] font-semibold text-[#55705a]">
+                                  WhatsApp
+                                </span>
+                              )}
+
+                              {client.email && (
+                                <span className="hidden truncate text-xs text-[#a09588] md:inline">
+                                  {
+                                    client.email
+                                  }
+                                </span>
+                              )}
+                            </div>
                           </div>
 
-                          <div className="mt-1 truncate text-xs font-semibold text-[#5d554b] sm:text-sm">
-                            {client.sourceName || '—'}
+                          <div className="shrink-0 lg:text-right">
+                            <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#aaa095]">
+                              Last
+                              activity
+                            </div>
+
+                            <div className="mt-1 text-sm font-medium text-[#4e5b6d]">
+                              {client.lastActivity ||
+                                client.joined ||
+                                '—'}
+                            </div>
                           </div>
                         </div>
 
-                        <div className="rounded-xl border border-[#e2e6ea] bg-[#f7f9fb] px-3 py-2.5">
-                          <div className="text-[10px] font-semibold uppercase tracking-wide text-[#7c8795]">
-                            Reports
+                        <div className="mt-4 grid grid-cols-3 gap-2 sm:max-w-xl">
+                          <div className="rounded-xl border border-[#eadfc9] bg-[#fcf8ef] px-3 py-2.5">
+                            <div className="text-[10px] font-semibold uppercase tracking-wide text-[#a38a5b]">
+                              Source
+                            </div>
+
+                            <div className="mt-1 truncate text-xs font-semibold text-[#5d554b] sm:text-sm">
+                              {client.sourceName ||
+                                '—'}
+                            </div>
                           </div>
 
-                          <div className="mt-1 text-sm font-semibold text-[#24354c]">
-                            {client.reportCount ?? 0}
+                          <div className="rounded-xl border border-[#e2e6ea] bg-[#f7f9fb] px-3 py-2.5">
+                            <div className="text-[10px] font-semibold uppercase tracking-wide text-[#7c8795]">
+                              Reports
+                            </div>
+
+                            <div className="mt-1 text-sm font-semibold text-[#24354c]">
+                              {client.reportCount ??
+                                0}
+                            </div>
+                          </div>
+
+                          <div className="rounded-xl border border-[#ece3da] bg-[#fbf8f5] px-3 py-2.5">
+                            <div className="text-[10px] font-semibold uppercase tracking-wide text-[#97897b]">
+                              Questions
+                            </div>
+
+                            <div className="mt-1 text-sm font-semibold text-[#24354c]">
+                              {client.questionCount ??
+                                0}
+                            </div>
                           </div>
                         </div>
 
-                        <div className="rounded-xl border border-[#ece3da] bg-[#fbf8f5] px-3 py-2.5">
-                          <div className="text-[10px] font-semibold uppercase tracking-wide text-[#97897b]">
-                            Questions
+                        <div className="mt-3 border-t border-[#f0ebe4] pt-3">
+                          <div className="mb-3 text-xs text-[#94887b]">
+                            Assigned
+                            to{' '}
+                            <span className="font-semibold text-[#5d574f]">
+                              {client.primaryEmployeeName ||
+                                'Not assigned'}
+                            </span>
                           </div>
 
-                          <div className="mt-1 text-sm font-semibold text-[#24354c]">
-                            {client.questionCount ?? 0}
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <Button
+                              type="button"
+                              onClick={() =>
+                                onStartConsultation(
+                                  client.id
+                                )
+                              }
+                              className="h-10 rounded-xl bg-[#24354c] px-4 text-xs text-white hover:bg-[#30445f]"
+                            >
+                              <MessageCircle className="mr-2 size-4" />
+                              Start
+                              Consultation
+                            </Button>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                onGenerateClient(
+                                  client.id
+                                )
+                              }
+                              title={`Generate report for ${client.name}`}
+                              aria-label={`Generate report for ${client.name}`}
+                              className="flex size-10 shrink-0 items-center justify-center self-end rounded-full border border-[#e4d8c5] bg-[#fffdf9] text-[#8f7445] transition group-hover:border-[#cdb47f] group-hover:bg-[#fbf4e6] sm:self-auto"
+                            >
+                              <ArrowRight className="size-4" />
+                            </button>
                           </div>
                         </div>
-                      </div>
-
-                      <div className="mt-3 flex items-center justify-between gap-3 border-t border-[#f0ebe4] pt-3">
-                        <div className="min-w-0 text-xs text-[#94887b]">
-                          Assigned to{' '}
-                          <span className="font-semibold text-[#5d574f]">
-                            {client.primaryEmployeeName ||
-                              'Not assigned'}
-                          </span>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            onGenerateClient(client.id)
-                          }
-                          title={`Generate report for ${client.name}`}
-                          aria-label={`Generate report for ${client.name}`}
-                          className="flex size-9 shrink-0 items-center justify-center rounded-full border border-[#e4d8c5] bg-[#fffdf9] text-[#8f7445] transition group-hover:border-[#cdb47f] group-hover:bg-[#fbf4e6]"
-                        >
-                          <ArrowRight className="size-4" />
-                        </button>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )
-          })}
+              )
+            }
+          )}
         </div>
       )}
     </div>
@@ -625,7 +799,9 @@ function ReportsPage({
   setView,
 }: {
   reports: Report[]
-  setView: (view: View) => void
+  setView: (
+    view: View
+  ) => void
 }) {
   return (
     <div className="p-5 sm:p-8 lg:p-10">
@@ -635,7 +811,11 @@ function ReportsPage({
         description="Review and manage client reports."
       >
         <Button
-          onClick={() => setView('generate')}
+          onClick={() =>
+            setView(
+              'generate'
+            )
+          }
           className="h-11 rounded-xl bg-[#24354c] px-5 text-white hover:bg-[#30445f]"
         >
           <Sparkles className="mr-2 size-4" />
@@ -643,7 +823,8 @@ function ReportsPage({
         </Button>
       </PageTitle>
 
-      {reports.length === 0 ? (
+      {reports.length ===
+      0 ? (
         <div className="rounded-2xl border border-[#e8dfd3] bg-white p-10 text-center">
           <FileText className="mx-auto mb-3 size-8 text-[#b89a61]" />
 
@@ -652,11 +833,17 @@ function ReportsPage({
           </h3>
 
           <p className="mx-auto mt-2 max-w-md text-sm text-[#948779]">
-            Generate your first Numerology Version 2 report.
+            Generate your first
+            Numerology Version 2
+            report.
           </p>
 
           <Button
-            onClick={() => setView('generate')}
+            onClick={() =>
+              setView(
+                'generate'
+              )
+            }
             className="mt-5 rounded-xl bg-[#24354c] px-5 text-white hover:bg-[#30445f]"
           >
             <Sparkles className="mr-2 size-4" />
@@ -665,32 +852,52 @@ function ReportsPage({
         </div>
       ) : (
         <div className="overflow-hidden rounded-2xl border border-[#e8dfd3] bg-white">
-          {reports.map((report) => (
-            <div
-              key={report.id}
-              className="flex items-center gap-4 border-b border-[#eee7dc] p-5 last:border-b-0"
-            >
+          {reports.map(
+            (report) => (
               <div
-                className={`flex size-11 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${toneClasses[report.tone]}`}
+                key={
+                  report.id
+                }
+                className="flex items-center gap-4 border-b border-[#eee7dc] p-5 last:border-b-0"
               >
-                {report.initials}
+                <div
+                  className={`flex size-11 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+                    toneClasses[
+                      report.tone
+                    ]
+                  }`}
+                >
+                  {
+                    report.initials
+                  }
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate font-serif text-base font-semibold text-[#24354c]">
+                    {
+                      report.client
+                    }
+                  </h3>
+
+                  <p className="mt-1 text-xs text-[#948779]">
+                    {
+                      report.version
+                    }{' '}
+                    ·{' '}
+                    {
+                      report.date
+                    }
+                  </p>
+                </div>
+
+                <span className="rounded-full bg-[#f5f0e8] px-3 py-1 text-xs font-medium text-[#786b5c]">
+                  {
+                    report.status
+                  }
+                </span>
               </div>
-
-              <div className="min-w-0 flex-1">
-                <h3 className="truncate font-serif text-base font-semibold text-[#24354c]">
-                  {report.client}
-                </h3>
-
-                <p className="mt-1 text-xs text-[#948779]">
-                  {report.version} · {report.date}
-                </p>
-              </div>
-
-              <span className="rounded-full bg-[#f5f0e8] px-3 py-1 text-xs font-medium text-[#786b5c]">
-                {report.status}
-              </span>
-            </div>
-          ))}
+            )
+          )}
         </div>
       )}
     </div>
@@ -739,147 +946,335 @@ function NewClientPage({
   clientSources,
   employees,
 }: {
-  setView: (view: View) => void
-  onAddClient: (client: Client) => void
-  clientSources: ClientSourceOption[]
-  employees: EmployeeOption[]
+  setView: (
+    view: View
+  ) => void
+  onAddClient: (
+    client: Client
+  ) => void
+  clientSources:
+    ClientSourceOption[]
+  employees:
+    EmployeeOption[]
 }) {
-  const [fullName, setFullName] = useState('')
-  const [currentName, setCurrentName] = useState('')
-  const [dob, setDob] = useState('')
-  const [gender, setGender] = useState('')
-  const [birthTime, setBirthTime] = useState('')
-  const [birthPlace, setBirthPlace] = useState('')
-  const [birthStateRegion, setBirthStateRegion] = useState('')
-  const [birthCountry, setBirthCountry] = useState('India')
-  const [mobile, setMobile] = useState('')
-  const [email, setEmail] = useState('')
-  const [sameWhatsapp, setSameWhatsapp] = useState(true)
-  const [whatsapp, setWhatsapp] = useState('')
-  const [sourceId, setSourceId] = useState('')
-  const [referredBy, setReferredBy] = useState('')
-  const [employeeId, setEmployeeId] = useState('')
-  const [notes, setNotes] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [saving, startSaving] = useTransition()
+  const [
+    fullName,
+    setFullName,
+  ] = useState('')
 
-  const selectedSource = clientSources.find(
-    (source) => source.id === sourceId
-  )
+  const [
+    currentName,
+    setCurrentName,
+  ] = useState('')
+
+  const [
+    dob,
+    setDob,
+  ] = useState('')
+
+  const [
+    gender,
+    setGender,
+  ] = useState('')
+
+  const [
+    birthTime,
+    setBirthTime,
+  ] = useState('')
+
+  const [
+    birthPlace,
+    setBirthPlace,
+  ] = useState('')
+
+  const [
+    birthStateRegion,
+    setBirthStateRegion,
+  ] = useState('')
+
+  const [
+    birthCountry,
+    setBirthCountry,
+  ] = useState('India')
+
+  const [
+    mobile,
+    setMobile,
+  ] = useState('')
+
+  const [
+    email,
+    setEmail,
+  ] = useState('')
+
+  const [
+    sameWhatsapp,
+    setSameWhatsapp,
+  ] = useState(true)
+
+  const [
+    whatsapp,
+    setWhatsapp,
+  ] = useState('')
+
+  const [
+    sourceId,
+    setSourceId,
+  ] = useState('')
+
+  const [
+    referredBy,
+    setReferredBy,
+  ] = useState('')
+
+  const [
+    employeeId,
+    setEmployeeId,
+  ] = useState('')
+
+  const [
+    notes,
+    setNotes,
+  ] = useState('')
+
+  const [
+    error,
+    setError,
+  ] = useState<
+    string | null
+  >(null)
+
+  const [
+    saving,
+    startSaving,
+  ] = useTransition()
+
+  const selectedSource =
+    clientSources.find(
+      (source) =>
+        source.id ===
+        sourceId
+    )
 
   const referral =
-    selectedSource?.name.trim().toLowerCase() === 'referral'
+    selectedSource?.name
+      .trim()
+      .toLowerCase() ===
+    'referral'
 
   const save = () => {
-    if (!fullName.trim() || !dob || saving) return
+    if (
+      !fullName.trim() ||
+      !dob ||
+      saving
+    ) {
+      return
+    }
 
     setError(null)
 
-    startSaving(async () => {
-      const result = await addClient({
-        full_name: fullName.trim(),
-        current_name: currentName.trim(),
-        date_of_birth: dob,
-        gender,
-        birth_time: birthTime,
-        birth_place_name: birthPlace.trim(),
-        birth_state_region: birthStateRegion.trim(),
-        birth_country: birthCountry.trim(),
-        mobile: mobile.trim(),
-        whatsapp_number: sameWhatsapp
-          ? mobile.trim()
-          : whatsapp.trim(),
-        email: email.trim(),
-        source_id: sourceId,
-        referred_by: referral
-          ? referredBy.trim()
-          : '',
-        primary_employee_id: employeeId,
-        notes: notes.trim(),
-      })
+    startSaving(
+      async () => {
+        const result =
+          await addClient({
+            full_name:
+              fullName.trim(),
 
-      if (result.error || !result.client) {
-        setError(
+            current_name:
+              currentName.trim(),
+
+            date_of_birth:
+              dob,
+
+            gender,
+
+            birth_time:
+              birthTime,
+
+            birth_place_name:
+              birthPlace.trim(),
+
+            birth_state_region:
+              birthStateRegion.trim(),
+
+            birth_country:
+              birthCountry.trim(),
+
+            mobile:
+              mobile.trim(),
+
+            whatsapp_number:
+              sameWhatsapp
+                ? mobile.trim()
+                : whatsapp.trim(),
+
+            email:
+              email.trim(),
+
+            source_id:
+              sourceId,
+
+            referred_by:
+              referral
+                ? referredBy.trim()
+                : '',
+
+            primary_employee_id:
+              employeeId,
+
+            notes:
+              notes.trim(),
+          })
+
+        if (
           result.error ||
-            'Unable to save client.'
+          !result.client
+        ) {
+          setError(
+            result.error ||
+              'Unable to save client.'
+          )
+          return
+        }
+
+        const assignedEmployee =
+          employees.find(
+            (employee) =>
+              employee.id ===
+              result.client
+                ?.primary_employee_id
+          )
+
+        onAddClient({
+          id:
+            result.client.id,
+
+          clientNumber:
+            result.client
+              .client_number ||
+            undefined,
+
+          name:
+            result.client
+              .full_name,
+
+          currentName:
+            result.client
+              .current_name ||
+            undefined,
+
+          initials:
+            getInitials(
+              result.client
+                .full_name
+            ),
+
+          dob:
+            result.client
+              .date_of_birth,
+
+          gender:
+            result.client
+              .gender ||
+            undefined,
+
+          birthTime:
+            result.client
+              .birth_time ||
+            undefined,
+
+          birthPlace:
+            result.client
+              .birth_place_name ||
+            undefined,
+
+          birthStateRegion:
+            result.client
+              .birth_state_region ||
+            undefined,
+
+          birthCountry:
+            result.client
+              .birth_country ||
+            undefined,
+
+          phone:
+            result.client
+              .mobile || '',
+
+          whatsapp:
+            result.client
+              .whatsapp_number ||
+            undefined,
+
+          email:
+            result.client
+              .email || '',
+
+          sourceId:
+            result.client
+              .source_id ||
+            undefined,
+
+          sourceName:
+            selectedSource?.name,
+
+          referredBy:
+            result.client
+              .referred_by ||
+            undefined,
+
+          primaryEmployeeId:
+            result.client
+              .primary_employee_id ||
+            undefined,
+
+          primaryEmployeeName:
+            assignedEmployee
+              ?.fullName,
+
+          reportCount: 0,
+          questionCount: 0,
+
+          lastActivity:
+            new Date(
+              result.client
+                .created_at
+            ).toLocaleDateString(),
+
+          notes:
+            result.client
+              .notes || '',
+
+          status:
+            result.client
+              .status ===
+            'inactive'
+              ? 'inactive'
+              : 'active',
+
+          joined:
+            new Date(
+              result.client
+                .created_at
+            ).toLocaleDateString(),
+
+          tone: 'navy',
+        })
+
+        setView(
+          'clients'
         )
-        return
       }
-
-      const assignedEmployee = employees.find(
-        (employee) =>
-          employee.id ===
-          result.client?.primary_employee_id
-      )
-
-      onAddClient({
-        id: result.client.id,
-        clientNumber:
-          result.client.client_number ||
-          undefined,
-        name: result.client.full_name,
-        currentName:
-          result.client.current_name ||
-          undefined,
-        initials: getInitials(
-          result.client.full_name
-        ),
-        dob: result.client.date_of_birth,
-        gender:
-          result.client.gender || undefined,
-        birthTime:
-          result.client.birth_time ||
-          undefined,
-        birthPlace:
-          result.client.birth_place_name ||
-          undefined,
-        birthStateRegion:
-          result.client.birth_state_region ||
-          undefined,
-        birthCountry:
-          result.client.birth_country ||
-          undefined,
-        phone: result.client.mobile || '',
-        whatsapp:
-          result.client.whatsapp_number ||
-          undefined,
-        email: result.client.email || '',
-        sourceId:
-          result.client.source_id ||
-          undefined,
-        sourceName: selectedSource?.name,
-        referredBy:
-          result.client.referred_by ||
-          undefined,
-        primaryEmployeeId:
-          result.client.primary_employee_id ||
-          undefined,
-        primaryEmployeeName:
-          assignedEmployee?.fullName,
-        reportCount: 0,
-        questionCount: 0,
-        lastActivity: new Date(
-          result.client.created_at
-        ).toLocaleDateString(),
-        notes: result.client.notes || '',
-        status:
-          result.client.status === 'inactive'
-            ? 'inactive'
-            : 'active',
-        joined: new Date(
-          result.client.created_at
-        ).toLocaleDateString(),
-        tone: 'navy',
-      })
-
-      setView('clients')
-    })
+    )
   }
 
   return (
     <div className="p-5 sm:p-8 lg:p-10">
       <button
-        onClick={() => setView('clients')}
+        onClick={() =>
+          setView('clients')
+        }
         className="mb-6 text-xs font-semibold text-[#9a7b4f]"
       >
         ← Back to Clients
@@ -899,7 +1294,9 @@ function NewClientPage({
             </p>
 
             <p className="mt-1 text-xs text-[#948779]">
-              Generated automatically after saving.
+              Generated
+              automatically after
+              saving.
             </p>
           </div>
 
@@ -913,59 +1310,123 @@ function NewClientPage({
           title="Personal Details"
           description="Basic identity information for the master client record."
         >
-          <label className={`${labelClass} sm:col-span-2`}>
-            Full Name / Birth Name *
+          <label
+            className={`${labelClass} sm:col-span-2`}
+          >
+            Full Name / Birth
+            Name *
+
             <input
-              value={fullName}
-              onChange={(e) =>
-                setFullName(e.target.value)
+              value={
+                fullName
+              }
+              onChange={(
+                event
+              ) =>
+                setFullName(
+                  event.target
+                    .value
+                )
               }
               placeholder="Enter client's full name"
-              className={inputClass}
+              className={
+                inputClass
+              }
             />
           </label>
 
-          <label className={labelClass}>
+          <label
+            className={
+              labelClass
+            }
+          >
             Current Name
+
             <input
-              value={currentName}
-              onChange={(e) =>
-                setCurrentName(e.target.value)
+              value={
+                currentName
+              }
+              onChange={(
+                event
+              ) =>
+                setCurrentName(
+                  event.target
+                    .value
+                )
               }
               placeholder="If different"
-              className={inputClass}
+              className={
+                inputClass
+              }
             />
           </label>
 
-          <label className={labelClass}>
+          <label
+            className={
+              labelClass
+            }
+          >
             Date of Birth *
+
             <input
               type="date"
               value={dob}
-              onChange={(e) =>
-                setDob(e.target.value)
+              onChange={(
+                event
+              ) =>
+                setDob(
+                  event.target
+                    .value
+                )
               }
-              className={inputClass}
+              className={
+                inputClass
+              }
             />
           </label>
 
-          <label className={labelClass}>
+          <label
+            className={
+              labelClass
+            }
+          >
             Gender
+
             <select
-              value={gender}
-              onChange={(e) =>
-                setGender(e.target.value)
+              value={
+                gender
               }
-              className={inputClass}
+              onChange={(
+                event
+              ) =>
+                setGender(
+                  event.target
+                    .value
+                )
+              }
+              className={
+                inputClass
+              }
             >
-              <option value="">Select</option>
-              <option value="male">Male</option>
+              <option value="">
+                Select
+              </option>
+
+              <option value="male">
+                Male
+              </option>
+
               <option value="female">
                 Female
               </option>
-              <option value="other">Other</option>
+
+              <option value="other">
+                Other
+              </option>
+
               <option value="prefer_not_to_say">
-                Prefer not to say
+                Prefer not to
+                say
               </option>
             </select>
           </label>
@@ -976,52 +1437,106 @@ function NewClientPage({
           title="Birth Details"
           description="Birth information for astrology and Premium Life Path services."
         >
-          <label className={labelClass}>
+          <label
+            className={
+              labelClass
+            }
+          >
             Time of Birth
+
             <input
               type="time"
-              value={birthTime}
-              onChange={(e) =>
-                setBirthTime(e.target.value)
+              value={
+                birthTime
               }
-              className={inputClass}
+              onChange={(
+                event
+              ) =>
+                setBirthTime(
+                  event.target
+                    .value
+                )
+              }
+              className={
+                inputClass
+              }
             />
           </label>
 
-          <label className={labelClass}>
+          <label
+            className={
+              labelClass
+            }
+          >
             Birth Place
+
             <input
-              value={birthPlace}
-              onChange={(e) =>
-                setBirthPlace(e.target.value)
+              value={
+                birthPlace
+              }
+              onChange={(
+                event
+              ) =>
+                setBirthPlace(
+                  event.target
+                    .value
+                )
               }
               placeholder="City / Town"
-              className={inputClass}
+              className={
+                inputClass
+              }
             />
           </label>
 
-          <label className={labelClass}>
+          <label
+            className={
+              labelClass
+            }
+          >
             State / Region
+
             <input
-              value={birthStateRegion}
-              onChange={(e) =>
+              value={
+                birthStateRegion
+              }
+              onChange={(
+                event
+              ) =>
                 setBirthStateRegion(
-                  e.target.value
+                  event.target
+                    .value
                 )
               }
               placeholder="e.g. Maharashtra"
-              className={inputClass}
+              className={
+                inputClass
+              }
             />
           </label>
 
-          <label className={labelClass}>
+          <label
+            className={
+              labelClass
+            }
+          >
             Country
+
             <input
-              value={birthCountry}
-              onChange={(e) =>
-                setBirthCountry(e.target.value)
+              value={
+                birthCountry
               }
-              className={inputClass}
+              onChange={(
+                event
+              ) =>
+                setBirthCountry(
+                  event.target
+                    .value
+                )
+              }
+              className={
+                inputClass
+              }
             />
           </label>
         </Section>
@@ -1031,58 +1546,101 @@ function NewClientPage({
           title="Contact"
           description="Contact information is optional."
         >
-          <label className={labelClass}>
-            Mobile / Primary Contact
+          <label
+            className={
+              labelClass
+            }
+          >
+            Mobile / Primary
+            Contact
+
             <input
               type="tel"
               value={mobile}
-              onChange={(e) =>
-                setMobile(e.target.value)
+              onChange={(
+                event
+              ) =>
+                setMobile(
+                  event.target
+                    .value
+                )
               }
               placeholder="+91"
-              className={inputClass}
+              className={
+                inputClass
+              }
             />
           </label>
 
-          <label className={labelClass}>
+          <label
+            className={
+              labelClass
+            }
+          >
             Email
+
             <input
               type="email"
               value={email}
-              onChange={(e) =>
-                setEmail(e.target.value)
+              onChange={(
+                event
+              ) =>
+                setEmail(
+                  event.target
+                    .value
+                )
               }
               placeholder="name@email.com"
-              className={inputClass}
+              className={
+                inputClass
+              }
             />
           </label>
 
           <label className="flex items-center gap-3 rounded-xl border border-[#e8dfd3] bg-[#fcfaf6] px-4 py-3 text-sm text-[#5f574d] sm:col-span-2">
             <input
               type="checkbox"
-              checked={sameWhatsapp}
-              onChange={(e) =>
+              checked={
+                sameWhatsapp
+              }
+              onChange={(
+                event
+              ) =>
                 setSameWhatsapp(
-                  e.target.checked
+                  event.target
+                    .checked
                 )
               }
               className="size-4 accent-[#24354c]"
             />
 
-            WhatsApp number is the same as mobile
+            WhatsApp number is
+            the same as mobile
           </label>
 
           {!sameWhatsapp && (
-            <label className={`${labelClass} sm:col-span-2`}>
+            <label
+              className={`${labelClass} sm:col-span-2`}
+            >
               WhatsApp Number
+
               <input
                 type="tel"
-                value={whatsapp}
-                onChange={(e) =>
-                  setWhatsapp(e.target.value)
+                value={
+                  whatsapp
+                }
+                onChange={(
+                  event
+                ) =>
+                  setWhatsapp(
+                    event.target
+                      .value
+                  )
                 }
                 placeholder="+91"
-                className={inputClass}
+                className={
+                  inputClass
+                }
               />
             </label>
           )}
@@ -1093,42 +1651,76 @@ function NewClientPage({
           title="Client Source"
           description="Track how the client came to The Swastik Indian Art."
         >
-          <label className={labelClass}>
+          <label
+            className={
+              labelClass
+            }
+          >
             Source
+
             <select
-              value={sourceId}
-              onChange={(e) =>
-                setSourceId(e.target.value)
+              value={
+                sourceId
               }
-              className={inputClass}
+              onChange={(
+                event
+              ) =>
+                setSourceId(
+                  event.target
+                    .value
+                )
+              }
+              className={
+                inputClass
+              }
             >
               <option value="">
                 Select source
               </option>
 
-              {clientSources.map((source) => (
-                <option
-                  key={source.id}
-                  value={source.id}
-                >
-                  {source.name}
-                </option>
-              ))}
+              {clientSources.map(
+                (source) => (
+                  <option
+                    key={
+                      source.id
+                    }
+                    value={
+                      source.id
+                    }
+                  >
+                    {
+                      source.name
+                    }
+                  </option>
+                )
+              )}
             </select>
           </label>
 
           {referral && (
-            <label className={labelClass}>
+            <label
+              className={
+                labelClass
+              }
+            >
               Referred By
+
               <input
-                value={referredBy}
-                onChange={(e) =>
+                value={
+                  referredBy
+                }
+                onChange={(
+                  event
+                ) =>
                   setReferredBy(
-                    e.target.value
+                    event.target
+                      .value
                   )
                 }
                 placeholder="Name of referrer"
-                className={inputClass}
+                className={
+                  inputClass
+                }
               />
             </label>
           )}
@@ -1139,31 +1731,52 @@ function NewClientPage({
           title="Assignment"
           description="Select the primary TSIA employee responsible for this client."
         >
-          <label className={`${labelClass} sm:col-span-2`}>
-            Primary Assigned Employee
+          <label
+            className={`${labelClass} sm:col-span-2`}
+          >
+            Primary Assigned
+            Employee
 
             <select
-              value={employeeId}
-              onChange={(e) =>
-                setEmployeeId(e.target.value)
+              value={
+                employeeId
               }
-              className={inputClass}
+              onChange={(
+                event
+              ) =>
+                setEmployeeId(
+                  event.target
+                    .value
+                )
+              }
+              className={
+                inputClass
+              }
             >
               <option value="">
                 Assign to me
               </option>
 
-              {employees.map((employee) => (
-                <option
-                  key={employee.id}
-                  value={employee.id}
-                >
-                  {employee.fullName}
-                  {employee.specialization
-                    ? ` — ${employee.specialization}`
-                    : ''}
-                </option>
-              ))}
+              {employees.map(
+                (employee) => (
+                  <option
+                    key={
+                      employee.id
+                    }
+                    value={
+                      employee.id
+                    }
+                  >
+                    {
+                      employee.fullName
+                    }
+
+                    {employee.specialization
+                      ? ` — ${employee.specialization}`
+                      : ''}
+                  </option>
+                )
+              )}
             </select>
           </label>
         </Section>
@@ -1173,14 +1786,21 @@ function NewClientPage({
           title="Internal Notes"
           description="Private notes for the TSIA team. Not visible to the customer."
         >
-          <label className={`${labelClass} sm:col-span-2`}>
+          <label
+            className={`${labelClass} sm:col-span-2`}
+          >
             Notes
 
             <textarea
               rows={4}
               value={notes}
-              onChange={(e) =>
-                setNotes(e.target.value)
+              onChange={(
+                event
+              ) =>
+                setNotes(
+                  event.target
+                    .value
+                )
               }
               placeholder="Internal notes..."
               className="w-full resize-none rounded-xl border border-[#e5dccf] px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-[#d6b47b]/20"
@@ -1199,7 +1819,9 @@ function NewClientPage({
             variant="outline"
             disabled={saving}
             onClick={() =>
-              setView('clients')
+              setView(
+                'clients'
+              )
             }
             className="h-11 rounded-xl"
           >
@@ -1231,31 +1853,47 @@ function GeneratePage({
   initialClientId,
 }: {
   clients: Client[]
-  setView: (view: View) => void
+  setView: (
+    view: View
+  ) => void
   initialClientId: string
 }) {
-  const [selectedClientId, setSelectedClientId] =
-    useState(initialClientId)
-
-  const [error, setError] =
-    useState<string | null>(null)
-
-  const [generated, setGenerated] =
-    useState<
-      Awaited<
-        ReturnType<
-          typeof generateNumerologyV2
-        >
-      >['result']
-    >(null)
-
-  const [generating, startGenerating] =
-    useTransition()
-
-  const selectedClient = clients.find(
-    (client) =>
-      client.id === selectedClientId
+  const [
+    selectedClientId,
+    setSelectedClientId,
+  ] = useState(
+    initialClientId
   )
+
+  const [
+    error,
+    setError,
+  ] = useState<
+    string | null
+  >(null)
+
+  const [
+    generated,
+    setGenerated,
+  ] = useState<
+    Awaited<
+      ReturnType<
+        typeof generateNumerologyV2
+      >
+    >['result']
+  >(null)
+
+  const [
+    generating,
+    startGenerating,
+  ] = useTransition()
+
+  const selectedClient =
+    clients.find(
+      (client) =>
+        client.id ===
+        selectedClientId
+    )
 
   const generate = () => {
     if (
@@ -1268,25 +1906,29 @@ function GeneratePage({
     setError(null)
     setGenerated(null)
 
-    startGenerating(async () => {
-      const result =
-        await generateNumerologyV2(
-          selectedClientId
-        )
+    startGenerating(
+      async () => {
+        const result =
+          await generateNumerologyV2(
+            selectedClientId
+          )
 
-      if (
-        result.error ||
-        !result.result
-      ) {
-        setError(
+        if (
           result.error ||
-            'Unable to generate report.'
-        )
-        return
-      }
+          !result.result
+        ) {
+          setError(
+            result.error ||
+              'Unable to generate report.'
+          )
+          return
+        }
 
-      setGenerated(result.result)
-    })
+        setGenerated(
+          result.result
+        )
+      }
+    )
   }
 
   const grahaNames: Record<
@@ -1317,23 +1959,32 @@ function GeneratePage({
       return ''
     }
 
+    const counts =
+      generated.calculation
+        .loShu
+        .counts as Record<
+        number,
+        number
+      >
+
     const count =
-      generated.calculation.loShu
-        .counts[number] || 0
+      counts[number] || 0
 
     if (count === 0) {
       return ''
     }
 
-    return String(number).repeat(
-      count
-    )
+    return String(
+      number
+    ).repeat(count)
   }
 
   const repeatedNumbers =
     generated
       ? Object.entries(
-          generated.calculation.loShu
+          generated
+            .calculation
+            .loShu
             .repeatedNumbers
         )
       : []
@@ -1342,7 +1993,9 @@ function GeneratePage({
     <div className="p-5 sm:p-8 lg:p-10">
       <button
         onClick={() =>
-          setView('clients')
+          setView(
+            'clients'
+          )
         }
         className="mb-6 text-xs font-semibold text-[#9a7b4f]"
       >
@@ -1357,19 +2010,33 @@ function GeneratePage({
 
       <div className="mx-auto max-w-4xl space-y-5">
         <div className="rounded-2xl border border-[#e8dfd3] bg-white p-6">
-          <label className={labelClass}>
+          <label
+            className={
+              labelClass
+            }
+          >
             Client
 
             <select
-              value={selectedClientId}
-              onChange={(event) => {
+              value={
+                selectedClientId
+              }
+              onChange={(
+                event
+              ) => {
                 setSelectedClientId(
-                  event.target.value
+                  event.target
+                    .value
                 )
+
                 setError(null)
-                setGenerated(null)
+                setGenerated(
+                  null
+                )
               }}
-              className={inputClass}
+              className={
+                inputClass
+              }
             >
               <option value="">
                 Select client
@@ -1378,10 +2045,17 @@ function GeneratePage({
               {clients.map(
                 (client) => (
                   <option
-                    key={client.id}
-                    value={client.id}
+                    key={
+                      client.id
+                    }
+                    value={
+                      client.id
+                    }
                   >
-                    {client.name}
+                    {
+                      client.name
+                    }
+
                     {client.clientNumber
                       ? ` — ${client.clientNumber}`
                       : ''}
@@ -1394,7 +2068,9 @@ function GeneratePage({
           {selectedClient && (
             <div className="mt-4 rounded-xl border border-[#eee4d6] bg-[#f8f4ed] p-4">
               <p className="font-serif text-lg font-semibold text-[#24354c]">
-                {selectedClient.name}
+                {
+                  selectedClient.name
+                }
               </p>
 
               <div className="mt-2 space-y-1 text-xs text-[#7c7064]">
@@ -1408,8 +2084,11 @@ function GeneratePage({
                 )}
 
                 <p>
-                  Date of Birth:{' '}
-                  {selectedClient.dob}
+                  Date of
+                  Birth:{' '}
+                  {
+                    selectedClient.dob
+                  }
                 </p>
               </div>
             </div>
@@ -1419,11 +2098,14 @@ function GeneratePage({
             <CircleHelp className="size-4 shrink-0 text-[#ad7b40]" />
 
             <span>
-              The verified TSIA Version 2
-              engine calculates the core
-              numbers, Personal Lo Shu,
-              patterns, Rajyog and detailed
-              interpretation automatically.
+              The verified TSIA
+              Version 2 engine
+              calculates the core
+              numbers, Personal Lo
+              Shu, patterns,
+              Rajyog and detailed
+              interpretation
+              automatically.
             </span>
           </div>
 
@@ -1438,7 +2120,9 @@ function GeneratePage({
               !selectedClientId ||
               generating
             }
-            onClick={generate}
+            onClick={
+              generate
+            }
             className="mt-5 h-11 w-full rounded-xl bg-[#24354c] text-white hover:bg-[#30445f]"
           >
             <Sparkles className="mr-2 size-4" />
@@ -1453,24 +2137,28 @@ function GeneratePage({
           <div className="overflow-hidden rounded-2xl border border-[#e1d5c4] bg-white shadow-sm">
             <div className="bg-[#24354c] p-6 text-white">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#d6b47b]">
-                TSIA · Employee Analysis
+                TSIA · Employee
+                Analysis
               </p>
 
               <h3 className="mt-2 font-serif text-2xl">
                 {
-                  generated.client
+                  generated
+                    .client
                     .fullName
                 }
               </h3>
 
               <p className="mt-1 text-xs text-[#c9d0d8]">
-                {generated.client
+                {generated
+                  .client
                   .clientNumber ||
                   'TSIA Client'}
                 {' · '}
                 DOB{' '}
                 {
-                  generated.client
+                  generated
+                    .client
                     .dateOfBirth
                 }
               </p>
@@ -1491,7 +2179,8 @@ function GeneratePage({
                     {
                       generated
                         .calculation
-                        .mulank.final
+                        .mulank
+                        .final
                     }
                   </p>
 
@@ -1500,7 +2189,8 @@ function GeneratePage({
                       grahaNames[
                         generated
                           .calculation
-                          .mulank.final
+                          .mulank
+                          .final
                       ]
                     }
                   </p>
@@ -1515,7 +2205,8 @@ function GeneratePage({
                     {
                       generated
                         .calculation
-                        .bhagyank.final
+                        .bhagyank
+                        .final
                     }
                   </p>
 
@@ -1524,7 +2215,8 @@ function GeneratePage({
                       grahaNames[
                         generated
                           .calculation
-                          .bhagyank.final
+                          .bhagyank
+                          .final
                       ]
                     }
                   </p>
@@ -1563,20 +2255,25 @@ function GeneratePage({
                 </p>
 
                 <h3 className="mt-2 font-serif text-2xl font-semibold text-[#24354c]">
-                  Standard & Personal Lo Shu
+                  Standard &
+                  Personal Lo Shu
                 </h3>
 
                 <p className="mt-2 text-sm leading-6 text-[#7c7064]">
-                  The Personal Lo Shu uses
-                  the client's DOB digits,
-                  final Mulank and final
-                  Bhagyank. Zero is excluded.
+                  The Personal Lo
+                  Shu uses the
+                  client's DOB
+                  digits, final
+                  Mulank and final
+                  Bhagyank. Zero is
+                  excluded.
                 </p>
 
                 <div className="mt-6 grid gap-7 sm:grid-cols-2">
                   <div>
                     <p className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.12em] text-[#756a5f]">
-                      Standard Lo Shu Grid
+                      Standard Lo
+                      Shu Grid
                     </p>
 
                     <div className="mx-auto grid aspect-square w-full max-w-[280px] grid-cols-3 overflow-hidden rounded-xl border-2 border-[#d3b87e] bg-[#fffdf9]">
@@ -1588,23 +2285,30 @@ function GeneratePage({
                             index
                           ) => (
                             <div
-                              key={index}
+                              key={
+                                index
+                              }
                               className="flex items-center justify-center border border-[#e1cfaa] font-serif text-2xl font-semibold text-[#24354c]"
                             >
-                              {number}
+                              {
+                                number
+                              }
                             </div>
                           )
                         )}
                     </div>
 
                     <p className="mt-3 text-center text-[11px] text-[#948779]">
-                      Original reference grid
+                      Original
+                      reference
+                      grid
                     </p>
                   </div>
 
                   <div>
                     <p className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.12em] text-[#9a7b4f]">
-                      Personal Lo Shu Grid
+                      Personal Lo
+                      Shu Grid
                     </p>
 
                     <div className="mx-auto grid aspect-square w-full max-w-[280px] grid-cols-3 overflow-hidden rounded-xl border-2 border-[#b28a4b] bg-[#fbf6ec] shadow-sm">
@@ -1616,21 +2320,22 @@ function GeneratePage({
                             index
                           ) => (
                             <div
-                              key={index}
+                              key={
+                                index
+                              }
                               className="flex items-center justify-center border border-[#dcc69a] px-1 font-serif text-2xl font-bold text-[#24354c]"
                             >
-                              {
-                                personalCell(
-                                  number
-                                )
-                              }
+                              {personalCell(
+                                number
+                              )}
                             </div>
                           )
                         )}
                     </div>
 
                     <p className="mt-3 text-center text-[11px] text-[#948779]">
-                      DOB + Mulank + Bhagyank
+                      DOB + Mulank
+                      + Bhagyank
                     </p>
                   </div>
                 </div>
@@ -1646,7 +2351,9 @@ function GeneratePage({
                         .calculation
                         .loShu
                         .presentNumbers
-                        .join(', ')}
+                        .join(
+                          ', '
+                        )}
                     </p>
                   </div>
 
@@ -1665,7 +2372,9 @@ function GeneratePage({
                             .calculation
                             .loShu
                             .missingNumbers
-                            .join(', ')
+                            .join(
+                              ', '
+                            )
                         : 'None'}
                     </p>
                   </div>
@@ -1685,7 +2394,9 @@ function GeneratePage({
                               ]) =>
                                 `${number} × ${count}`
                             )
-                            .join(' · ')
+                            .join(
+                              ' · '
+                            )
                         : 'None'}
                     </p>
                   </div>
@@ -1700,7 +2411,8 @@ function GeneratePage({
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-xl border border-[#e8dfd3] bg-[#fcfaf6] p-4">
                     <p className="text-xs text-[#8d8174]">
-                      Golden Rajyog · 4-5-6
+                      Golden Rajyog
+                      · 4-5-6
                     </p>
 
                     <p className="mt-1 font-serif text-lg font-semibold capitalize text-[#24354c]">
@@ -1716,7 +2428,8 @@ function GeneratePage({
 
                   <div className="rounded-xl border border-[#e8dfd3] bg-[#fcfaf6] p-4">
                     <p className="text-xs text-[#8d8174]">
-                      Silver Rajyog · 2-5-8
+                      Silver Rajyog
+                      · 2-5-8
                     </p>
 
                     <p className="mt-1 font-serif text-lg font-semibold capitalize text-[#24354c]">
@@ -1734,7 +2447,9 @@ function GeneratePage({
 
               <div className="mt-8 border-t border-[#eee7dc] pt-7">
                 <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9a7b4f]">
-                  Detailed Employee Analysis
+                  Detailed
+                  Employee
+                  Analysis
                 </p>
 
                 <p className="text-sm leading-6 text-[#6f665d]">
@@ -1746,46 +2461,58 @@ function GeneratePage({
                 </p>
 
                 <div className="mt-7 space-y-8">
-                  {generated.narrative.sections.map(
-                    (section) => (
-                      <section
-                        key={
-                          section.title
-                        }
-                      >
-                        <h4 className="font-serif text-xl font-semibold text-[#24354c]">
-                          {
+                  {generated
+                    .narrative
+                    .sections
+                    .map(
+                      (
+                        section
+                      ) => (
+                        <section
+                          key={
                             section.title
                           }
-                        </h4>
+                        >
+                          <h4 className="font-serif text-xl font-semibold text-[#24354c]">
+                            {
+                              section.title
+                            }
+                          </h4>
 
-                        <div className="mt-3 space-y-4">
-                          {section.paragraphs.map(
-                            (
-                              paragraph,
-                              index
-                            ) => (
-                              <p
-                                key={index}
-                                className="text-sm leading-7 text-[#6f665d]"
-                              >
-                                {paragraph}
-                              </p>
-                            )
-                          )}
-                        </div>
-                      </section>
-                    )
-                  )}
+                          <div className="mt-3 space-y-4">
+                            {section.paragraphs.map(
+                              (
+                                paragraph,
+                                index
+                              ) => (
+                                <p
+                                  key={
+                                    index
+                                  }
+                                  className="text-sm leading-7 text-[#6f665d]"
+                                >
+                                  {
+                                    paragraph
+                                  }
+                                </p>
+                              )
+                            )}
+                          </div>
+                        </section>
+                      )
+                    )}
                 </div>
               </div>
 
               <div className="mt-8 rounded-xl border border-[#e6d8bd] bg-[#fbf6ec] p-4 text-xs leading-5 text-[#806b48]">
-                Employee analysis generated
-                from the verified TSIA
-                Version 2 engine. The final
-                client report will be
-                generated separately.
+                Employee analysis
+                generated from the
+                verified TSIA
+                Version 2 engine.
+                The final client
+                report will be
+                generated
+                separately.
               </div>
             </div>
           </div>
@@ -1795,12 +2522,22 @@ function GeneratePage({
   )
 }
 
-const titles: Record<View, string> = {
-  dashboard: 'Dashboard',
-  clients: 'Clients',
-  reports: 'Reports',
-  'new-client': 'New Client',
-  generate: 'Generate Report',
+const titles: Record<
+  View,
+  string
+> = {
+  dashboard:
+    'Dashboard',
+  clients:
+    'Clients',
+  reports:
+    'Reports',
+  'new-client':
+    'New Client',
+  generate:
+    'Generate Report',
+  consultation:
+    'Consultation',
 }
 
 export function ReportPortal({
@@ -1813,30 +2550,49 @@ export function ReportPortal({
   fullName: string
   reports: Report[]
   clients: Client[]
-  clientSources: ClientSourceOption[]
-  employees: EmployeeOption[]
+  clientSources:
+    ClientSourceOption[]
+  employees:
+    EmployeeOption[]
 }) {
-  const [view, setView] =
-    useState<View>('dashboard')
+  const [
+    view,
+    setView,
+  ] = useState<View>(
+    'dashboard'
+  )
 
-  const [open, setOpen] =
-    useState(false)
+  const [
+    open,
+    setOpen,
+  ] = useState(false)
 
-  const [clientList, setClientList] =
-    useState<Client[]>(clients)
+  const [
+    clientList,
+    setClientList,
+  ] = useState<Client[]>(
+    clients
+  )
 
   const [
     selectedReportClientId,
     setSelectedReportClientId,
   ] = useState('')
 
+  const [
+    selectedConsultationClientId,
+    setSelectedConsultationClientId,
+  ] = useState('')
+
   const addLocalClient = (
     client: Client
   ) => {
-    setClientList((current) => [
-      client,
-      ...current,
-    ])
+    setClientList(
+      (current) => [
+        client,
+        ...current,
+      ]
+    )
   }
 
   const openGenerateForClient = (
@@ -1845,35 +2601,79 @@ export function ReportPortal({
     setSelectedReportClientId(
       clientId
     )
+
     setView('generate')
+  }
+
+  const openConsultationForClient = (
+    clientId: string
+  ) => {
+    setSelectedConsultationClientId(
+      clientId
+    )
+
+    setView(
+      'consultation'
+    )
   }
 
   const changeView = (
     nextView: View
   ) => {
-    if (nextView === 'generate') {
-      setSelectedReportClientId('')
+    if (
+      nextView ===
+      'generate'
+    ) {
+      setSelectedReportClientId(
+        ''
+      )
+    }
+
+    if (
+      nextView !==
+      'consultation'
+    ) {
+      setSelectedConsultationClientId(
+        ''
+      )
     }
 
     setView(nextView)
   }
+
+  const consultationClient =
+    clientList.find(
+      (client) =>
+        client.id ===
+        selectedConsultationClientId
+    )
 
   return (
     <div className="min-h-screen bg-[#f7f3ed] text-[#3e3a35]">
       <div className="flex min-h-screen">
         <Sidebar
           view={view}
-          setView={changeView}
+          setView={
+            changeView
+          }
           open={open}
           setOpen={setOpen}
-          fullName={fullName}
+          fullName={
+            fullName
+          }
         />
 
         <div className="min-w-0 flex-1">
           <Header
-            title={titles[view]}
-            fullName={fullName}
-            setOpen={setOpen}
+            title={
+              titles[view]
+            }
+            fullName={
+              fullName
+            }
+            setOpen={
+              setOpen
+            }
           />
 
           <main>
@@ -1895,7 +2695,8 @@ export function ReportPortal({
               />
             )}
 
-            {view === 'clients' && (
+            {view ===
+              'clients' && (
               <ClientsPage
                 clients={
                   clientList
@@ -1906,10 +2707,14 @@ export function ReportPortal({
                 onGenerateClient={
                   openGenerateForClient
                 }
+                onStartConsultation={
+                  openConsultationForClient
+                }
               />
             )}
 
-            {view === 'reports' && (
+            {view ===
+              'reports' && (
               <ReportsPage
                 reports={
                   reports
@@ -1956,6 +2761,68 @@ export function ReportPortal({
                 }
               />
             )}
+
+            {view ===
+              'consultation' &&
+              consultationClient && (
+                <ConsultationWorkspace
+                  key={
+                    consultationClient.id
+                  }
+                  client={{
+                    id:
+                      consultationClient.id,
+                    clientNumber:
+                      consultationClient.clientNumber,
+                    name:
+                      consultationClient.name,
+                    dob:
+                      consultationClient.dob,
+                  }}
+                  onBack={() =>
+                    changeView(
+                      'clients'
+                    )
+                  }
+                />
+              )}
+
+            {view ===
+              'consultation' &&
+              !consultationClient && (
+                <div className="p-5 sm:p-8 lg:p-10">
+                  <div className="mx-auto max-w-xl rounded-2xl border border-[#e8dfd3] bg-white p-8 text-center">
+                    <Users className="mx-auto size-8 text-[#b89a61]" />
+
+                    <h2 className="mt-4 font-serif text-xl font-semibold text-[#24354c]">
+                      Client not
+                      selected
+                    </h2>
+
+                    <p className="mt-2 text-sm leading-6 text-[#81776b]">
+                      Return to the
+                      Clients page
+                      and choose the
+                      client whose
+                      consultation
+                      you want to
+                      start.
+                    </p>
+
+                    <Button
+                      onClick={() =>
+                        changeView(
+                          'clients'
+                        )
+                      }
+                      className="mt-5 rounded-xl bg-[#24354c] px-5 text-white hover:bg-[#30445f]"
+                    >
+                      Back to
+                      Clients
+                    </Button>
+                  </div>
+                </div>
+              )}
           </main>
         </div>
       </div>
