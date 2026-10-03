@@ -1,173 +1,115 @@
-'use server'
+'use client'
 
-import { createClient } from '@/lib/supabase/server'
+import { useState } from 'react'
 
-type StartInput = {
-  clientId: string
-  mode: 'in_person' | 'phone'
-  purposeCode: string
-  topicCode: string
-  note: string
+import {
+ConsultationSetup,
+} from '@/components/consultation-setup'
+
+import {
+ConsultationContext,
+} from '@/components/consultation-context'
+
+import {
+ConsultationAssistant,
+} from '@/components/consultation-assistant'
+
+export type ConsultationMode =
+| 'in_person'
+| 'phone'
+| ''
+
+export type ConsultationPurpose =
+| 'numerology_report'
+| 'future_numerology'
+| 'career'
+| 'business'
+| 'money'
+| 'family'
+| 'relationship'
+| 'marriage'
+| 'personal_direction'
+| 'follow_up'
+| 'other'
+| ''
+
+export type ConsultationClient = {
+id: string
+clientNumber?: string
+name: string
+dob?: string
 }
 
-export async function startConsultation(
-  input: StartInput
-) {
-  try {
-    const supabase = await createClient()
+type ConsultationStage =
+| 'setup'
+| 'context'
+| 'assistant'
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+type Props = {
+client: ConsultationClient
+onBack: () => void
+}
 
-    if (!user) {
-      return {
-        error: 'You must be signed in.',
-        result: null,
-      }
-    }
+export function ConsultationWorkspace({
+client,
+onBack,
+}: Props) {
+const [stage, setStage] =
+useState<ConsultationStage>('setup')
 
-    const { data: profile } =
-      await supabase
-        .from('profiles')
-        .select(
-          'id,organization_id,location_id,is_active'
-        )
-        .eq('id', user.id)
-        .single()
+const [mode, setMode] =
+useState<ConsultationMode>('')
 
-    if (!profile || !profile.is_active) {
-      return {
-        error: 'Active employee profile not found.',
-        result: null,
-      }
-    }
+const [purpose, setPurpose] =
+useState<ConsultationPurpose>('')
 
-    const { data: purpose } =
-      await supabase
-        .from('consultation_purposes')
-        .select('id')
-        .eq(
-          'organization_id',
-          profile.organization_id
-        )
-        .eq(
-          'purpose_code',
-          input.purposeCode
-        )
-        .eq('is_active', true)
-        .single()
+const [note, setNote] =
+useState('')
 
-    if (!purpose) {
-      return {
-        error: 'Consultation purpose not found.',
-        result: null,
-      }
-    }
+if (stage === 'assistant') {
+return (
+<ConsultationAssistant
+client={client}
+mode={mode}
+purpose={purpose}
+note={note}
+onBack={() =>
+setStage('context')
+}
+/>
+)
+}
 
-    const { data: topic } =
-      await supabase
-        .from('consultation_topics')
-        .select('id')
-        .eq(
-          'organization_id',
-          profile.organization_id
-        )
-        .eq('topic_code', input.topicCode)
-        .eq('is_active', true)
-        .single()
+if (stage === 'context') {
+return (
+<ConsultationContext
+client={client}
+mode={mode}
+purpose={purpose}
+note={note}
+onBack={() =>
+setStage('setup')
+}
+onOpenAssistant={() =>
+setStage('assistant')
+}
+/>
+)
+}
 
-    if (!topic) {
-      return {
-        error: 'Consultation topic not found.',
-        result: null,
-      }
-    }
-
-    const { data: previous } =
-      await supabase
-        .from('consultations')
-        .select('consultation_number')
-        .eq('client_id', input.clientId)
-        .order(
-          'consultation_number',
-          { ascending: false }
-        )
-        .limit(1)
-
-    const lastNumber =
-      previous?.[0]?.consultation_number || 0
-
-    const nextNumber =
-      Number(lastNumber) + 1
-
-    const {
-      data: consultation,
-      error: insertError,
-    } = await supabase
-      .from('consultations')
-      .insert({
-        organization_id:
-          profile.organization_id,
-
-        client_id:
-          input.clientId,
-
-        consultation_number:
-          nextNumber,
-
-        employee_id:
-          profile.id,
-
-        location_id:
-          profile.location_id,
-
-        consultation_mode:
-          input.mode,
-
-        purpose_id:
-          purpose.id,
-
-        primary_topic_id:
-          topic.id,
-
-        specific_concern:
-          input.note.trim() || null,
-
-        status:
-          'in_progress',
-      })
-      .select(
-        'id,consultation_number'
-      )
-      .single()
-
-    if (insertError || !consultation) {
-      return {
-        error:
-          insertError?.message ||
-          'Unable to create consultation.',
-        result: null,
-      }
-    }
-
-    return {
-      error: null,
-      result: {
-        id: consultation.id,
-        consultationNumber:
-          Number(
-            consultation.consultation_number
-          ),
-      },
-    }
-  } catch (error) {
-    return {
-      error:
-        error instanceof Error
-          ? error.message
-          : 'Unable to start consultation.',
-      result: null,
-    }
-  }
+return (
+<ConsultationSetup
+client={client}
+mode={mode}
+purpose={purpose}
+note={note}
+onModeChange={setMode}
+onPurposeChange={setPurpose}
+onNoteChange={setNote}
+onBack={onBack}
+onContinue={() =>
+setStage('context')
+}
+/>
+)
 }
