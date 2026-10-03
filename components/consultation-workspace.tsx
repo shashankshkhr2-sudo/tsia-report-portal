@@ -12,7 +12,6 @@ import {
   MapPin,
   MessageCircle,
   Phone,
-  RotateCcw,
   Sparkles,
   UserRound,
   Video,
@@ -39,9 +38,9 @@ type ConsultationPurpose =
   | 'other'
   | ''
 
-type ConsultationStage =
+type Stage =
   | 'setup'
-  | 'prepared'
+  | 'context'
   | 'assistant'
 
 type ClientSummary = {
@@ -51,32 +50,10 @@ type ClientSummary = {
   dob?: string
 }
 
-type ConsultationWorkspaceProps = {
+type Props = {
   client: ClientSummary
   onBack: () => void
 }
-
-type Familiarity =
-  | 'first_time'
-  | 'little'
-  | 'before'
-  | 'well'
-  | ''
-
-type NumerologyView =
-  | 'believe'
-  | 'interested'
-  | 'curious'
-  | 'unsure'
-  | 'skeptical'
-  | ''
-
-type NumberInfluence =
-  | 'strongly'
-  | 'possibly'
-  | 'not_thought'
-  | 'not_really'
-  | ''
 
 type Observation =
   | 'supports'
@@ -85,10 +62,7 @@ type Observation =
   | 'unclear'
   | ''
 
-const purposes: {
-  value: ConsultationPurpose
-  label: string
-}[] = [
+const purposes = [
   {
     value: 'numerology_report',
     label: 'Numerology Report',
@@ -133,9 +107,9 @@ const purposes: {
     value: 'other',
     label: 'Other',
   },
-]
+] as const
 
-function getInitials(name: string) {
+function initials(name: string) {
   return name
     .split(/\s+/)
     .filter(Boolean)
@@ -154,7 +128,7 @@ function ClientCard({
     <div className="rounded-2xl border border-[#e7ddcf] bg-[#fcfaf6] p-5">
       <div className="flex items-start gap-3">
         <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#24354c] text-sm font-semibold text-white">
-          {getInitials(client.name)}
+          {initials(client.name)}
         </div>
 
         <div>
@@ -178,12 +152,12 @@ function ClientCard({
   )
 }
 
-function ChoiceButton({
-  selected,
+function Choice({
+  active,
   onClick,
   children,
 }: {
-  selected: boolean
+  active: boolean
   onClick: () => void
   children: React.ReactNode
 }) {
@@ -191,11 +165,11 @@ function ChoiceButton({
     <button
       type="button"
       onClick={onClick}
-      className={`w-full rounded-xl border px-4 py-3 text-left text-sm transition ${
-        selected
-          ? 'border-[#b89556] bg-[#fbf5e9] font-semibold text-[#24354c] ring-2 ring-[#d6b47b]/20'
-          : 'border-[#e6ddd1] bg-white text-[#625b53]'
-      }`}
+      className={
+        active
+          ? 'w-full rounded-xl border border-[#b89556] bg-[#fbf5e9] px-4 py-3 text-left text-sm font-semibold text-[#24354c] ring-2 ring-[#d6b47b]/20'
+          : 'w-full rounded-xl border border-[#e6ddd1] bg-white px-4 py-3 text-left text-sm text-[#625b53]'
+      }
     >
       {children}
     </button>
@@ -205,11 +179,9 @@ function ChoiceButton({
 export function ConsultationWorkspace({
   client,
   onBack,
-}: ConsultationWorkspaceProps) {
+}: Props) {
   const [stage, setStage] =
-    useState<ConsultationStage>(
-      'setup'
-    )
+    useState<Stage>('setup')
 
   const [mode, setMode] =
     useState<ConsultationMode>('')
@@ -220,30 +192,20 @@ export function ConsultationWorkspace({
   const [note, setNote] =
     useState('')
 
-  const [
-    familiarity,
-    setFamiliarity,
-  ] = useState<Familiarity>('')
+  const [q1, setQ1] =
+    useState('')
 
-  const [
-    numerologyView,
-    setNumerologyView,
-  ] = useState<NumerologyView>('')
+  const [q2, setQ2] =
+    useState('')
 
-  const [
-    numberInfluence,
-    setNumberInfluence,
-  ] = useState<NumberInfluence>('')
+  const [q3, setQ3] =
+    useState('')
 
-  const [
-    observation,
-    setObservation,
-  ] = useState<Observation>('')
+  const [clientSays, setClientSays] =
+    useState('')
 
-  const [
-    clientResponse,
-    setClientResponse,
-  ] = useState('')
+  const [observation, setObservation] =
+    useState<Observation>('')
 
   const [
     talkingPointUsed,
@@ -251,14 +213,14 @@ export function ConsultationWorkspace({
   ] = useState(false)
 
   const canStart =
-    Boolean(mode) &&
-    Boolean(purpose)
+    mode !== '' &&
+    purpose !== ''
 
-  const selectedPurpose =
+  const purposeLabel =
     purposes.find(
       (item) =>
         item.value === purpose
-    )?.label
+    )?.label || ''
 
   if (stage === 'assistant') {
     return (
@@ -267,7 +229,7 @@ export function ConsultationWorkspace({
           <button
             type="button"
             onClick={() =>
-              setStage('prepared')
+              setStage('context')
             }
             className="mb-6 flex items-center gap-2 text-xs font-semibold text-[#9a7b4f]"
           >
@@ -276,19 +238,19 @@ export function ConsultationWorkspace({
           </button>
 
           <div className="overflow-hidden rounded-3xl border border-[#ded3c3] bg-white shadow-sm">
-            <div className="bg-[#24354c] px-5 py-7 text-white sm:px-8">
-              <div className="flex items-center justify-between gap-4">
+            <div className="bg-[#24354c] p-6 text-white">
+              <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#d6b47b]">
                     TSIA Consultation Assistant
                   </p>
 
-                  <h1 className="mt-2 font-serif text-2xl font-semibold sm:text-3xl">
+                  <h1 className="mt-2 font-serif text-2xl font-semibold">
                     Consultation #1
                   </h1>
 
                   <p className="mt-2 text-sm text-[#cbd2da]">
-                    {selectedPurpose}
+                    {purposeLabel}
                     {' · '}
                     {mode === 'in_person'
                       ? 'In-Person'
@@ -303,416 +265,174 @@ export function ConsultationWorkspace({
             </div>
 
             <div className="p-5 sm:p-8">
-              <ClientCard
-                client={client}
-              />
+              <ClientCard client={client} />
 
               <div className="mt-5 rounded-2xl border border-[#dce5db] bg-[#f4f8f3] p-4">
-                <div className="flex gap-3">
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#dfeadd] text-[#587054]">
-                    <Check className="size-4" />
-                  </div>
+                <p className="text-sm font-semibold text-[#425a42]">
+                  First Consultation Rule
+                </p>
 
-                  <div>
-                    <p className="text-sm font-semibold text-[#425a42]">
-                      First Consultation Rule
-                    </p>
-
-                    <p className="mt-1 text-xs leading-5 text-[#687b67]">
-                      Numerology-led
-                      hypothesis,
-                      client-validated
-                      conversation.
-                    </p>
-                  </div>
-                </div>
+                <p className="mt-1 text-xs leading-5 text-[#687b67]">
+                  Numerology-led hypothesis,
+                  client-validated
+                  conversation.
+                </p>
               </div>
 
               <div className="mt-7">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#ad7b40]">
-                  Step 1 · Understand the Client
+                  Opening Stage
                 </p>
 
                 <h2 className="mt-2 font-serif text-2xl font-semibold text-[#24354c]">
-                  Begin naturally
+                  Understand the client first
                 </h2>
 
                 <p className="mt-2 text-sm leading-6 text-[#81776b]">
-                  Before explaining the
-                  report, understand the
-                  client's familiarity and
-                  current view of
-                  numerology. Do not lead
-                  the client toward a
-                  particular answer.
+                  Ask naturally. Listen
+                  before explaining the
+                  numerology report.
                 </p>
               </div>
 
-              <div className="mt-6 rounded-2xl border border-[#e7ddcf] p-5">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9b8d7e]">
-                  Opening Question 1
-                </p>
+              <QuestionCard
+                number={1}
+                question="Have you come across numerology before, or is this your first experience with it?"
+              >
+                <Choice
+                  active={q1 === 'first'}
+                  onClick={() =>
+                    setQ1('first')
+                  }
+                >
+                  First time
+                </Choice>
 
-                <p className="mt-2 font-serif text-lg font-semibold leading-7 text-[#24354c]">
-                  Have you come across
-                  numerology before, or is
-                  this your first
-                  experience with it?
-                </p>
+                <Choice
+                  active={q1 === 'little'}
+                  onClick={() =>
+                    setQ1('little')
+                  }
+                >
+                  Know a little
+                </Choice>
 
-                <div className="mt-4 grid gap-2">
-                  <ChoiceButton
-                    selected={
-                      familiarity ===
-                      'first_time'
-                    }
-                    onClick={() =>
-                      setFamiliarity(
-                        'first_time'
-                      )
-                    }
-                  >
-                    First time
-                  </ChoiceButton>
+                <Choice
+                  active={q1 === 'before'}
+                  onClick={() =>
+                    setQ1('before')
+                  }
+                >
+                  Had a consultation before
+                </Choice>
 
-                  <ChoiceButton
-                    selected={
-                      familiarity ===
-                      'little'
-                    }
-                    onClick={() =>
-                      setFamiliarity(
-                        'little'
-                      )
-                    }
-                  >
-                    Know a little
-                  </ChoiceButton>
+                <Choice
+                  active={q1 === 'well'}
+                  onClick={() =>
+                    setQ1('well')
+                  }
+                >
+                  Know numerology quite well
+                </Choice>
+              </QuestionCard>
 
-                  <ChoiceButton
-                    selected={
-                      familiarity ===
-                      'before'
-                    }
-                    onClick={() =>
-                      setFamiliarity(
-                        'before'
-                      )
-                    }
-                  >
-                    Had a numerology
-                    consultation before
-                  </ChoiceButton>
+              <QuestionCard
+                number={2}
+                question="What is your current view about numerology?"
+              >
+                <Choice
+                  active={q2 === 'believe'}
+                  onClick={() =>
+                    setQ2('believe')
+                  }
+                >
+                  I believe in it
+                </Choice>
 
-                  <ChoiceButton
-                    selected={
-                      familiarity ===
-                      'well'
-                    }
-                    onClick={() =>
-                      setFamiliarity(
-                        'well'
-                      )
-                    }
-                  >
-                    Know numerology quite
-                    well
-                  </ChoiceButton>
-                </div>
-              </div>
+                <Choice
+                  active={q2 === 'understand'}
+                  onClick={() =>
+                    setQ2('understand')
+                  }
+                >
+                  Interested, but want to
+                  understand it
+                </Choice>
 
-              <div className="mt-4 rounded-2xl border border-[#e7ddcf] p-5">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9b8d7e]">
-                  Opening Question 2
-                </p>
+                <Choice
+                  active={q2 === 'curious'}
+                  onClick={() =>
+                    setQ2('curious')
+                  }
+                >
+                  Curious
+                </Choice>
 
-                <p className="mt-2 font-serif text-lg font-semibold leading-7 text-[#24354c]">
-                  What is your current view
-                  about numerology?
-                </p>
+                <Choice
+                  active={q2 === 'unsure'}
+                  onClick={() =>
+                    setQ2('unsure')
+                  }
+                >
+                  Not sure
+                </Choice>
 
-                <div className="mt-4 grid gap-2">
-                  {[
-                    {
-                      value:
-                        'believe' as NumerologyView,
-                      label:
-                        'I believe in it',
-                    },
-                    {
-                      value:
-                        'interested' as NumerologyView,
-                      label:
-                        'Interested, but want to understand it',
-                    },
-                    {
-                      value:
-                        'curious' as NumerologyView,
-                      label:
-                        'Curious',
-                    },
-                    {
-                      value:
-                        'unsure' as NumerologyView,
-                      label:
-                        'Not sure',
-                    },
-                    {
-                      value:
-                        'skeptical' as NumerologyView,
-                      label:
-                        'Skeptical',
-                    },
-                  ].map((item) => (
-                    <ChoiceButton
-                      key={item.value}
-                      selected={
-                        numerologyView ===
-                        item.value
-                      }
-                      onClick={() =>
-                        setNumerologyView(
-                          item.value
-                        )
-                      }
-                    >
-                      {item.label}
-                    </ChoiceButton>
-                  ))}
-                </div>
-              </div>
+                <Choice
+                  active={q2 === 'skeptical'}
+                  onClick={() =>
+                    setQ2('skeptical')
+                  }
+                >
+                  Skeptical
+                </Choice>
+              </QuestionCard>
 
-              <div className="mt-4 rounded-2xl border border-[#e7ddcf] p-5">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9b8d7e]">
-                  Opening Question 3
-                </p>
+              <QuestionCard
+                number={3}
+                question="Do you feel numbers have some importance or influence in our lives?"
+              >
+                <Choice
+                  active={q3 === 'yes'}
+                  onClick={() =>
+                    setQ3('yes')
+                  }
+                >
+                  Yes, strongly
+                </Choice>
 
-                <p className="mt-2 font-serif text-lg font-semibold leading-7 text-[#24354c]">
-                  Do you feel numbers have
-                  some importance or
-                  influence in our lives?
-                </p>
+                <Choice
+                  active={q3 === 'possibly'}
+                  onClick={() =>
+                    setQ3('possibly')
+                  }
+                >
+                  Possibly
+                </Choice>
 
-                <div className="mt-4 grid gap-2">
-                  {[
-                    {
-                      value:
-                        'strongly' as NumberInfluence,
-                      label:
-                        'Yes, strongly',
-                    },
-                    {
-                      value:
-                        'possibly' as NumberInfluence,
-                      label:
-                        'Possibly',
-                    },
-                    {
-                      value:
-                        'not_thought' as NumberInfluence,
-                      label:
-                        "Haven't thought about it",
-                    },
-                    {
-                      value:
-                        'not_really' as NumberInfluence,
-                      label:
-                        'Not really',
-                    },
-                  ].map((item) => (
-                    <ChoiceButton
-                      key={item.value}
-                      selected={
-                        numberInfluence ===
-                        item.value
-                      }
-                      onClick={() =>
-                        setNumberInfluence(
-                          item.value
-                        )
-                      }
-                    >
-                      {item.label}
-                    </ChoiceButton>
-                  ))}
-                </div>
-              </div>
+                <Choice
+                  active={q3 === 'not_thought'}
+                  onClick={() =>
+                    setQ3('not_thought')
+                  }
+                >
+                  Haven&apos;t thought about
+                  it
+                </Choice>
 
-              <div className="mt-7 rounded-2xl border border-[#e6d8bd] bg-[#fbf6ec] p-5">
+                <Choice
+                  active={q3 === 'no'}
+                  onClick={() =>
+                    setQ3('no')
+                  }
+                >
+                  Not really
+                </Choice>
+              </QuestionCard>
+
+              <div className="mt-6 rounded-2xl border border-[#e6d8bd] bg-[#fbf6ec] p-5">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#ad7b40]">
                   TSIA Talking Point
                 </p>
 
                 <p className="mt-3 text-sm font-semibold leading-6 text-[#4f473d]">
-                  Numerology is used by
-                  TSIA as a framework for
-                  understanding patterns
-                  associated with numbers
-                  in a person's birth date
-                  and name.
-                </p>
-
-                <p className="mt-2 text-xs leading-5 text-[#81725d]">
-                  Use this only when it
-                  helps the conversation.
-                  Do not present it as a
-                  scientifically proven
-                  fact.
-                </p>
-
-                <div className="mt-4 flex gap-2">
-                  <Button
-                    type="button"
-                    onClick={() =>
-                      setTalkingPointUsed(
-                        true
-                      )
-                    }
-                    className={`h-10 flex-1 rounded-xl ${
-                      talkingPointUsed
-                        ? 'bg-[#65785f] text-white'
-                        : 'bg-[#24354c] text-white'
-                    }`}
-                  >
-                    {talkingPointUsed ? (
-                      <>
-                        <Check className="mr-2 size-4" />
-                        Used
-                      </>
-                    ) : (
-                      'Mark as Used'
-                    )}
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() =>
-                      setTalkingPointUsed(
-                        false
-                      )
-                    }
-                    className="h-10 rounded-xl"
-                  >
-                    Skip
-                  </Button>
-                </div>
-              </div>
-
-              <div className="mt-7">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#ad7b40]">
-                  Client Says
-                </p>
-
-                <p className="mt-2 text-sm leading-6 text-[#81776b]">
-                  Capture an important
-                  statement in the client's
-                  own words when needed.
-                </p>
-
-                <textarea
-                  rows={4}
-                  value={clientResponse}
-                  onChange={(event) =>
-                    setClientResponse(
-                      event.target.value
-                    )
-                  }
-                  placeholder="Type the client's important response here..."
-                  className="mt-3 w-full resize-none rounded-xl border border-[#e5dccf] bg-white px-3 py-3 text-sm text-[#3e3a35] outline-none focus:border-[#d6b47b] focus:ring-2 focus:ring-[#d6b47b]/20"
-                />
-              </div>
-
-              <div className="mt-7">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#ad7b40]">
-                  Employee Observation
-                </p>
-
-                <p className="mt-2 text-sm leading-6 text-[#81776b]">
-                  Keep your observation
-                  separate from what the
-                  client actually said.
-                </p>
-
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  <ChoiceButton
-                    selected={
-                      observation ===
-                      'supports'
-                    }
-                    onClick={() =>
-                      setObservation(
-                        'supports'
-                      )
-                    }
-                  >
-                    Supports
-                  </ChoiceButton>
-
-                  <ChoiceButton
-                    selected={
-                      observation ===
-                      'partly'
-                    }
-                    onClick={() =>
-                      setObservation(
-                        'partly'
-                      )
-                    }
-                  >
-                    Partly
-                  </ChoiceButton>
-
-                  <ChoiceButton
-                    selected={
-                      observation ===
-                      'different'
-                    }
-                    onClick={() =>
-                      setObservation(
-                        'different'
-                      )
-                    }
-                  >
-                    Different
-                  </ChoiceButton>
-
-                  <ChoiceButton
-                    selected={
-                      observation ===
-                      'unclear'
-                    }
-                    onClick={() =>
-                      setObservation(
-                        'unclear'
-                      )
-                    }
-                  >
-                    Still unclear
-                  </ChoiceButton>
-                </div>
-              </div>
-
-              <div className="mt-7 rounded-2xl bg-[#f8f4ed] p-5">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9b8d7e]">
-                  Next
-                </p>
-
-                <h3 className="mt-2 font-serif text-lg font-semibold text-[#24354c]">
-                  Move into guided analysis
-                </h3>
-
-                <p className="mt-2 text-xs leading-5 text-[#81766a]">
-                  After understanding the
-                  client's starting point,
-                  TSIA can guide the
-                  employee through the
-                  relevant numerology
-                  explanation and
-                  consultation questions.
-                </p>
-
-                <Button
-                  type="button"
-                  disabled
-                  className="mt-4 h-11 w-full rounded-xl bg-[#24354c] text-white opacity-45
+                 
