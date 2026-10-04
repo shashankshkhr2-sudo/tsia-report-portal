@@ -202,4 +202,179 @@ function Dashboard({ data }: { data: PortalData }) {
         />
 
         <StatCard
-          label="Processing
+          label="Processing"
+          value={processingReports}
+        />
+      </div>
+
+      <section className="mt-7 rounded-2xl border border-[#e5ddd2] bg-white p-5 sm:p-6">
+        <div className="mb-5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#ad7b40]">
+            Recent Activity
+          </p>
+
+          <h3 className="mt-1 font-serif text-xl font-semibold">
+            Recent Reports
+          </h3>
+        </div>
+
+        <div className="space-y-3">
+          {data.reports.slice(0, 5).map((report) => (
+            <div
+              key={report.id}
+              className="flex items-center justify-between gap-4 rounded-xl border border-[#eee7de] p-4"
+            >
+              <div>
+                <p className="font-medium">{report.client}</p>
+
+                <p className="mt-1 text-xs text-[#8a8075]">
+                  {report.version} · {report.date}
+                </p>
+              </div>
+
+              <StatusBadge status={report.status} />
+            </div>
+          ))}
+        </div>
+      </section>
+    </>
+  )
+}
+
+function Clients({ clients }: { clients: Client[] }) {
+  return (
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {clients.map((client) => (
+        <article
+          key={client.id}
+          className="rounded-2xl border border-[#e5ddd2] bg-white p-5"
+        >
+          <div className="flex items-start gap-4">
+            <div
+              className={`flex size-12 shrink-0 items-center justify-center rounded-xl font-semibold ${toneClasses(
+                client.tone,
+              )}`}
+            >
+              {client.initials}
+            </div>
+
+            <div className="min-w-0">
+              <h3 className="font-serif text-lg font-semibold">
+                {client.name}
+              </h3>
+
+              <p className="mt-1 truncate text-sm text-[#81776b]">
+                {client.phone}
+              </p>
+
+              <p className="truncate text-sm text-[#81776b]">
+                {client.email}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 border-t border-[#eee7de] pt-4 text-xs text-[#8a8075]">
+            Joined {client.joined}
+          </div>
+        </article>
+      ))}
+
+      {clients.length === 0 && (
+        <EmptyState message="No clients found." />
+      )}
+    </div>
+  )
+}
+
+function Reports({
+  reports,
+}: {
+  reports: PortalData['reports']
+}) {
+  return (
+    <div className="space-y-3">
+      {reports.map((report) => (
+        <article
+          key={report.id}
+          className="flex flex-col gap-4 rounded-2xl border border-[#e5ddd2] bg-white p-5 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div className="flex items-center gap-4">
+            <div
+              className={`flex size-12 shrink-0 items-center justify-center rounded-xl font-semibold ${toneClasses(
+                report.tone,
+              )}`}
+            >
+              {report.initials}
+            </div>
+
+            <div>
+              <h3 className="font-serif text-lg font-semibold">
+                {report.client}
+              </h3>
+
+              <p className="mt-1 text-sm text-[#81776b]">
+                {report.version}
+              </p>
+
+              <p className="mt-1 text-xs text-[#9a9085]">
+                DOB {report.dob} · {report.date}
+              </p>
+            </div>
+          </div>
+
+          <StatusBadge status={report.status} />
+        </article>
+      ))}
+
+      {reports.length === 0 && (
+        <EmptyState message="No reports found." />
+      )}
+    </div>
+  )
+}
+
+function StatCard({
+  label,
+  value,
+}: {
+  label: string
+  value: number
+}) {
+  return (
+    <div className="rounded-2xl border border-[#e5ddd2] bg-white p-5">
+      <p className="text-xs font-medium uppercase tracking-[0.12em] text-[#8a8075]">
+        {label}
+      </p>
+
+      <p className="mt-3 font-serif text-3xl font-semibold">
+        {value}
+      </p>
+    </div>
+  )
+}
+
+function StatusBadge({
+  status,
+}: {
+  status: 'Ready' | 'Processing'
+}) {
+  return (
+    <span
+      className={`inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold ${
+        status === 'Ready'
+          ? 'bg-[#e8eee6] text-[#66745b]'
+          : 'bg-[#f3eadc] text-[#9b7446]'
+      }`}
+    >
+      {status}
+    </span>
+  )
+}
+
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="rounded-2xl border border-dashed border-[#d9cfc2] bg-white p-8 text-center text-sm text-[#81776b] md:col-span-2 xl:col-span-3">
+      {message}
+    </div>
+  )
+}
