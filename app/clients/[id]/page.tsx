@@ -2,13 +2,13 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
-export const dynamic = 'force-dynamic'
-
-type Props = {
-  params: Promise<{ id: string }>
+type PageProps = {
+  params: Promise<{
+    id: string
+  }>
 }
 
-export default async function ClientPage({ params }: Props) {
+export default async function ClientPage({ params }: PageProps) {
   const { id } = await params
   const supabase = await createClient()
 
@@ -16,7 +16,9 @@ export default async function ClientPage({ params }: Props) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) redirect('/login')
+  if (!user) {
+    redirect('/login')
+  }
 
   const { data: client, error } = await supabase
     .from('clients')
@@ -25,152 +27,145 @@ export default async function ClientPage({ params }: Props) {
       client_number,
       full_name,
       date_of_birth,
+      gender,
       mobile,
       email,
-      status,
-      gender,
-      birth_time,
-      birth_place_name,
-      birth_state_region,
-      birth_country
+      status
     `)
     .eq('id', id)
-    .maybeSingle()
+    .single()
 
-  if (error) {
-    console.error('[client] lookup failed', {
-      code: error.code,
+  if (error || !client) {
+    notFound()
+  }
+
+  const formatDate = (date: string | null) => {
+    if (!date) return 'Not provided'
+
+    const parsedDate = new Date(`${date}T00:00:00`)
+
+    return parsedDate.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
     })
   }
 
-  if (!client) notFound()
-
-  const initials = client.full_name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part: string) => part[0]?.toUpperCase())
-    .join('')
+  const displayGender = client.gender
+    ? client.gender.charAt(0).toUpperCase() + client.gender.slice(1)
+    : 'Not provided'
 
   return (
-    <main className="min-h-screen bg-[#f7f3ed] p-5 sm:p-8">
-      <div className="mx-auto max-w-6xl">
-
+    <main className="min-h-screen bg-[#f7f3ed] px-4 py-6 text-[#24354c]">
+      <div className="mx-auto max-w-5xl">
         <Link
           href="/"
-          className="text-sm font-medium text-[#ad7b40]"
+          className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-[#9b6c35]"
         >
-          ← Dashboard
+          <span>←</span>
+          <span>Back to Dashboard</span>
         </Link>
 
-        <header className="mt-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#ad7b40]">
-            Master Client
-          </p>
+        <section className="rounded-3xl border border-[#e7ddd0] bg-white p-5 shadow-sm sm:p-7">
+          <div className="flex flex-col gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#ad7b40]">
+              Master Client
+            </p>
 
-          <div className="mt-4 flex items-center gap-4">
-            <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#f3eadc] text-lg font-semibold text-[#8d744f]">
-              {initials || '?'}
-            </div>
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+              {client.full_name}
+            </h1>
 
-            <div className="min-w-0">
-              <h1 className="font-serif text-3xl font-semibold text-[#24354c]">
-                {client.full_name}
-              </h1>
-
-              <p className="mt-1 text-sm text-[#81776b]">
-                {client.client_number || 'No Client ID'}
-              </p>
-            </div>
+            <p className="text-sm text-[#81776b]">
+              {client.client_number || 'Client ID not assigned'}
+            </p>
           </div>
-        </header>
 
-        <section className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Info label="Status" value={client.status} />
-          <Info label="Date of Birth" value={client.date_of_birth} />
-          <Info label="Mobile" value={client.mobile} />
-          <Info label="Email" value={client.email} />
+          <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-5">
+            <InfoCard
+              label="Status"
+              value={client.status || 'Active'}
+            />
+
+            <InfoCard
+              label="Date of Birth"
+              value={formatDate(client.date_of_birth)}
+            />
+
+            <InfoCard
+              label="Gender"
+              value={displayGender}
+            />
+
+            <InfoCard
+              label="Mobile"
+              value={client.mobile || 'Not provided'}
+            />
+
+            <InfoCard
+              label="Email"
+              value={client.email || 'Not provided'}
+            />
+          </div>
         </section>
 
-        <section className="mt-8">
-          <h2 className="font-serif text-xl font-semibold text-[#24354c]">
-            Client Workspace
-          </h2>
+        <section className="mt-6">
+          <div className="mb-4">
+            <h2 className="text-xl font-bold">
+              Client Workspace
+            </h2>
 
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <p className="mt-1 text-sm text-[#81776b]">
+              Manage this client&apos;s profile, services, reports and consultations.
+            </p>
+          </div>
 
+          <div className="grid gap-4 sm:grid-cols-2">
             <WorkspaceCard
-              href={`/clients/${id}/profile`}
+              href={`/clients/${client.id}/profile`}
               title="Profile"
-              text="Personal and birth details"
+              description="Personal details, contact information and birth details."
             />
 
             <WorkspaceCard
-              href={`/clients/${id}/reports`}
-              title="Reports"
-              text="Client report history"
-            />
-
-            <WorkspaceCard
-              href={`/clients/${id}/consultations`}
-              title="Consultations"
-              text="Consultation history"
-            />
-
-            <WorkspaceCard
-              href={`/clients/${id}/products`}
+              href={`/clients/${client.id}/products`}
               title="Products"
-              text="Purchased services"
+              description="Manage TSIA services and client product access."
             />
 
+            <WorkspaceCard
+              href={`/clients/${client.id}/reports`}
+              title="Reports"
+              description="View generated, pending and delivered reports."
+            />
+
+            <WorkspaceCard
+              href={`/clients/${client.id}/consultations`}
+              title="Consultations"
+              description="View consultation history and future client interactions."
+            />
           </div>
         </section>
-
-        <section className="mt-8">
-          <h2 className="font-serif text-xl font-semibold text-[#24354c]">
-            Birth Details
-          </h2>
-
-          <div className="mt-4 rounded-2xl border border-[#e8dfd3] bg-white p-5">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <InfoRow label="Gender" value={client.gender} />
-              <InfoRow label="Birth Time" value={client.birth_time} />
-              <InfoRow
-                label="Birth Place"
-                value={client.birth_place_name}
-              />
-              <InfoRow
-                label="State / Region"
-                value={client.birth_state_region}
-              />
-              <InfoRow
-                label="Country"
-                value={client.birth_country}
-              />
-            </div>
-          </div>
-        </section>
-
       </div>
     </main>
   )
 }
 
-function Info({
+function InfoCard({
   label,
   value,
 }: {
   label: string
-  value: string | null
+  value: string
 }) {
   return (
-    <div className="rounded-xl border border-[#e8dfd3] bg-white p-3">
-      <p className="text-xs text-[#9b9186]">
+    <div className="min-w-0 rounded-2xl border border-[#eee5da] bg-[#fcfaf7] p-4">
+      <p className="text-xs font-medium uppercase tracking-wide text-[#9b9186]">
         {label}
       </p>
 
-      <p className="mt-1 break-words text-sm font-semibold text-[#24354c]">
-        {value || '—'}
+      <p className="mt-2 break-words text-sm font-semibold text-[#24354c]">
+        {value}
       </p>
     </div>
   )
@@ -179,44 +174,7 @@ function Info({
 function WorkspaceCard({
   href,
   title,
-  text,
+  description,
 }: {
   href: string
-  title: string
-  text: string
-}) {
-  return (
-    <Link
-      href={href}
-      className="rounded-2xl border border-[#e8dfd3] bg-white p-4 transition hover:border-[#c8ab83]"
-    >
-      <p className="font-semibold text-[#24354c]">
-        {title}
-      </p>
-
-      <p className="mt-1 text-xs text-[#81776b]">
-        {text}
-      </p>
-    </Link>
-  )
-}
-
-function InfoRow({
-  label,
-  value,
-}: {
-  label: string
-  value: string | null
-}) {
-  return (
-    <div>
-      <p className="text-xs text-[#9b9186]">
-        {label}
-      </p>
-
-      <p className="mt-1 text-sm font-medium text-[#24354c]">
-        {value || '—'}
-      </p>
-    </div>
-  )
-}
+  title:
