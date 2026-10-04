@@ -551,8 +551,5 @@ export default function NumerologyTestPage() {
             <strong>{test.name}</strong>
           </p>
 
-          {test.errors.map(
-            (error, index) => (
-              <p key={index}>
-                ❌ {error}
+         
               </
