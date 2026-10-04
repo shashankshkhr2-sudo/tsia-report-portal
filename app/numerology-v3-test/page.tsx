@@ -1,367 +1,302 @@
 import {
-  calculateNumerologyV2,
-} from '@/lib/numerology/calculations'
+  runV3ValidationSuite,
+} from '@/lib/numerology-intelligence/validationrunner'
 
-import {
-  buildLoShuProvenance,
-} from '@/lib/numerology-intelligence/loshuprovenance'
+export default function NumerologyV3TestPage() {
+  const validation =
+    runV3ValidationSuite()
 
-import {
-  evaluateStructuralPatterns,
-} from '@/lib/numerology-intelligence/structuralpatterns'
+  const {
+    total,
+    passed,
+    failed,
+    architectureGaps,
+    notYetExecutable,
+  } = validation.summary
 
-import {
-  buildIntelligenceEvidence,
-} from '@/lib/numerology-intelligence/evidence'
-
-import {
-  runConclusionEngine,
-} from '@/lib/numerology-intelligence/conclusionengine'
-
-export default function V3TestPage() {
-  const calc = calculateNumerologyV2({
-    fullName: 'Pranita Ghode',
-    dateOfBirth: '26/01/1991',
-  })
-
-  const grid = buildLoShuProvenance(calc)
-
-  const patterns =
-    evaluateStructuralPatterns(grid)
-
-  const evidence =
-    buildIntelligenceEvidence(calc)
-
-  const engine =
-    runConclusionEngine(evidence)
-
-  const errors: string[] = []
-
-  // -------------------------
-  // Frozen V2 checks
-  // -------------------------
-
-  if (calc.mulank.final !== 8) {
-    errors.push('Mulank should be 8')
-  }
-
-  if (calc.bhagyank.final !== 2) {
-    errors.push('Bhagyank should be 2')
-  }
-
-  // -------------------------
-  // Lo Shu provenance checks
-  // -------------------------
-
-  if (
-    grid.sourceGrid[1] !== 3 ||
-    grid.sourceGrid[2] !== 1 ||
-    grid.sourceGrid[6] !== 1 ||
-    grid.sourceGrid[9] !== 2 ||
-    grid.sourceGrid[8] !== 0
-  ) {
-    errors.push('Source Lo Shu mismatch')
-  }
-
-  if (
-    grid.personalGrid[1] !== 3 ||
-    grid.personalGrid[2] !== 2 ||
-    grid.personalGrid[6] !== 1 ||
-    grid.personalGrid[8] !== 1 ||
-    grid.personalGrid[9] !== 2
-  ) {
-    errors.push('Personal Lo Shu mismatch')
-  }
-
-  if (
-    grid.provenance[8]
-      .mulankInsertion !== 1
-  ) {
-    errors.push(
-      'Mulank provenance mismatch'
-    )
-  }
-
-  if (
-    grid.provenance[2]
-      .bhagyankInsertion !== 1
-  ) {
-    errors.push(
-      'Bhagyank provenance mismatch'
-    )
-  }
-
-  // -------------------------
-  // Structural checks
-  // -------------------------
-
-  const golden = patterns.find(
-    p =>
-      p.id ===
-      'GOLDEN_RAJYOG_4_5_6'
-  )
-
-  const silver = patterns.find(
-    p =>
-      p.id ===
-      'SILVER_RAJYOG_2_5_8'
-  )
-
-  if (golden?.status !== 'PARTIAL') {
-    errors.push(
-      'Golden should be PARTIAL'
-    )
-  }
-
-  if (silver?.status !== 'PARTIAL') {
-    errors.push(
-      'Silver should be PARTIAL'
-    )
-  }
-
-  if (
-    golden?.origin !== 'NOT_COMPLETE' ||
-    silver?.origin !== 'NOT_COMPLETE'
-  ) {
-    errors.push(
-      'Partial Rajyog origin error'
-    )
-  }
-
-  if (patterns.length !== 8) {
-    errors.push(
-      'Expected 8 structural patterns'
-    )
-  }
-
-  const structuralEvidence =
-    evidence.filter(
-      e =>
-        e.layer === 'ROW' ||
-        e.layer === 'COLUMN' ||
-        e.layer === 'RAJYOG'
-    )
-
-  if (structuralEvidence.length !== 8) {
-    errors.push(
-      'Expected 8 structural evidence items'
-    )
-  }
-
-  // -------------------------
-  // Conclusion Engine checks
-  // -------------------------
-
-  if (engine.evidence.length === 0) {
-    errors.push(
-      'Conclusion Engine received no evidence'
-    )
-  }
-
-  if (engine.conclusions.length === 0) {
-    errors.push(
-      'Conclusion Engine produced no conclusions'
-    )
-  }
-
-  if (
-    engine.developmentAssessments.length === 0
-  ) {
-    errors.push(
-      'No development assessments produced'
-    )
-  }
-
-  const invalidNeeded =
-    engine.developmentAssessments.some(
-      item =>
-        item.neededNumberDetermined !== false
-    )
-
-  if (invalidNeeded) {
-    errors.push(
-      'Needed Number firewall failed'
-    )
-  }
-
-  const passed = errors.length === 0
+  const hasFailures =
+    failed > 0
 
   return (
     <main
       style={{
-        maxWidth: 760,
+        maxWidth: '900px',
         margin: '0 auto',
-        padding: 24,
-        fontFamily: 'Arial, sans-serif',
+        padding: '32px 20px',
+        fontFamily:
+          'Arial, sans-serif',
       }}
     >
-      <h1>
+      <h1
+        style={{
+          marginBottom: '8px',
+        }}
+      >
         TSIA Numerology Intelligence V3
       </h1>
 
-      <h2>
-        {passed
-          ? '✅ ALL V3 ENGINE TESTS PASSED'
-          : '❌ V3 ENGINE TEST FAILURE'}
+      <h2
+        style={{
+          marginTop: 0,
+          fontWeight: 500,
+        }}
+      >
+        Automated Validation Suite
       </h2>
 
-      <p>
-        Client:{' '}
-        <strong>Pranita Ghode</strong>
-      </p>
+      <div
+        style={{
+          marginTop: '24px',
+          padding: '20px',
+          border: '1px solid #ddd',
+          borderRadius: '12px',
+        }}
+      >
+        <h3
+          style={{
+            marginTop: 0,
+          }}
+        >
+          Validation Summary
+        </h3>
 
-      <p>
-        Mulank:{' '}
-        <strong>
-          {calc.mulank.final}
-        </strong>
-      </p>
+        <p>
+          <strong>Total:</strong>{' '}
+          {total}
+        </p>
 
-      <p>
-        Bhagyank:{' '}
-        <strong>
-          {calc.bhagyank.final}
-        </strong>
-      </p>
+        <p>
+          <strong>Passed:</strong>{' '}
+          {passed}
+        </p>
 
-      <hr />
+        <p>
+          <strong>Failed:</strong>{' '}
+          {failed}
+        </p>
 
-      <h3>Structural Engine</h3>
+        <p>
+          <strong>
+            Architecture Gaps:
+          </strong>{' '}
+          {architectureGaps}
+        </p>
 
-      <p>
-        Structural Patterns:{' '}
-        <strong>
-          {patterns.length}/8
-        </strong>
-      </p>
+        <p>
+          <strong>
+            Not Yet Executable:
+          </strong>{' '}
+          {notYetExecutable}
+        </p>
 
-      <p>
-        Structural Evidence:{' '}
-        <strong>
-          {structuralEvidence.length}/8
-        </strong>
-      </p>
+        <div
+          style={{
+            marginTop: '18px',
+            padding: '14px',
+            borderRadius: '8px',
+            border: '1px solid #ccc',
+          }}
+        >
+          <strong>
+            {hasFailures
+              ? '⚠️ VALIDATION REQUIRES REVIEW'
+              : '✅ NO EXECUTED TEST FAILURES'}
+          </strong>
+        </div>
+      </div>
 
-      <p>
-        Golden 4-5-6:{' '}
-        <strong>
-          {golden?.status}
-        </strong>
-      </p>
+      <div
+        style={{
+          marginTop: '28px',
+        }}
+      >
+        <h2>
+          Detailed Results
+        </h2>
 
-      <p>
-        Silver 2-5-8:{' '}
-        <strong>
-          {silver?.status}
-        </strong>
-      </p>
+        {validation.results.map(
+          result => (
+            <div
+              key={result.id}
+              style={{
+                marginBottom: '16px',
+                padding: '18px',
+                border:
+                  '1px solid #ddd',
+                borderRadius: '10px',
+              }}
+            >
+              <h3
+                style={{
+                  marginTop: 0,
+                  marginBottom: '8px',
+                }}
+              >
+                {result.status ===
+                  'PASS' &&
+                  '✅ '}
 
-      <hr />
+                {result.status ===
+                  'FAIL' &&
+                  '❌ '}
 
-      <h3>Conclusion Engine</h3>
+                {result.status ===
+                  'ARCHITECTURE_GAP' &&
+                  '⚠️ '}
 
-      <p>
-        Total Evidence:{' '}
-        <strong>
-          {engine.evidence.length}
-        </strong>
-      </p>
+                {result.status ===
+                  'NOT_YET_EXECUTABLE' &&
+                  '⏳ '}
 
-      <p>
-        Resolved Conclusions:{' '}
-        <strong>
-          {engine.conclusions.length}
-        </strong>
-      </p>
+                {result.name}
+              </h3>
 
-      <p>
-        Development Assessments:{' '}
-        <strong>
-          {
-            engine
-              .developmentAssessments
-              .length
-          }
-        </strong>
-      </p>
+              <p>
+                <strong>
+                  Status:
+                </strong>{' '}
+                {result.status}
+              </p>
 
-      <h3>Resolved Intelligence</h3>
+              {result.expected !==
+                undefined && (
+                <p>
+                  <strong>
+                    Expected:
+                  </strong>{' '}
+                  {result.expected}
+                </p>
+              )}
 
-      {engine.conclusions.map(
-        conclusion => (
-          <div
-            key={conclusion.id}
-            style={{
-              border: '1px solid #ddd',
-              borderRadius: 8,
-              padding: 14,
-              marginBottom: 12,
-            }}
-          >
-            <strong>
-              {conclusion.title}
-            </strong>
+              {result.actual !==
+                undefined && (
+                <p>
+                  <strong>
+                    Actual:
+                  </strong>{' '}
+                  {result.actual}
+                </p>
+              )}
 
-            <p>
-              {conclusion.statement}
-            </p>
+              {result.detail && (
+                <p>
+                  <strong>
+                    Detail:
+                  </strong>{' '}
+                  {result.detail}
+                </p>
+              )}
 
-            <small>
-              Resolution:{' '}
-              {conclusion.resolution}
-              {' | '}
-              Strength:{' '}
-              {conclusion.strength}
-            </small>
-          </div>
-        )
-      )}
+              <p
+                style={{
+                  fontSize: '13px',
+                  opacity: 0.7,
+                  marginBottom: 0,
+                }}
+              >
+                Test ID: {result.id}
+              </p>
+            </div>
+          )
+        )}
+      </div>
 
-      <h3>Development Assessment</h3>
+      <div
+        style={{
+          marginTop: '32px',
+          padding: '20px',
+          border: '1px solid #ddd',
+          borderRadius: '12px',
+        }}
+      >
+        <h2
+          style={{
+            marginTop: 0,
+          }}
+        >
+          Validation Interpretation
+        </h2>
 
-      {engine.developmentAssessments.map(
-        item => (
-          <p
-            key={item.functionalQualityId}
-          >
-            Number {item.number}:{' '}
-            <strong>
-              {item.significance}
-            </strong>
-            {' — '}
-            Needed Assessment Eligible:{' '}
-            <strong>
-              {item
-                .neededNumberAssessmentEligible
-                ? 'YES'
-                : 'NO'}
-            </strong>
-          </p>
-        )
-      )}
+        <p>
+          <strong>PASS</strong>{' '}
+          means the currently implemented
+          engine behaviour matches the
+          validation expectation.
+        </p>
 
-      {errors.length > 0 && (
-        <>
-          <hr />
+        <p>
+          <strong>FAIL</strong>{' '}
+          means the implemented behaviour
+          differs from the validation
+          expectation. Production methodology
+          must not be changed automatically
+          just to make the test pass.
+        </p>
 
-          <h3>Errors</h3>
+        <p>
+          <strong>
+            ARCHITECTURE_GAP
+          </strong>{' '}
+          means the frozen methodology
+          requires a capability that the
+          current software architecture
+          does not yet implement.
+        </p>
 
-          {errors.map(error => (
-            <p key={error}>
-              ❌ {error}
-            </p>
-          ))}
-        </>
-      )}
+        <p>
+          <strong>
+            NOT_YET_EXECUTABLE
+          </strong>{' '}
+          means the relevant future module
+          has not yet been implemented, so
+          the safeguard cannot honestly be
+          marked as tested.
+        </p>
+      </div>
 
-      <hr />
+      <div
+        style={{
+          marginTop: '32px',
+          padding: '20px',
+          border: '1px solid #ddd',
+          borderRadius: '12px',
+        }}
+      >
+        <h2
+          style={{
+            marginTop: 0,
+          }}
+        >
+          TSIA Safety Principle
+        </h2>
 
-      <p>
-        V3 Status:{' '}
-        <strong>
-          Draft Methodology Validation
-        </strong>
-      </p>
+        <p>
+          Missing Number ≠ Needed Number
+        </p>
+
+        <p>
+          Needed Number ≠ Automatic Remedy
+        </p>
+
+        <p>
+          Remedy Assessment ≠ Automatic Y3
+        </p>
+
+        <p>
+          Numerological Graha Association
+          ≠ Astrological Graha Diagnosis
+        </p>
+
+        <p>
+          Client Confirmation ≠ Stronger
+          Methodology Evidence
+        </p>
+
+        <p>
+          Payment / Entitlement ≠ Stronger
+          Diagnosis
+        </p>
+      </div>
     </main>
   )
 }
