@@ -19,7 +19,9 @@ export default async function ClientPage({ params }: Props) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) redirect('/login')
+  if (!user) {
+    redirect('/login')
+  }
 
   const { data: client, error } = await supabase
     .from('clients')
@@ -46,13 +48,15 @@ export default async function ClientPage({ params }: Props) {
     })
   }
 
-  if (!client) notFound()
+  if (!client) {
+    notFound()
+  }
 
   const initials = client.full_name
     .split(' ')
     .filter(Boolean)
     .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
+    .map((part: string) => part[0]?.toUpperCase())
     .join('')
 
   return (
@@ -82,17 +86,32 @@ export default async function ClientPage({ params }: Props) {
               </h1>
 
               <p className="mt-1 text-sm text-[#81776b]">
-                {client.client_number}
+                {client.client_number || 'No Client ID'}
               </p>
             </div>
           </div>
         </header>
 
         <section className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Info label="Status" value={client.status} />
-          <Info label="Date of Birth" value={client.date_of_birth} />
-          <Info label="Mobile" value={client.mobile} />
-          <Info label="Email" value={client.email} />
+          <Info
+            label="Status"
+            value={client.status}
+          />
+
+          <Info
+            label="Date of Birth"
+            value={client.date_of_birth}
+          />
+
+          <Info
+            label="Mobile"
+            value={client.mobile}
+          />
+
+          <Info
+            label="Email"
+            value={client.email}
+          />
         </section>
 
         <section className="mt-8">
@@ -130,20 +149,32 @@ export default async function ClientPage({ params }: Props) {
 
           <div className="mt-4 rounded-2xl border border-[#e8dfd3] bg-white p-5">
             <div className="grid gap-4 sm:grid-cols-2">
-              <InfoRow label="Gender" value={client.gender} />
-              <InfoRow label="Birth Time" value={client.birth_time} />
+
+              <InfoRow
+                label="Gender"
+                value={client.gender}
+              />
+
+              <InfoRow
+                label="Birth Time"
+                value={client.birth_time}
+              />
+
               <InfoRow
                 label="Birth Place"
                 value={client.birth_place_name}
               />
+
               <InfoRow
                 label="State / Region"
                 value={client.birth_state_region}
               />
+
               <InfoRow
                 label="Country"
                 value={client.birth_country}
               />
+
             </div>
           </div>
         </section>
