@@ -18,6 +18,18 @@ import {
   buildNumerologyV2Narrative,
 } from '@/lib/numerology/narrativeengine'
 
+import {
+  buildLoShuProvenance,
+} from '@/lib/numerology-intelligence/loshuprovenance'
+
+import {
+  evaluateStructuralPatterns,
+} from '@/lib/numerology-intelligence/structuralpatterns'
+
+import {
+  buildIntelligenceEvidence,
+} from '@/lib/numerology-intelligence/evidence'
+
 type TestResult = {
   name: string
   passed: boolean
@@ -147,19 +159,18 @@ function reportTest(
 
   const golden =
     report.patterns.rajyogs.find(
-      (item) =>
+      item =>
         item.name === 'Golden Rajyog'
     )
 
   const silver =
     report.patterns.rajyogs.find(
-      (item) =>
+      item =>
         item.name === 'Silver Rajyog'
     )
 
   if (
-    golden?.status !==
-    expected.golden
+    golden?.status !== expected.golden
   ) {
     errors.push(
       'Golden Rajyog mismatch'
@@ -167,8 +178,7 @@ function reportTest(
   }
 
   if (
-    silver?.status !==
-    expected.silver
+    silver?.status !== expected.silver
   ) {
     errors.push(
       'Silver Rajyog mismatch'
@@ -248,13 +258,10 @@ function narrativeTest(
     'Integrated Summary',
   ]
 
-  for (
-    const title of requiredSections
-  ) {
+  for (const title of requiredSections) {
     const section =
       narrative.sections.find(
-        (item) =>
-          item.title === title
+        item => item.title === title
       )
 
     if (!section) {
@@ -280,11 +287,175 @@ function narrativeTest(
   }
 }
 
+function v3Test(): TestResult {
+  const calculation =
+    calculateNumerologyV2({
+      fullName: 'Pranita Ghode',
+      dateOfBirth: '26/01/1991',
+    })
+
+  const loShu =
+    buildLoShuProvenance(calculation)
+
+  const patterns =
+    evaluateStructuralPatterns(loShu)
+
+  const evidence =
+    buildIntelligenceEvidence(calculation)
+
+  const errors: string[] = []
+
+  if (calculation.mulank.final !== 8) {
+    errors.push('V3 Mulank should be 8')
+  }
+
+  if (
+    calculation.bhagyank.final !== 2
+  ) {
+    errors.push(
+      'V3 Bhagyank should be 2'
+    )
+  }
+
+  const expectedSource = {
+    1: 3,
+    2: 1,
+    6: 1,
+    9: 2,
+  }
+
+  for (
+    const [key, value] of
+    Object.entries(expectedSource)
+  ) {
+    const number = Number(key) as
+      keyof typeof loShu.sourceGrid
+
+    if (
+      loShu.sourceGrid[number] !== value
+    ) {
+      errors.push(
+        `Source Lo Shu ${key} mismatch`
+      )
+    }
+  }
+
+  if (loShu.sourceGrid[8] !== 0) {
+    errors.push(
+      '8 must not exist in Source Lo Shu'
+    )
+  }
+
+  if (loShu.personalGrid[8] !== 1) {
+    errors.push(
+      '8 must be added by Mulank'
+    )
+  }
+
+  if (loShu.personalGrid[2] !== 2) {
+    errors.push(
+      'Personal Lo Shu must contain two 2s'
+    )
+  }
+
+  if (
+    loShu.provenance[8]
+      .mulankInsertion !== 1
+  ) {
+    errors.push(
+      '8 Mulank provenance mismatch'
+    )
+  }
+
+  if (
+    loShu.provenance[2]
+      .bhagyankInsertion !== 1
+  ) {
+    errors.push(
+      '2 Bhagyank provenance mismatch'
+    )
+  }
+
+  const golden = patterns.find(
+    item =>
+      item.id ===
+      'GOLDEN_RAJYOG_4_5_6'
+  )
+
+  const silver = patterns.find(
+    item =>
+      item.id ===
+      'SILVER_RAJYOG_2_5_8'
+  )
+
+  if (golden?.status !== 'PARTIAL') {
+    errors.push(
+      'Golden structure should be PARTIAL'
+    )
+  }
+
+  if (silver?.status !== 'PARTIAL') {
+    errors.push(
+      'Silver structure should be PARTIAL'
+    )
+  }
+
+  if (
+    golden?.origin !== 'NOT_COMPLETE'
+  ) {
+    errors.push(
+      'Partial Golden must not have complete origin'
+    )
+  }
+
+  if (
+    silver?.origin !== 'NOT_COMPLETE'
+  ) {
+    errors.push(
+      'Partial Silver must not have complete origin'
+    )
+  }
+
+  if (
+    golden?.completedByInsertion
+      .length !== 0 ||
+    silver?.completedByInsertion
+      .length !== 0
+  ) {
+    errors.push(
+      'Partial Rajyog must not report completion by insertion'
+    )
+  }
+
+  const structuralEvidence =
+    evidence.filter(
+      item =>
+        item.layer === 'ROW' ||
+        item.layer === 'COLUMN' ||
+        item.layer === 'RAJYOG'
+    )
+
+  if (
+    structuralEvidence.length !== 8
+  ) {
+    errors.push(
+      'Expected exactly 8 structural evidence objects'
+    )
+  }
+
+  return {
+    name:
+      'Pranita Ghode — V3 Provenance & Structures',
+    passed: errors.length === 0,
+    errors,
+  }
+}
+
 function countPassed(
   tests: TestResult[]
 ) {
   return tests.filter(
-    (test) => test.passed
+    test => test.passed
   ).length
 }
 
@@ -298,7 +469,6 @@ export default function NumerologyTestPage() {
       '15/03/1956',
       [2, 4, 7, 8]
     ),
-
     evidenceTest(
       'Anushka Das',
       '29/03/1983',
@@ -319,7 +489,6 @@ export default function NumerologyTestPage() {
         silver: 'absent',
       }
     ),
-
     reportTest(
       'Anushka Das',
       '29/03/1983',
@@ -339,12 +508,13 @@ export default function NumerologyTestPage() {
       'Anita Goel',
       '15/03/1956'
     ),
-
     narrativeTest(
       'Anushka Das',
       '29/03/1983'
     ),
   ]
+
+  const v3 = [v3Test()]
 
   const evidencePassed =
     countPassed(evidence)
@@ -355,11 +525,15 @@ export default function NumerologyTestPage() {
   const narrativePassed =
     countPassed(narratives)
 
+  const v3Passed =
+    countPassed(v3)
+
   const allPassed =
     calculator.passed &&
     evidencePassed === evidence.length &&
     reportPassed === reports.length &&
-    narrativePassed === narratives.length
+    narrativePassed === narratives.length &&
+    v3Passed === v3.length
 
   const testBlock = (
     title: string,
@@ -368,7 +542,7 @@ export default function NumerologyTestPage() {
     <>
       <h2>{title}</h2>
 
-      {tests.map((test) => (
+      {tests.map(test => (
         <div
           key={`${title}-${test.name}`}
         >
@@ -381,129 +555,4 @@ export default function NumerologyTestPage() {
             (error, index) => (
               <p key={index}>
                 ❌ {error}
-              </p>
-            )
-          )}
-        </div>
-      ))}
-    </>
-  )
-
-  return (
-    <main
-      style={{
-        maxWidth: 760,
-        margin: '0 auto',
-        padding: 24,
-        fontFamily:
-          'Arial, sans-serif',
-      }}
-    >
-      <h1>TSIA Numerology V2</h1>
-
-      <h2>
-        Permanent Engine Tests
-      </h2>
-
-      <div
-        style={{
-          padding: 20,
-          border: '2px solid',
-          borderRadius: 12,
-          marginBottom: 24,
-        }}
-      >
-        <h2>
-          {allPassed
-            ? '✅ ALL ENGINE TESTS PASSED'
-            : '❌ ENGINE TEST FAILURE'}
-        </h2>
-
-        <p>
-          Calculator:{' '}
-          <strong>
-            {calculator.passedTests}/
-            {calculator.totalTests}
-          </strong>
-        </p>
-
-        <p>
-          Evidence Engine:{' '}
-          <strong>
-            {evidencePassed}/
-            {evidence.length}
-          </strong>
-        </p>
-
-        <p>
-          Report Content:{' '}
-          <strong>
-            {reportPassed}/
-            {reports.length}
-          </strong>
-        </p>
-
-        <p>
-          Narrative Engine:{' '}
-          <strong>
-            {narrativePassed}/
-            {narratives.length}
-          </strong>
-        </p>
-      </div>
-
-      <h2>
-        Calculation Tests
-      </h2>
-
-      {calculator.results.map(
-        (test) => (
-          <div
-            key={`calc-${test.name}`}
-          >
-            <p>
-              {test.passed
-                ? '✅'
-                : '❌'}{' '}
-              <strong>
-                {test.name}
-              </strong>
-            </p>
-
-            {test.errors.map(
-              (error, index) => (
-                <p key={index}>
-                  ❌ {error}
-                </p>
-              )
-            )}
-          </div>
-        )
-      )}
-
-      {testBlock(
-        'Evidence Engine Tests',
-        evidence
-      )}
-
-      {testBlock(
-        'Report Content Tests',
-        reports
-      )}
-
-      {testBlock(
-        'Narrative Engine Tests',
-        narratives
-      )}
-
-      <hr />
-
-      <p>
-        Calculator Version:{' '}
-        <strong>
-          TSIA_V2_CALC_1.0
-        </strong>
-      </p>
-    </main>
-  )
-}
+              </
