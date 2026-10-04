@@ -12,9 +12,13 @@ import {
   runConclusionEngine,
 } from './conclusionengine'
 
+import {
+  resolveCrossQualityPair,
+} from './crossqualityresolver'
+
 import type {
+  FunctionalQualityId,
   IntelligenceEvidence,
-  ResolutionOperation,
 } from './types'
 
 /**
@@ -43,39 +47,125 @@ export type ValidationResult = {
 }
 
 /**
- * Tests the existing single-quality
- * resolution function directly.
+ * Create synthetic evidence for validation.
+ *
+ * Test evidence only.
+ * This does not create TSIA methodology.
+ */
+function crossQualityEvidence(
+  id: string,
+  quality: FunctionalQualityId
+): IntelligenceEvidence {
+  return {
+    id,
+    layer: 'RAW_LO_SHU',
+    provenance: 'DOB_RAW_DIGIT',
+    provenanceGroup: id,
+    role: 'SUPPORTING_CONTEXT',
+    roleDistinctness: 'DISTINCT_ROLE',
+    independence: 'INDEPENDENT',
+    functionalQualityId: quality,
+    direction: 'SUPPORTS',
+    statement:
+      `Synthetic cross-quality validation evidence: ${id}`,
+  }
+}
+
+/**
+ * Validate COMPLEMENT using the real
+ * Cross-Quality Resolver.
+ *
+ * Draft 1.0 approved reference pair:
+ *
+ * Individual Agency
+ * ↔
+ * Relational Receptivity
+ *
+ * Supported + Supported
+ * must resolve to COMPLEMENT.
+ */
+function runComplementTest(
+  id: string,
+  name: string
+): ValidationResult {
+  const actual =
+    resolveCrossQualityPair(
+      'INDIVIDUAL_AGENCY',
+      'RELATIONAL_RECEPTIVITY',
+      [
+        crossQualityEvidence(
+          'VALIDATION_COMPLEMENT_1',
+          'INDIVIDUAL_AGENCY'
+        ),
+        crossQualityEvidence(
+          'VALIDATION_COMPLEMENT_2',
+          'RELATIONAL_RECEPTIVITY'
+        ),
+      ]
+    )
+
+  const passed =
+    actual.relationship ===
+      'COMPLEMENT' &&
+    actual.status ===
+      'RESOLVED' &&
+    actual.tensionApproved ===
+      false &&
+    actual.neededNumberDetermined ===
+      false &&
+    actual.remedyDetermined ===
+      false &&
+    actual.y3Determined ===
+      false
+
+  return {
+    id,
+    name,
+
+    status:
+      passed
+        ? 'PASS'
+        : 'FAIL',
+
+    expected:
+      'COMPLEMENT / RESOLVED / no automatic tension / no Needed Number / no remedy / no Y3',
+
+    actual:
+      `${actual.relationship} / ${actual.status} / ` +
+      `tension=${actual.tensionApproved} / ` +
+      `needed=${actual.neededNumberDetermined} / ` +
+      `remedy=${actual.remedyDetermined} / ` +
+      `y3=${actual.y3Determined}`,
+
+    detail:
+      passed
+        ? 'Existing Cross-Quality Resolver correctly applies the approved 1↔2 Complement rule.'
+        : 'Cross-Quality Resolver does not match the approved 1↔2 Supported + Supported methodology. Review the resolver/rule output before changing production methodology.',
+  }
+}
+
+/**
+ * Test the seven Conclusion Resolution
+ * operations.
+ *
+ * COMPLEMENT belongs to the Cross-Quality
+ * Resolver.
+ *
+ * The remaining operations continue through
+ * the existing single-quality resolver.
  */
 function runResolutionTests():
   ValidationResult[] {
   return RESOLUTION_TEST_CASES.map(
     testCase => {
-      /**
-       * COMPLEMENT is intentionally handled
-       * separately.
-       *
-       * Current production architecture
-       * groups evidence by Functional Quality
-       * before resolving conclusions.
-       *
-       * Therefore cross-quality COMPLEMENT
-       * cannot honestly be validated through
-       * the existing single-quality resolver.
-       */
       if (
         testCase.expected ===
         'COMPLEMENT'
       ) {
-        return {
-          id: testCase.id,
-          name: testCase.name,
-          status: 'ARCHITECTURE_GAP',
-          expected: 'COMPLEMENT',
-          actual:
-            'No cross-quality resolver exists',
-          detail:
-            'Current runConclusionEngine resolves each Functional Quality independently. Do not change methodology merely to force this test green.',
-        }
+        return runComplementTest(
+          testCase.id,
+          testCase.name
+        )
       }
 
       const actual =
@@ -116,9 +206,11 @@ function runFirewallTests():
   const missingEvidence:
     IntelligenceEvidence[] = [
     {
-      id: 'VALIDATION_MISSING_3',
+      id:
+        'VALIDATION_MISSING_3',
 
-      layer: 'MISSING_NUMBER',
+      layer:
+        'MISSING_NUMBER',
 
       provenance:
         'DERIVED_STRUCTURE',
@@ -161,7 +253,8 @@ function runFirewallTests():
     )
 
   const missingDoesNotDetermineNeeded =
-    development?.neededNumberDetermined ===
+    development
+      ?.neededNumberDetermined ===
     false
 
   const missingDoesNotAutoQualify =
@@ -171,7 +264,8 @@ function runFirewallTests():
 
   return [
     {
-      id: 'FW_MISSING_NOT_NEEDED',
+      id:
+        'FW_MISSING_NOT_NEEDED',
 
       name:
         'Missing number does not automatically become Needed Number',
@@ -206,294 +300,4 @@ function runFirewallTests():
           ? 'PASS'
           : 'FAIL',
 
-      expected:
-        'neededNumberAssessmentEligible = false',
-
-      actual:
-        String(
-          development
-            ?.neededNumberAssessmentEligible
-        ),
-    },
-
-    {
-      id: 'FW_MISSING_NOT_REMEDY',
-
-      name:
-        'Missing number does not automatically create remedy',
-
-      status:
-        FIREWALL_EXPECTATIONS
-          .missingDeterminesRemedy ===
-        false
-          ? 'PASS'
-          : 'FAIL',
-
-      expected: 'false',
-      actual:
-        String(
-          FIREWALL_EXPECTATIONS
-            .missingDeterminesRemedy
-        ),
-
-      detail:
-        'Current ConclusionEngineResult contains no automatic remedy output.',
-    },
-
-    {
-      id: 'FW_MISSING_NOT_Y3',
-
-      name:
-        'Missing number does not automatically create Y3',
-
-      status:
-        FIREWALL_EXPECTATIONS
-          .missingDeterminesY3 ===
-        false
-          ? 'PASS'
-          : 'FAIL',
-
-      expected: 'false',
-      actual:
-        String(
-          FIREWALL_EXPECTATIONS
-            .missingDeterminesY3
-        ),
-
-      detail:
-        'Current ConclusionEngineResult contains no automatic Y3 output.',
-    },
-
-    {
-      id:
-        'FW_NUM_GRAHA_NOT_ASTROLOGY',
-
-      name:
-        'Numerology Graha does not become astrology diagnosis',
-
-      status:
-        FIREWALL_EXPECTATIONS
-          .numerologyGrahaEqualsAstrologyDiagnosis ===
-        false
-          ? 'PASS'
-          : 'FAIL',
-
-      expected: 'false',
-      actual:
-        String(
-          FIREWALL_EXPECTATIONS
-            .numerologyGrahaEqualsAstrologyDiagnosis
-        ),
-
-      detail:
-        'Current V3 type restrictions explicitly prohibit automatic astrological Graha diagnosis.',
-    },
-  ]
-}
-
-/**
- * Some safeguards require future modules
- * that do not yet exist in the current
- * production engine.
- *
- * We identify these honestly rather than
- * manufacturing passing tests.
- */
-function runFutureFirewallChecks():
-  ValidationResult[] {
-  return [
-    {
-      id:
-        'FW_COMPOUND_NOT_NEEDED',
-
-      name:
-        'Compound alone does not determine Needed Number',
-
-      status:
-        'NOT_YET_EXECUTABLE',
-
-      expected: 'false',
-
-      detail:
-        'Requires the future Needed Number decision layer.',
-    },
-
-    {
-      id:
-        'FW_COMPOUND_NOT_REMEDY',
-
-      name:
-        'Compound alone does not determine remedy',
-
-      status:
-        'NOT_YET_EXECUTABLE',
-
-      expected: 'false',
-
-      detail:
-        'Requires the future remedy decision layer.',
-    },
-
-    {
-      id:
-        'FW_COMPOUND_NOT_Y3',
-
-      name:
-        'Compound alone does not create Y3 eligibility',
-
-      status:
-        'NOT_YET_EXECUTABLE',
-
-      expected: 'false',
-
-      detail:
-        'Requires the future Y3 eligibility layer.',
-    },
-
-    {
-      id:
-        'FW_CLIENT_CONFIRMATION',
-
-      name:
-        'Client confirmation does not upgrade evidence strength',
-
-      status:
-        'NOT_YET_EXECUTABLE',
-
-      expected: 'false',
-
-      detail:
-        'Manifestation status is currently stored separately, but no consultation-validation mutation function exists yet.',
-    },
-
-    {
-      id:
-        'FW_CLIENT_DISAGREEMENT',
-
-      name:
-        'Client disagreement does not erase finding',
-
-      status:
-        'NOT_YET_EXECUTABLE',
-
-      expected: 'false',
-
-      detail:
-        'Requires the future consultation validation layer.',
-    },
-
-    {
-      id:
-        'FW_PAYMENT_DIAGNOSIS',
-
-      name:
-        'Payment does not strengthen diagnosis',
-
-      status:
-        'NOT_YET_EXECUTABLE',
-
-      expected: 'false',
-
-      detail:
-        'Entitlement is outside the current Conclusion Engine and must remain separate.',
-    },
-  ]
-}
-
-/**
- * Pranita is retained as the known
- * regression baseline.
- *
- * Her full deterministic calculation
- * validation remains on the existing
- * V3 test page until the runner is
- * connected to those calculation
- * functions in the next step.
- */
-function runRegressionRegistration():
-  ValidationResult[] {
-  return [
-    {
-      id:
-        PRANITA_REGRESSION_CASE.id,
-
-      name:
-        'Pranita Ghode regression case registered',
-
-      status: 'PASS',
-
-      expected:
-        'Mulank 8 / Bhagyank 2 / 8 structural patterns',
-
-      actual:
-        `Mulank ${PRANITA_REGRESSION_CASE.expected.mulank} / ` +
-        `Bhagyank ${PRANITA_REGRESSION_CASE.expected.bhagyank} / ` +
-        `${PRANITA_REGRESSION_CASE.expected.structuralPatternCount} structural patterns`,
-
-      detail:
-        'This confirms the baseline is registered in the validation suite. Existing production test page continues to perform the actual calculation regression until integrated.',
-    },
-  ]
-}
-
-export type ValidationSummary = {
-  total: number
-  passed: number
-  failed: number
-  architectureGaps: number
-  notYetExecutable: number
-}
-
-export type ValidationSuiteResult = {
-  results:
-    readonly ValidationResult[]
-
-  summary:
-    ValidationSummary
-}
-
-export function runV3ValidationSuite():
-  ValidationSuiteResult {
-  const results = [
-    ...runResolutionTests(),
-    ...runFirewallTests(),
-    ...runFutureFirewallChecks(),
-    ...runRegressionRegistration(),
-  ]
-
-  const summary:
-    ValidationSummary = {
-    total: results.length,
-
-    passed:
-      results.filter(
-        item =>
-          item.status === 'PASS'
-      ).length,
-
-    failed:
-      results.filter(
-        item =>
-          item.status === 'FAIL'
-      ).length,
-
-    architectureGaps:
-      results.filter(
-        item =>
-          item.status ===
-          'ARCHITECTURE_GAP'
-      ).length,
-
-    notYetExecutable:
-      results.filter(
-        item =>
-          item.status ===
-          'NOT_YET_EXECUTABLE'
-      ).length,
-  }
-
-  return {
-    results,
-    summary,
-  }
-}
+      expected
