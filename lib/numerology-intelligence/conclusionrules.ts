@@ -7,6 +7,25 @@ import {
   canStrengthenConclusion,
 } from './provenance'
 
+function hasDirection(
+  evidence: readonly IntelligenceEvidence[],
+  direction: IntelligenceEvidence['direction']
+): boolean {
+  return evidence.some(
+    item => item.direction === direction
+  )
+}
+
+function hasPrimarySupport(
+  evidence: readonly IntelligenceEvidence[]
+): boolean {
+  return evidence.some(
+    item =>
+      item.direction === 'SUPPORTS' &&
+      item.role === 'PRIMARY_CORE'
+  )
+}
+
 export function hasIndependentSupport(
   evidence: readonly IntelligenceEvidence[]
 ): boolean {
@@ -28,15 +47,6 @@ export function hasIndependentSupport(
   }
 
   return false
-}
-
-function hasDirection(
-  evidence: readonly IntelligenceEvidence[],
-  direction: IntelligenceEvidence['direction']
-): boolean {
-  return evidence.some(
-    item => item.direction === direction
-  )
 }
 
 export function resolveOperation(
@@ -64,6 +74,9 @@ export function resolveOperation(
   const context =
     hasDirection(evidence, 'CONTEXTUALIZES')
 
+  const primarySupport =
+    hasPrimarySupport(evidence)
+
   if (tension) {
     return 'TENSION'
   }
@@ -76,8 +89,8 @@ export function resolveOperation(
     return 'MODERATE'
   }
 
-  if (support && context) {
-    return 'CONTEXTUALIZE'
+  if (primarySupport) {
+    return 'REINFORCE'
   }
 
   if (
@@ -87,12 +100,16 @@ export function resolveOperation(
     return 'REINFORCE'
   }
 
+  if (support && context) {
+    return 'CONTEXTUALIZE'
+  }
+
   if (support) {
     return 'REINFORCE'
   }
 
   if (underSupport) {
-    return 'CONTEXTUALIZE'
+    return 'INSUFFICIENT'
   }
 
   if (context) {
