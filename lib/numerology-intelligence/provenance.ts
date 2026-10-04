@@ -1,54 +1,192 @@
 import type {
-  NumerologyDigit,
-} from '@/lib/numerology/types'
-
-import type {
   IntelligenceEvidence,
-  InferenceRestriction,
+  IndependenceStatus,
+  RoleDistinctness,
 } from './types'
 
 /**
  * TSIA Numerology Intelligence V3
- * Methodology Constraint Engine
+ * Provenance & Independence Engine
  *
- * This file protects the methodology from
- * conclusions that are mathematically,
- * structurally or methodologically invalid.
- *
- * IMPORTANT:
- * This engine does NOT interpret the client.
- * It decides what the Intelligence system
- * is NOT allowed to conclude.
+ * Prevents dependent evidence from being
+ * counted as independent confirmation.
  */
 
-export type ConstraintSeverity =
-  | 'BLOCK'
-  | 'WARNING'
+export function sharesProvenance(
+  a: IntelligenceEvidence,
+  b: IntelligenceEvidence
+): boolean {
+  return (
+    a.provenanceGroup ===
+    b.provenanceGroup
+  )
+}
 
-export type ConstraintCode =
-  | 'IMPOSSIBLE_MULANK_MISSING'
-  | 'IMPOSSIBLE_BHAGYANK_MISSING'
-  | 'NAME_NUMBER_DOES_NOT_FILL_LO_SHU'
-  | 'COMPOUND_NOT_INDEPENDENT_ROOT_CONFIRMATION'
-  | 'MISSING_NOT_NEEDED'
-  | 'MISSING_NOT_REMEDY'
-  | 'MISSING_NOT_Y3'
-  | 'COMPOUND_NOT_NEEDED'
-  | 'COMPOUND_NOT_REMEDY'
-  | 'COMPOUND_NOT_Y3'
-  | 'NUM_GRAHA_NOT_AST_GRAHA'
-  | 'CLIENT_FACT_NOT_NUMEROLOGY_EVIDENCE'
-  | 'CLIENT_CONFIRMATION_NOT_EVIDENCE_UPGRADE'
-  | 'CLIENT_DISAGREEMENT_NOT_RULE_ERASURE'
-  | 'PREMIUM_PAYMENT_NOT_DIAGNOSIS'
-  | 'SINGLE_NUMBER_NOT_SPECIFIC_OUTCOME'
-  | 'DEVELOPMENT_SIGNIFICANCE_NOT_NEEDED_NUMBER'
+export function determineRoleDistinctness(
+  a: IntelligenceEvidence,
+  b: IntelligenceEvidence
+): RoleDistinctness {
+  return a.role === b.role
+    ? 'SAME_ROLE'
+    : 'DISTINCT_ROLE'
+}
 
-export type ConstraintViolation = {
-  code: ConstraintCode
+export function determineIndependence(
+  a: IntelligenceEvidence,
+  b: IntelligenceEvidence
+): IndependenceStatus {
+  if (a.id === b.id) {
+    return 'DEPENDENT'
+  }
 
-  severity: ConstraintSeverity
+  if (sharesProvenance(a, b)) {
+    return 'DEPENDENDENT'
+  }
 
-  message: string
+  const mulankInsertionPair =
+    (
+      a.layer === 'MULANK' &&
+      b.provenance === 'MULANK_INSERTION'
+    ) ||
+    (
+      b.layer === 'MULANK' &&
+      a.provenance === 'MULANK_INSERTION'
+    )
 
-  evidence
+  if (mulankInsertionPair) {
+    return 'DEPENDENT'
+  }
+
+  const bhagyankInsertionPair =
+    (
+      a.layer === 'BHAGYANK' &&
+      b.provenance === 'BHAGYANK_INSERTION'
+    ) ||
+    (
+      b.layer === 'BHAGYANK' &&
+      a.provenance === 'BHAGYANK_INSERTION'
+    )
+
+  if (bhagyankInsertionPair) {
+    return 'DEPENDENT'
+  }
+
+  const compoundMulankPair =
+    (
+      a.layer === 'MULANK' &&
+      b.layer === 'COMPOUND_BIRTH_CONTEXT'
+    ) ||
+    (
+      b.layer === 'MULANK' &&
+      a.layer === 'COMPOUND_BIRTH_CONTEXT'
+    )
+
+  if (compoundMulankPair) {
+    return 'DEPENDENT'
+  }
+
+  const rawStructurePair =
+    (
+      a.provenance === 'DOB_RAW_DIGIT' &&
+      b.provenance === 'DERIVED_STRUCTURE'
+    ) ||
+    (
+      b.provenance === 'DOB_RAW_DIGIT' &&
+      a.provenance === 'DERIVED_STRUCTURE'
+    )
+
+  if (rawStructurePair) {
+    return 'PARTIALLY_DEPENDENT'
+  }
+
+  const mulankBhagyankPair =
+    (
+      a.layer === 'MULANK' &&
+      b.layer === 'BHAGYANK'
+    ) ||
+    (
+      b.layer === 'MULANK' &&
+      a.layer === 'BHAGYANK'
+    )
+
+  if (mulankBhagyankPair) {
+    return 'PARTIALLY_DEPENDENT'
+  }
+
+  if (
+    a.provenance === 'FULL_NAME' ||
+    b.provenance === 'FULL_NAME'
+  ) {
+    return 'INDEPENDENT'
+  }
+
+  return 'INDEPENDENT'
+}
+
+export function canStrengthenConclusion(
+  primary: IntelligenceEvidence,
+  candidate: IntelligenceEvidence
+): boolean {
+  return (
+    determineIndependence(
+      primary,
+      candidate
+    ) !== 'DEPENDENT'
+  )
+}
+
+export function canStronglyReinforce(
+  primary: IntelligenceEvidence,
+  candidate: IntelligenceEvidence
+): boolean {
+  return (
+    determineIndependence(
+      primary,
+      candidate
+    ) === 'INDEPENDENT'
+  )
+}
+
+export function isCompoundContextOnly(
+  evidence: IntelligenceEvidence
+): boolean {
+  return (
+    evidence.layer ===
+    'COMPOUND_BIRTH_CONTEXT'
+  )
+}
+
+export function getIndependentEvidence(
+  primary: IntelligenceEvidence,
+  candidates: readonly IntelligenceEvidence[]
+): IntelligenceEvidence[] {
+  return candidates.filter(
+    (candidate) =>
+      candidate.id !== primary.id &&
+      determineIndependence(
+        primary,
+        candidate
+      ) === 'INDEPENDENT'
+  )
+}
+
+export function getRoleDistinctEvidence(
+  primary: IntelligenceEvidence,
+  candidates: readonly IntelligenceEvidence[]
+): IntelligenceEvidence[] {
+  return candidates.filter(
+    (candidate) =>
+      candidate.id !== primary.id &&
+      determineRoleDistinctness(
+        primary,
+        candidate
+      ) === 'DISTINCT_ROLE'
+  )
+}
+
+export type ProvenanceAuditResult = {
+  evidenceId: string
+  comparedWithId: string
+  independence: IndependenceStatus
+  roleDistinctness: RoleDistinctness
+ 
