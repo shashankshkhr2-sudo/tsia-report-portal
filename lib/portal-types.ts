@@ -13,11 +13,13 @@ export type Report = {
 
 export type Client = {
   id: string
-  name: string
-  initials: string
-  phone: string
+  fullName: string
+  clientNumber: string
+  dateOfBirth: string
+  mobile: string
   email: string
   joined: string
+  status: string
   tone: Tone
 }
 
