@@ -15,15 +15,17 @@ import {
   getCompoundRule,
 } from './compounds'
 
-/**
- * TSIA Numerology Intelligence V3
- * Evidence Builder
- *
- * Converts verified V2 calculation output
- * into standardized V3 evidence objects.
- *
- * It does NOT change V2 calculations.
- */
+import {
+  buildLoShuProvenance,
+} from './loshuprovenance'
+
+import {
+  evaluateStructuralPatterns,
+} from './structuralpatterns'
+
+import {
+  buildStructuralEvidence,
+} from './structuralevidence'
 
 function makeId(
   type: string,
@@ -32,9 +34,6 @@ function makeId(
   return `${type}_${value}`
 }
 
-/**
- * MULANK
- */
 function buildMulankEvidence(
   result: NumerologyCalculationResult
 ): IntelligenceEvidence {
@@ -60,9 +59,6 @@ function buildMulankEvidence(
   }
 }
 
-/**
- * BHAGYANK
- */
 function buildBhagyankEvidence(
   result: NumerologyCalculationResult
 ): IntelligenceEvidence {
@@ -88,9 +84,6 @@ function buildBhagyankEvidence(
   }
 }
 
-/**
- * NAME NUMBER
- */
 function buildNameEvidence(
   result: NumerologyCalculationResult
 ): IntelligenceEvidence {
@@ -120,12 +113,6 @@ function buildNameEvidence(
   }
 }
 
-/**
- * COMPOUND BIRTH CONTEXT
- *
- * Only birth days 10-31 enter this layer.
- * Birth days 1-9 use root evidence only.
- */
 function buildCompoundEvidence(
   result: NumerologyCalculationResult
 ): IntelligenceEvidence | null {
@@ -160,14 +147,6 @@ function buildCompoundEvidence(
   }
 }
 
-/**
- * MISSING NUMBERS
- *
- * Missing means structurally absent from
- * Personal Lo Shu.
- *
- * It does NOT mean Needed Number.
- */
 function buildMissingEvidence(
   result: NumerologyCalculationResult
 ): IntelligenceEvidence[] {
@@ -199,13 +178,6 @@ function buildMissingEvidence(
   )
 }
 
-/**
- * REPETITIONS
- *
- * Strength-first:
- * repetition means stronger representation.
- * It does NOT automatically mean excess.
- */
 function buildRepetitionEvidence(
   result: NumerologyCalculationResult
 ): IntelligenceEvidence[] {
@@ -256,23 +228,14 @@ function buildRepetitionEvidence(
   return evidence
 }
 
-/**
- * Main V2 -> V3 evidence bridge.
- */
 export function buildIntelligenceEvidence(
   result: NumerologyCalculationResult
 ): IntelligenceEvidence[] {
   const evidence: IntelligenceEvidence[] = []
 
   evidence.push(
-    buildMulankEvidence(result)
-  )
-
-  evidence.push(
-    buildBhagyankEvidence(result)
-  )
-
-  evidence.push(
+    buildMulankEvidence(result),
+    buildBhagyankEvidence(result),
     buildNameEvidence(result)
   )
 
@@ -284,11 +247,26 @@ export function buildIntelligenceEvidence(
   }
 
   evidence.push(
-    ...buildMissingEvidence(result)
+    ...buildMissingEvidence(result),
+    ...buildRepetitionEvidence(result)
   )
 
+  /*
+   * Build provenance once.
+   * Then reuse it for every structural pattern.
+   *
+   * No API call.
+   * No database call.
+   * No AI call.
+   */
+  const loShu =
+    buildLoShuProvenance(result)
+
+  const patterns =
+    evaluateStructuralPatterns(loShu)
+
   evidence.push(
-    ...buildRepetitionEvidence(result)
+    ...buildStructuralEvidence(patterns)
   )
 
   return evidence
