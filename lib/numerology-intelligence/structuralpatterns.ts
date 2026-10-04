@@ -1,0 +1,1 @@
+lib/numerology-intelligence/structuralpatterns.ts
