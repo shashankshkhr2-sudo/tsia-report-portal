@@ -1,36 +1,42 @@
 import type {
   IntelligenceEvidence,
   ResolutionOperation,
-  EvidenceStrength,
 } from './types'
 
 /**
- * TSIA Numerology Intelligence V3
- * Conclusion Resolution Rules
- *
+ * TSIA Conclusion Resolution Matrix
  * Draft 1.0
  *
- * IMPORTANT:
- * These rules resolve evidence.
- * They do NOT generate remedies,
- * Needed Numbers or Y3 recommendations.
+ * Deterministic only.
+ * No AI, API or database calls.
  */
 
-export type ResolutionDecision = {
-  operation: ResolutionOperation
-  strength: EvidenceStrength
-  reason: string
-}
-
-/**
- * Evidence from the same underlying
- * provenance must not be counted as
- * independent confirmation.
- */
-function isIndependent(
+export function sameQuality(
   a: IntelligenceEvidence,
   b: IntelligenceEvidence
 ): boolean {
+  return (
+    !!a.functionalQualityId &&
+    a.functionalQualityId ===
+      b.functionalQualityId
+  )
+}
+
+export function canReinforce(
+  a: IntelligenceEvidence,
+  b: IntelligenceEvidence
+): boolean {
+  if (!sameQuality(a, b)) {
+    return false
+  }
+
+  if (
+    a.direction !== 'SUPPORTS' ||
+    b.direction !== 'SUPPORTS'
+  ) {
+    return false
+  }
+
   if (
     a.provenanceGroup ===
     b.provenanceGroup
@@ -39,4 +45,67 @@ function isIndependent(
   }
 
   if (
-    a.independ
+    a.independence === 'DEPENDENT' ||
+    b.independence === 'DEPENDENT'
+  ) {
+    return false
+  }
+
+  return true
+}
+
+export function isContextOnly(
+  evidence: IntelligenceEvidence
+): boolean {
+  return (
+    evidence.layer ===
+      'COMPOUND_BIRTH_CONTEXT' ||
+    evidence.direction ===
+      'CONTEXTUALIZES'
+  )
+}
+
+export function hasUnderSupport(
+  evidence: IntelligenceEvidence[]
+): boolean {
+  return evidence.some(
+    item =>
+      item.direction ===
+      'UNDER_SUPPORTS'
+  )
+}
+
+export function hasCompensation(
+  evidence: IntelligenceEvidence[]
+): boolean {
+  return evidence.some(
+    item =>
+      item.direction ===
+      'COMPENSATES'
+  )
+}
+
+export function hasModeration(
+  evidence: IntelligenceEvidence[]
+): boolean {
+  return evidence.some(
+    item =>
+      item.direction ===
+      'MODERATES'
+  )
+}
+
+export function hasExplicitTension(
+  evidence: IntelligenceEvidence[]
+): boolean {
+  return evidence.some(
+    item =>
+      item.direction ===
+      'TENSION'
+  )
+}
+
+/**
+ * Complement before Tension.
+ *
+ *
