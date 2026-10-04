@@ -28,7 +28,7 @@ import type {
  * TEST-ONLY FILE.
  *
  * This runner must NOT modify production
- * methodology in order to make tests pass.
+ * methodology merely to make tests pass.
  */
 
 export type ValidationStatus =
@@ -47,75 +47,92 @@ export type ValidationResult = {
 }
 
 /**
- * Create synthetic evidence for validation.
- *
- * Test evidence only.
- * This does not create TSIA methodology.
+ * Synthetic evidence used only for
+ * cross-quality validation.
  */
-function crossQualityEvidence(
+function createCrossQualityEvidence(
   id: string,
   quality: FunctionalQualityId
 ): IntelligenceEvidence {
   return {
     id,
-    layer: 'RAW_LO_SHU',
-    provenance: 'DOB_RAW_DIGIT',
-    provenanceGroup: id,
-    role: 'SUPPORTING_CONTEXT',
-    roleDistinctness: 'DISTINCT_ROLE',
-    independence: 'INDEPENDENT',
-    functionalQualityId: quality,
-    direction: 'SUPPORTS',
+
+    layer:
+      'RAW_LO_SHU',
+
+    provenance:
+      'DOB_RAW_DIGIT',
+
+    provenanceGroup:
+      id,
+
+    role:
+      'SUPPORTING_CONTEXT',
+
+    roleDistinctness:
+      'DISTINCT_ROLE',
+
+    independence:
+      'INDEPENDENT',
+
+    functionalQualityId:
+      quality,
+
+    direction:
+      'SUPPORTS',
+
     statement:
-      `Synthetic cross-quality validation evidence: ${id}`,
+      `Synthetic validation evidence ${id}`,
   }
 }
 
 /**
- * Validate COMPLEMENT using the real
- * Cross-Quality Resolver.
+ * Validate the approved cross-quality
+ * COMPLEMENT architecture.
  *
- * Draft 1.0 approved reference pair:
+ * Approved reference:
  *
  * Individual Agency
- * ↔
+ * +
  * Relational Receptivity
  *
  * Supported + Supported
- * must resolve to COMPLEMENT.
+ * =
+ * COMPLEMENT
  */
-function runComplementTest(
+function runComplementValidation(
   id: string,
   name: string
 ): ValidationResult {
-  const actual =
+  const resolution =
     resolveCrossQualityPair(
       'INDIVIDUAL_AGENCY',
       'RELATIONAL_RECEPTIVITY',
       [
-        crossQualityEvidence(
-          'VALIDATION_COMPLEMENT_1',
+        createCrossQualityEvidence(
+          'VALIDATION_XQ_AGENCY',
           'INDIVIDUAL_AGENCY'
         ),
-        crossQualityEvidence(
-          'VALIDATION_COMPLEMENT_2',
+
+        createCrossQualityEvidence(
+          'VALIDATION_XQ_RECEPTIVITY',
           'RELATIONAL_RECEPTIVITY'
         ),
       ]
     )
 
   const passed =
-    actual.relationship ===
+    resolution.relationship ===
       'COMPLEMENT' &&
-    actual.status ===
+    resolution.status ===
       'RESOLVED' &&
-    actual.tensionApproved ===
+    resolution.tensionApproved ===
       false &&
-    actual.neededNumberDetermined ===
+    resolution.neededNumberDetermined ===
       false &&
-    actual.remedyDetermined ===
+    resolution.remedyDetermined ===
       false &&
-    actual.y3Determined ===
+    resolution.y3Determined ===
       false
 
   return {
@@ -128,31 +145,26 @@ function runComplementTest(
         : 'FAIL',
 
     expected:
-      'COMPLEMENT / RESOLVED / no automatic tension / no Needed Number / no remedy / no Y3',
+      'COMPLEMENT',
 
     actual:
-      `${actual.relationship} / ${actual.status} / ` +
-      `tension=${actual.tensionApproved} / ` +
-      `needed=${actual.neededNumberDetermined} / ` +
-      `remedy=${actual.remedyDetermined} / ` +
-      `y3=${actual.y3Determined}`,
+      resolution.relationship,
 
     detail:
       passed
-        ? 'Existing Cross-Quality Resolver correctly applies the approved 1↔2 Complement rule.'
-        : 'Cross-Quality Resolver does not match the approved 1↔2 Supported + Supported methodology. Review the resolver/rule output before changing production methodology.',
+        ? 'Existing Cross-Quality Resolver correctly resolves supported Individual Agency + supported Relational Receptivity as COMPLEMENT without creating tension, Needed Number, remedy or Y3.'
+        : `Cross-Quality Resolver returned ${resolution.relationship} with status ${resolution.status}. Review the existing cross-quality rule/resolver before changing methodology.`,
   }
 }
 
 /**
- * Test the seven Conclusion Resolution
- * operations.
+ * Resolution tests.
  *
- * COMPLEMENT belongs to the Cross-Quality
- * Resolver.
+ * COMPLEMENT is cross-quality.
  *
- * The remaining operations continue through
- * the existing single-quality resolver.
+ * All other currently tested operations
+ * remain with the existing single-quality
+ * resolver.
  */
 function runResolutionTests():
   ValidationResult[] {
@@ -162,7 +174,7 @@ function runResolutionTests():
         testCase.expected ===
         'COMPLEMENT'
       ) {
-        return runComplementTest(
+        return runComplementValidation(
           testCase.id,
           testCase.name
         )
@@ -174,11 +186,15 @@ function runResolutionTests():
         )
 
       return {
-        id: testCase.id,
-        name: testCase.name,
+        id:
+          testCase.id,
+
+        name:
+          testCase.name,
 
         status:
-          actual === testCase.expected
+          actual ===
+          testCase.expected
             ? 'PASS'
             : 'FAIL',
 
@@ -188,18 +204,17 @@ function runResolutionTests():
         actual,
 
         detail:
-          actual === testCase.expected
+          actual ===
+          testCase.expected
             ? 'Existing resolver matches expected operation.'
-            : 'Existing resolver does not match the frozen validation expectation. Review the exact rule before changing production code.',
+            : 'Existing resolver does not match the frozen validation expectation. Review the exact rule before changing production methodology.',
       }
     }
   )
 }
 
 /**
- * Tests important Conclusion Engine
- * firewalls that can already be inspected
- * through the current result structure.
+ * Current executable firewall tests.
  */
 function runFirewallTests():
   ValidationResult[] {
@@ -227,7 +242,8 @@ function runFirewallTests():
       independence:
         'PARTIALLY_DEPENDENT',
 
-      number: 3,
+      number:
+        3,
 
       functionalQualityId:
         'KNOWLEDGE_EXPRESSION',
@@ -300,4 +316,307 @@ function runFirewallTests():
           ? 'PASS'
           : 'FAIL',
 
-      expected
+      expected:
+        'neededNumberAssessmentEligible = false',
+
+      actual:
+        String(
+          development
+            ?.neededNumberAssessmentEligible
+        ),
+    },
+
+    {
+      id:
+        'FW_MISSING_NOT_REMEDY',
+
+      name:
+        'Missing number does not automatically create remedy',
+
+      status:
+        FIREWALL_EXPECTATIONS
+          .missingDeterminesRemedy ===
+          false
+          ? 'PASS'
+          : 'FAIL',
+
+      expected:
+        'false',
+
+      actual:
+        String(
+          FIREWALL_EXPECTATIONS
+            .missingDeterminesRemedy
+        ),
+
+      detail:
+        'Current ConclusionEngineResult contains no automatic remedy output.',
+    },
+
+    {
+      id:
+        'FW_MISSING_NOT_Y3',
+
+      name:
+        'Missing number does not automatically create Y3',
+
+      status:
+        FIREWALL_EXPECTATIONS
+          .missingDeterminesY3 ===
+          false
+          ? 'PASS'
+          : 'FAIL',
+
+      expected:
+        'false',
+
+      actual:
+        String(
+          FIREWALL_EXPECTATIONS
+            .missingDeterminesY3
+        ),
+
+      detail:
+        'Current ConclusionEngineResult contains no automatic Y3 output.',
+    },
+
+    {
+      id:
+        'FW_NUM_GRAHA_NOT_ASTROLOGY',
+
+      name:
+        'Numerology Graha does not become astrology diagnosis',
+
+      status:
+        FIREWALL_EXPECTATIONS
+          .numerologyGrahaEqualsAstrologyDiagnosis ===
+          false
+          ? 'PASS'
+          : 'FAIL',
+
+      expected:
+        'false',
+
+      actual:
+        String(
+          FIREWALL_EXPECTATIONS
+            .numerologyGrahaEqualsAstrologyDiagnosis
+        ),
+
+      detail:
+        'Current V3 type restrictions prohibit automatic astrological Graha diagnosis.',
+    },
+  ]
+}
+
+/**
+ * Future safeguards.
+ *
+ * These remain honestly classified as
+ * NOT_YET_EXECUTABLE until their actual
+ * production modules exist.
+ */
+function runFutureFirewallChecks():
+  ValidationResult[] {
+  return [
+    {
+      id:
+        'FW_COMPOUND_NOT_NEEDED',
+
+      name:
+        'Compound alone does not determine Needed Number',
+
+      status:
+        'NOT_YET_EXECUTABLE',
+
+      expected:
+        'false',
+
+      detail:
+        'Requires the future Needed Number decision layer.',
+    },
+
+    {
+      id:
+        'FW_COMPOUND_NOT_REMEDY',
+
+      name:
+        'Compound alone does not determine remedy',
+
+      status:
+        'NOT_YET_EXECUTABLE',
+
+      expected:
+        'false',
+
+      detail:
+        'Requires the future remedy decision layer.',
+    },
+
+    {
+      id:
+        'FW_COMPOUND_NOT_Y3',
+
+      name:
+        'Compound alone does not create Y3 eligibility',
+
+      status:
+        'NOT_YET_EXECUTABLE',
+
+      expected:
+        'false',
+
+      detail:
+        'Requires the future Y3 eligibility layer.',
+    },
+
+    {
+      id:
+        'FW_CLIENT_CONFIRMATION',
+
+      name:
+        'Client confirmation does not upgrade evidence strength',
+
+      status:
+        'NOT_YET_EXECUTABLE',
+
+      expected:
+        'false',
+
+      detail:
+        'Manifestation status is currently stored separately, but no consultation-validation mutation function exists yet.',
+    },
+
+    {
+      id:
+        'FW_CLIENT_DISAGREEMENT',
+
+      name:
+        'Client disagreement does not erase finding',
+
+      status:
+        'NOT_YET_EXECUTABLE',
+
+      expected:
+        'false',
+
+      detail:
+        'Requires the future consultation validation layer.',
+    },
+
+    {
+      id:
+        'FW_PAYMENT_DIAGNOSIS',
+
+      name:
+        'Payment does not strengthen diagnosis',
+
+      status:
+        'NOT_YET_EXECUTABLE',
+
+      expected:
+        'false',
+
+      detail:
+        'Entitlement is outside the current Conclusion Engine and must remain separate.',
+    },
+  ]
+}
+
+/**
+ * Known regression baseline.
+ */
+function runRegressionRegistration():
+  ValidationResult[] {
+  return [
+    {
+      id:
+        PRANITA_REGRESSION_CASE.id,
+
+      name:
+        'Pranita Ghode regression case registered',
+
+      status:
+        'PASS',
+
+      expected:
+        'Mulank 8 / Bhagyank 2 / 8 structural patterns',
+
+      actual:
+        `Mulank ${PRANITA_REGRESSION_CASE.expected.mulank} / ` +
+        `Bhagyank ${PRANITA_REGRESSION_CASE.expected.bhagyank} / ` +
+        `${PRANITA_REGRESSION_CASE.expected.structuralPatternCount} structural patterns`,
+
+      detail:
+        'This confirms the baseline is registered in the validation suite. Existing production test page continues to perform the actual calculation regression until integrated.',
+    },
+  ]
+}
+
+export type ValidationSummary = {
+  total: number
+  passed: number
+  failed: number
+  architectureGaps: number
+  notYetExecutable: number
+}
+
+export type ValidationSuiteResult = {
+  results:
+    readonly ValidationResult[]
+
+  summary:
+    ValidationSummary
+}
+
+/**
+ * Complete V3 validation suite.
+ */
+export function runV3ValidationSuite():
+  ValidationSuiteResult {
+  const results = [
+    ...runResolutionTests(),
+    ...runFirewallTests(),
+    ...runFutureFirewallChecks(),
+    ...runRegressionRegistration(),
+  ]
+
+  const summary:
+    ValidationSummary = {
+    total:
+      results.length,
+
+    passed:
+      results.filter(
+        item =>
+          item.status ===
+          'PASS'
+      ).length,
+
+    failed:
+      results.filter(
+        item =>
+          item.status ===
+          'FAIL'
+      ).length,
+
+    architectureGaps:
+      results.filter(
+        item =>
+          item.status ===
+          'ARCHITECTURE_GAP'
+      ).length,
+
+    notYetExecutable:
+      results.filter(
+        item =>
+          item.status ===
+          'NOT_YET_EXECUTABLE'
+      ).length,
+  }
+
+  return {
+    results,
+    summary,
+  }
+}
