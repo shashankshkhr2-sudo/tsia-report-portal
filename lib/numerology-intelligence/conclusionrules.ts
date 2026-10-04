@@ -3,76 +3,41 @@ import type {
   ResolutionOperation,
 } from './types'
 
+import {
+  canStrengthenConclusion,
+} from './provenance'
+
 /**
  * TSIA Conclusion Resolution Matrix
  * Draft 1.0
  *
- * Deterministic only.
- * No AI, API or database calls.
+ * Important:
+ * Different qualities are complementary
+ * unless an approved rule establishes
+ * genuine tension.
  */
 
-export function sameQuality(
-  a: IntelligenceEvidence,
-  b: IntelligenceEvidence
-): boolean {
-  return (
-    !!a.functionalQualityId &&
-    a.functionalQualityId ===
-      b.functionalQualityId
-  )
-}
-
-export function canReinforce(
-  a: IntelligenceEvidence,
-  b: IntelligenceEvidence
-): boolean {
-  if (!sameQuality(a, b)) {
-    return false
-  }
-
-  if (
-    a.direction !== 'SUPPORTS' ||
-    b.direction !== 'SUPPORTS'
-  ) {
-    return false
-  }
-
-  if (
-    a.provenanceGroup ===
-    b.provenanceGroup
-  ) {
-    return false
-  }
-
-  if (
-    a.independence === 'DEPENDENT' ||
-    b.independence === 'DEPENDENT'
-  ) {
-    return false
-  }
-
-  return true
-}
-
-export function isContextOnly(
-  evidence: IntelligenceEvidence
-): boolean {
-  return (
-    evidence.layer ===
-      'COMPOUND_BIRTH_CONTEXT' ||
-    evidence.direction ===
-      'CONTEXTUALIZES'
-  )
-}
-
-export function hasUnderSupport(
+export function hasIndependentSupport(
   evidence: IntelligenceEvidence[]
 ): boolean {
-  return evidence.some(
-    item =>
-      item.direction ===
-      'UNDER_SUPPORTS'
-  )
+  for (let i = 0; i < evidence.length; i++) {
+    for (
+      let j = i + 1;
+      j < evidence.length;
+      j++
+    ) {
+      if (
+        canStrengthenConclusion(
+          evidence[i],
+          evidence[j]
+        )
+      ) {
+        return true
+      }
+    }
+  }
+
+  return false
 }
 
 export function hasCompensation(
@@ -105,7 +70,52 @@ export function hasExplicitTension(
   )
 }
 
+export function hasContext(
+  evidence: IntelligenceEvidence[]
+): boolean {
+  return evidence.some(
+    item =>
+      item.direction ===
+      'CONTEXTUALIZES'
+  )
+}
+
 /**
  * Complement before Tension.
  *
- *
+ * Tension is returned only when evidence
+ * explicitly carries TENSION direction.
+ */
+export function resolveOperation(
+  evidence: IntelligenceEvidence[]
+): ResolutionOperation {
+  if (evidence.length === 0) {
+    return 'INSUFFICIENT'
+  }
+
+  if (hasExplicitTension(evidence)) {
+    return 'TENSION'
+  }
+
+  if (hasCompensation(evidence)) {
+    return 'COMPENSATE'
+  }
+
+  if (hasModeration(evidence)) {
+    return 'MODERATE'
+  }
+
+  if (hasIndependentSupport(evidence)) {
+    return 'REINFORCE'
+  }
+
+  if (hasContext(evidence)) {
+    return 'CONTEXTUALIZE'
+  }
+
+  if (evidence.length > 1) {
+    return 'COMPLEMENT'
+  }
+
+  return 'REINFORCE'
+}
