@@ -37,8 +37,8 @@ export default async function Page() {
           </h1>
 
           <p className="mt-2 text-sm text-[#8d8275]">
-            Your account profile could not be loaded.
-            Please contact your administrator.
+            Your account profile could not be loaded. Please contact your
+            administrator.
           </p>
         </div>
       </main>
