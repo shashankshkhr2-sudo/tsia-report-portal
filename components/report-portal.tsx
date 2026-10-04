@@ -2,202 +2,204 @@
 
 import { useState } from 'react'
 import {
-  ArrowLeft,
-  CheckCircle2,
-  MessageSquareText,
-  ShieldCheck,
-  Sparkles,
-  UserRound,
+  FileText,
+  LayoutDashboard,
+  Search,
+  Users,
 } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
+import type { Client, PortalData } from '@/lib/portal-types'
 
-type ConsultationClient = {
-  id: string
-  clientNumber: string
-  name: string
-  dob?: string | null
+type ReportPortalProps = {
+  data: PortalData
 }
 
-type ConsultationWorkspaceProps = {
-  client: ConsultationClient
-  onBack: () => void
+type PortalView = 'dashboard' | 'clients' | 'reports'
+
+function toneClasses(tone: Client['tone']) {
+  const tones = {
+    plum: 'bg-[#efe6ed] text-[#72556c]',
+    terracotta: 'bg-[#f3e5de] text-[#9a6049]',
+    olive: 'bg-[#e9eadf] text-[#697052]',
+    navy: 'bg-[#e3e9ef] text-[#43566d]',
+  }
+
+  return tones[tone]
 }
 
-export function ConsultationWorkspace({
-  client,
-  onBack,
-}: ConsultationWorkspaceProps) {
-  const [mode, setMode] = useState<
-    'FIRST_CONSULTATION' | 'FOLLOW_UP'
-  >('FIRST_CONSULTATION')
+export function ReportPortal({ data }: ReportPortalProps) {
+  const [view, setView] = useState<PortalView>('dashboard')
+  const [search, setSearch] = useState('')
+
+  const normalizedSearch = search.trim().toLowerCase()
+
+  const filteredClients = data.clients.filter((client) => {
+    if (!normalizedSearch) return true
+
+    return (
+      client.name.toLowerCase().includes(normalizedSearch) ||
+      client.phone.toLowerCase().includes(normalizedSearch) ||
+      client.email.toLowerCase().includes(normalizedSearch)
+    )
+  })
+
+  const filteredReports = data.reports.filter((report) => {
+    if (!normalizedSearch) return true
+
+    return (
+      report.client.toLowerCase().includes(normalizedSearch) ||
+      report.version.toLowerCase().includes(normalizedSearch) ||
+      report.status.toLowerCase().includes(normalizedSearch)
+    )
+  })
 
   return (
-    <div className="p-5 sm:p-8 lg:p-10">
-      <button
-        type="button"
-        onClick={onBack}
-        className="mb-6 flex items-center gap-2 text-sm font-medium text-[#8d744f]"
-      >
-        <ArrowLeft className="size-4" />
-        Back to Clients
-      </button>
-
-      <div className="mb-7">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#ad7b40]">
-          TSIA Consultation
-        </p>
-
-        <h2 className="mt-2 font-serif text-3xl font-semibold text-[#24354c]">
-          {client.name}
-        </h2>
-
-        <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm text-[#81776b]">
-          <span>Client ID: {client.clientNumber}</span>
-
-          {client.dob && (
-            <span>DOB: {client.dob}</span>
-          )}
-        </div>
-      </div>
-
-      <div className="mb-6 rounded-2xl border border-[#e8dfd3] bg-white p-5">
-        <div className="flex items-start gap-3">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#f3eadc] text-[#ad7b40]">
-            <UserRound className="size-5" />
-          </div>
-
+    <div className="min-h-screen bg-[#f6f3ee] text-[#24354c]">
+      <header className="border-b border-[#e5ddd2] bg-white">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-5 sm:px-8">
           <div>
-            <h3 className="font-serif text-lg font-semibold text-[#24354c]">
-              Consultation Mode
-            </h3>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#ad7b40]">
+              The Swastik Indian Art
+            </p>
 
-            <p className="mt-1 text-sm leading-6 text-[#81776b]">
-              Select the consultation context before beginning the
-              conversation.
+            <h1 className="mt-1 font-serif text-2xl font-semibold">
+              TSIA Report Portal
+            </h1>
+          </div>
+
+          <div className="hidden text-right sm:block">
+            <p className="text-xs font-medium text-[#81776b]">
+              Secure Practitioner Workspace
             </p>
           </div>
         </div>
+      </header>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => setMode('FIRST_CONSULTATION')}
-            className={`rounded-xl border p-4 text-left ${
-              mode === 'FIRST_CONSULTATION'
-                ? 'border-[#24354c] bg-[#f4f6f8]'
-                : 'border-[#e8dfd3] bg-white'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-[#24354c]">
-                First Consultation
-              </span>
+      <div className="mx-auto grid max-w-7xl lg:grid-cols-[230px_1fr]">
+        <aside className="border-b border-[#e5ddd2] bg-white p-4 lg:min-h-[calc(100vh-85px)] lg:border-b-0 lg:border-r">
+          <nav className="grid grid-cols-3 gap-2 lg:grid-cols-1">
+            <NavButton
+              active={view === 'dashboard'}
+              label="Dashboard"
+              icon={<LayoutDashboard className="size-4" />}
+              onClick={() => setView('dashboard')}
+            />
 
-              {mode === 'FIRST_CONSULTATION' && (
-                <CheckCircle2 className="size-5 text-[#ad7b40]" />
-              )}
+            <NavButton
+              active={view === 'clients'}
+              label="Clients"
+              icon={<Users className="size-4" />}
+              onClick={() => setView('clients')}
+            />
+
+            <NavButton
+              active={view === 'reports'}
+              label="Reports"
+              icon={<FileText className="size-4" />}
+              onClick={() => setView('reports')}
+            />
+          </nav>
+        </aside>
+
+        <main className="p-5 sm:p-8 lg:p-10">
+          <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#ad7b40]">
+                Practitioner Portal
+              </p>
+
+              <h2 className="mt-2 font-serif text-3xl font-semibold">
+                {view === 'dashboard'
+                  ? 'Dashboard'
+                  : view === 'clients'
+                    ? 'Clients'
+                    : 'Reports'}
+              </h2>
             </div>
 
-            <p className="mt-2 text-xs leading-5 text-[#81776b]">
-              Numerology-led hypothesis with a client-validated
-              conversation.
-            </p>
-          </button>
+            {view !== 'dashboard' && (
+              <div className="flex h-11 w-full items-center gap-2 rounded-xl border border-[#ded5ca] bg-white px-3 sm:w-72">
+                <Search className="size-4 text-[#9a9085]" />
 
-          <button
-            type="button"
-            onClick={() => setMode('FOLLOW_UP')}
-            className={`rounded-xl border p-4 text-left ${
-              mode === 'FOLLOW_UP'
-                ? 'border-[#24354c] bg-[#f4f6f8]'
-                : 'border-[#e8dfd3] bg-white'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-[#24354c]">
-                Follow-up Consultation
-              </span>
-
-              {mode === 'FOLLOW_UP' && (
-                <CheckCircle2 className="size-5 text-[#ad7b40]" />
-              )}
-            </div>
-
-            <p className="mt-2 text-xs leading-5 text-[#81776b]">
-              Client-history-led guidance with numerology used as
-              supporting context.
-            </p>
-          </button>
-        </div>
-      </div>
-
-      <div className="grid gap-5 lg:grid-cols-2">
-        <section className="rounded-2xl border border-[#e8dfd3] bg-white p-5">
-          <div className="flex items-center gap-3">
-            <Sparkles className="size-5 text-[#ad7b40]" />
-
-            <h3 className="font-serif text-lg font-semibold text-[#24354c]">
-              TSIA Guidance
-            </h3>
+                <input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder={
+                    view === 'clients'
+                      ? 'Search clients'
+                      : 'Search reports'
+                  }
+                  className="w-full bg-transparent text-sm outline-none placeholder:text-[#aaa198]"
+                />
+              </div>
+            )}
           </div>
 
-          <p className="mt-4 text-sm leading-6 text-[#81776b]">
-            Verified TSIA findings, talking points and consultation
-            guidance will appear here.
-          </p>
+          {view === 'dashboard' && (
+            <Dashboard data={data} />
+          )}
 
-          <div className="mt-5 rounded-xl bg-[#f8f4ed] p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#9a7b4f]">
-              Methodology Protection
-            </p>
+          {view === 'clients' && (
+            <Clients clients={filteredClients} />
+          )}
 
-            <p className="mt-2 text-sm leading-6 text-[#6f675e]">
-              The consultation workspace will use verified TSIA
-              evidence. It will not modify the frozen numerology
-              calculations or invent unsupported conclusions.
-            </p>
-          </div>
-        </section>
-
-        <section className="rounded-2xl border border-[#e8dfd3] bg-white p-5">
-          <div className="flex items-center gap-3">
-            <MessageSquareText className="size-5 text-[#ad7b40]" />
-
-            <h3 className="font-serif text-lg font-semibold text-[#24354c]">
-              Live Conversation
-            </h3>
-          </div>
-
-          <p className="mt-4 text-sm leading-6 text-[#81776b]">
-            Questions, client responses, observations and validated
-            findings will be handled here as the consultation system
-            is connected.
-          </p>
-
-          <div className="mt-5 rounded-xl border border-dashed border-[#d8cbbb] p-5 text-center">
-            <ShieldCheck className="mx-auto size-6 text-[#ad7b40]" />
-
-            <p className="mt-3 text-sm font-medium text-[#24354c]">
-              Consultation data protection ready
-            </p>
-
-            <p className="mt-1 text-xs leading-5 text-[#8a8075]">
-              Database permissions, role access and audit controls
-              will remain part of the production security layer.
-            </p>
-          </div>
-        </section>
-      </div>
-
-      <div className="mt-6 flex justify-end">
-        <Button
-          type="button"
-          className="h-11 rounded-xl bg-[#24354c] px-6 text-white hover:bg-[#30445f]"
-        >
-          Start Consultation
-        </Button>
+          {view === 'reports' && (
+            <Reports reports={filteredReports} />
+          )}
+        </main>
       </div>
     </div>
   )
 }
+
+function NavButton({
+  active,
+  label,
+  icon,
+  onClick,
+}: {
+  active: boolean
+  label: string
+  icon: React.ReactNode
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center justify-center gap-2 rounded-xl px-3 py-3 text-sm font-medium lg:justify-start ${
+        active
+          ? 'bg-[#24354c] text-white'
+          : 'text-[#71685f] hover:bg-[#f5f1eb]'
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
+  )
+}
+
+function Dashboard({ data }: { data: PortalData }) {
+  const readyReports = data.reports.filter(
+    (report) => report.status === 'Ready',
+  ).length
+
+  const processingReports = data.reports.filter(
+    (report) => report.status === 'Processing',
+  ).length
+
+  return (
+    <>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard
+          label="Total Clients"
+          value={data.clients.length}
+        />
+
+        <StatCard
+          label="Ready Reports"
+          value={readyReports}
+        />
+
+        <StatCard
+          label="Processing
