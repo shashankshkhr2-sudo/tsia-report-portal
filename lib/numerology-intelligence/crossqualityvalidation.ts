@@ -314,16 +314,16 @@ function validateCoexistDefault():
   CrossQualityValidationResult {
   const all:
     FunctionalQualityId[] = [
-    'INDIVIDUAL_AGENCY',
-    'RELATIONAL_RECEPTIVITY',
-    'KNOWLEDGE_EXPRESSION',
-    'ADAPTIVE_RESTRUCTURING',
-    'ADAPTIVE_INTELLIGENCE',
-    'HARMONIOUS_CONNECTION',
-    'REFLECTIVE_DISCERNMENT',
-    'STRUCTURED_RESPONSIBILITY',
-    'DIRECTED_FORCE',
-  ]
+      'INDIVIDUAL_AGENCY',
+      'RELATIONAL_RECEPTIVITY',
+      'KNOWLEDGE_EXPRESSION',
+      'ADAPTIVE_RESTRUCTURING',
+      'ADAPTIVE_INTELLIGENCE',
+      'HARMONIOUS_CONNECTION',
+      'REFLECTIVE_DISCERNMENT',
+      'STRUCTURED_RESPONSIBILITY',
+      'DIRECTED_FORCE',
+    ]
 
   for (
     let i = 0;
@@ -560,4 +560,195 @@ function validateMixedEvidence():
       'INDIVIDUAL_AGENCY',
       'RELATIONAL_RECEPTIVITY',
       [
-        supported
+        supported(
+          'MIX_SUPPORT',
+          'INDIVIDUAL_AGENCY'
+        ),
+
+        underSupported(
+          'MIX_UNDER',
+          'INDIVIDUAL_AGENCY'
+        ),
+
+        supported(
+          'MIX_OTHER',
+          'RELATIONAL_RECEPTIVITY'
+        ),
+      ]
+    )
+
+  return passOrFail(
+    'MIXED_CONTEXT',
+    'Mixed evidence does not force Complement or Tension',
+    'CONTEXTUALIZE',
+    result.relationship,
+    result.relationship ===
+      'CONTEXTUALIZE' &&
+      result.tensionApproved ===
+        false,
+    'A quality containing both support and under-support must first be contextualized.'
+  )
+}
+
+/**
+ * Pair identity alone must never create
+ * tension.
+ */
+function validateNoAutomaticTension():
+  CrossQualityValidationResult {
+  const result =
+    resolveCrossQualityPair(
+      'INDIVIDUAL_AGENCY',
+      'RELATIONAL_RECEPTIVITY',
+      [
+        evidence(
+          'TENSION_A',
+          'INDIVIDUAL_AGENCY',
+          'TENSION'
+        ),
+
+        supported(
+          'TENSION_B',
+          'RELATIONAL_RECEPTIVITY'
+        ),
+      ]
+    )
+
+  return passOrFail(
+    'NO_AUTOMATIC_TENSION',
+    'Pair identity or tension-like evidence cannot bypass approved interaction rule',
+    'tensionApproved = false',
+    String(
+      result.tensionApproved
+    ),
+    result.tensionApproved ===
+      false &&
+      result.relationship !==
+        'TENSION',
+    'Draft 1.0 contains no provisional approved pair with tensionAllowed=true. Tension therefore cannot be generated merely from pair identity or an unsupported tension marker.'
+  )
+}
+
+/**
+ * Cross-quality resolver must never directly
+ * determine Needed Number, remedy or Y3.
+ */
+function validateRemedyFirewall():
+  CrossQualityValidationResult {
+  const result =
+    resolveCrossQualityPair(
+      'INDIVIDUAL_AGENCY',
+      'RELATIONAL_RECEPTIVITY',
+      [
+        supported(
+          'FW_A',
+          'INDIVIDUAL_AGENCY'
+        ),
+
+        underSupported(
+          'FW_B',
+          'RELATIONAL_RECEPTIVITY'
+        ),
+      ]
+    )
+
+  const firewallProtected =
+    result.neededNumberDetermined ===
+      false &&
+    result.remedyDetermined ===
+      false &&
+    result.y3Determined ===
+      false
+
+  return passOrFail(
+    'REMEDY_FIREWALL',
+    'Cross-quality conclusion cannot determine Needed Number, remedy or Y3',
+    'false / false / false',
+    `${result.neededNumberDetermined} / ${result.remedyDetermined} / ${result.y3Determined}`,
+    firewallProtected,
+    'Cross-quality interpretation remains upstream of the separate Needed Number, remedy and Y3 decision gates.'
+  )
+}
+
+/**
+ * Verify the frozen governing constants.
+ */
+function validateGoverningRules():
+  CrossQualityValidationResult {
+  const valid =
+    CROSS_QUALITY_GOVERNING_RULES
+      .noApprovedRuleDefaultsTo ===
+        'COEXIST' &&
+    CROSS_QUALITY_GOVERNING_RULES
+      .differentQualitiesAutomaticallyCreateTension ===
+        false &&
+    CROSS_QUALITY_GOVERNING_RULES
+      .asymmetricSupportAutomaticallyCreatesTension ===
+        false &&
+    CROSS_QUALITY_GOVERNING_RULES
+      .pairIdentityAloneCanCreateTension ===
+        false &&
+    CROSS_QUALITY_GOVERNING_RULES
+      .structuralEvidenceMustNotBeDoubleCounted ===
+        true &&
+    CROSS_QUALITY_GOVERNING_RULES
+      .crossQualityCanDetermineNeededNumber ===
+        false &&
+    CROSS_QUALITY_GOVERNING_RULES
+      .crossQualityCanDetermineRemedy ===
+        false &&
+    CROSS_QUALITY_GOVERNING_RULES
+      .crossQualityCanDetermineY3 ===
+        false &&
+    CROSS_QUALITY_GOVERNING_RULES
+      .clientValidationCanIncreaseMethodologyStrength ===
+        false &&
+    CROSS_QUALITY_GOVERNING_RULES
+      .paymentCanIncreaseDiagnosisStrength ===
+        false
+
+  return passOrFail(
+    'GOVERNING_RULES',
+    'Cross-quality governing safeguards remain frozen',
+    'All safeguards true',
+    valid
+      ? 'All safeguards intact'
+      : 'One or more safeguards changed',
+    valid,
+    'This protects the methodology from silent future changes in software behaviour.'
+  )
+}
+
+/**
+ * Verify exact methodology inventory.
+ *
+ * Draft 1.0:
+ * - 9 provisional approved pairs
+ * - 8 research candidates
+ * - remaining unique pairs default to COEXIST
+ */
+function validateInventory():
+  CrossQualityValidationResult {
+  const approved =
+    PROVISIONAL_CROSS_QUALITY_RULES.length
+
+  const research =
+    RESEARCH_CROSS_QUALITY_PAIRS.length
+
+  const totalPairs =
+    36
+
+  const coexist =
+    totalPairs -
+    approved -
+    research
+
+  const valid =
+    approved === 9 &&
+    research === 8 &&
+    coexist === 19
+
+  return passOrFail(
+    'METHODOLOGY_INVENTORY',
+    'Draft 1.0 pair inventory is unchanged',
+    '9 approved / 8 research
