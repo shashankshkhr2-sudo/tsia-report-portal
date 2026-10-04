@@ -1,18 +1,25 @@
 'use client'
 
-import type { PortalData } from '@/lib/portal-data'
+import type {
+  Client,
+  Report,
+} from '@/lib/portal-types'
+
+import { ClientCard } from '@/components/client-card'
 
 type Props = {
-  data: PortalData
+  fullName: string
+  reports: Report[]
+  clients: Client[]
 }
 
-export function ReportPortal({ data }: Props) {
-  const readyReports = data.reports.filter(
+export function ReportPortal({
+  fullName,
+  reports,
+  clients,
+}: Props) {
+  const ready = reports.filter(
     (report) => report.status === 'Ready'
-  ).length
-
-  const processingReports = data.reports.filter(
-    (report) => report.status === 'Processing'
   ).length
 
   return (
@@ -28,95 +35,66 @@ export function ReportPortal({ data }: Props) {
           </h1>
 
           <p className="mt-2 text-sm text-[#81776b]">
-            Client, report and consultation management
+            Welcome, {fullName}
           </p>
         </header>
 
         <section className="grid gap-4 sm:grid-cols-3">
-          <StatCard
-            label="Clients"
-            value={data.clients.length}
-          />
-
-          <StatCard
-            label="Ready Reports"
-            value={readyReports}
-          />
-
-          <StatCard
-            label="Processing"
-            value={processingReports}
-          />
+          <Stat label="Clients" value={clients.length} />
+          <Stat label="Reports" value={reports.length} />
+          <Stat label="Ready" value={ready} />
         </section>
 
-        <section className="mt-8 rounded-2xl border border-[#e8dfd3] bg-white p-5">
+        <section className="mt-8">
           <h2 className="font-serif text-xl font-semibold text-[#24354c]">
             Clients
           </h2>
 
-          <div className="mt-4 space-y-3">
-            {data.clients.length === 0 ? (
-              <p className="text-sm text-[#81776b]">
-                No clients available.
-              </p>
-            ) : (
-              data.clients.map((client) => (
-                <article
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {clients.length ? (
+              clients.map((client) => (
+                <ClientCard
                   key={client.id}
-                  className="rounded-xl border border-[#eee5da] p-4"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex size-10 items-center justify-center rounded-full bg-[#f3eadc] font-semibold text-[#8d744f]">
-                      {client.initials}
-                    </div>
-
-                    <div>
-                      <p className="font-semibold text-[#24354c]">
-                        {client.name}
-                      </p>
-
-                      <p className="text-xs text-[#81776b]">
-                        {client.phone || 'No phone'}
-                      </p>
-                    </div>
-                  </div>
-                </article>
+                  client={client}
+                />
               ))
+            ) : (
+              <Empty text="No clients available yet." />
             )}
           </div>
         </section>
 
-        <section className="mt-6 rounded-2xl border border-[#e8dfd3] bg-white p-5">
+        <section className="mt-8">
           <h2 className="font-serif text-xl font-semibold text-[#24354c]">
             Recent Reports
           </h2>
 
           <div className="mt-4 space-y-3">
-            {data.reports.length === 0 ? (
-              <p className="text-sm text-[#81776b]">
-                No reports available.
-              </p>
-            ) : (
-              data.reports.map((report) => (
-                <article
+            {reports.length ? (
+              reports.map((report) => (
+                <div
                   key={report.id}
-                  className="flex items-center justify-between rounded-xl border border-[#eee5da] p-4"
+                  className="rounded-2xl border border-[#e8dfd3] bg-white p-4"
                 >
-                  <div>
-                    <p className="font-semibold text-[#24354c]">
-                      {report.client}
-                    </p>
+                  <div className="flex justify-between gap-4">
+                    <div>
+                      <p className="font-semibold text-[#24354c]">
+                        {report.client}
+                      </p>
 
-                    <p className="mt-1 text-xs text-[#81776b]">
-                      {report.version} · {report.date}
-                    </p>
+                      <p className="mt-1 text-xs text-[#81776b]">
+                        {report.version} · {report.date}
+                      </p>
+                    </div>
+
+                    <span className="text-xs font-semibold text-[#8d744f]">
+                      {report.status}
+                    </span>
                   </div>
-
-                  <span className="rounded-full bg-[#f3eadc] px-3 py-1 text-xs font-semibold text-[#8d744f]">
-                    {report.status}
-                  </span>
-                </article>
+                </div>
               ))
+            ) : (
+              <Empty text="No reports available yet." />
             )}
           </div>
         </section>
@@ -125,7 +103,7 @@ export function ReportPortal({ data }: Props) {
   )
 }
 
-function StatCard({
+function Stat({
   label,
   value,
 }: {
@@ -139,6 +117,14 @@ function StatCard({
       <p className="mt-2 font-serif text-3xl font-semibold text-[#24354c]">
         {value}
       </p>
+    </div>
+  )
+}
+
+function Empty({ text }: { text: string }) {
+  return (
+    <div className="rounded-2xl border border-dashed border-[#d8cbbb] p-5 text-sm text-[#81776b]">
+      {text}
     </div>
   )
 }
