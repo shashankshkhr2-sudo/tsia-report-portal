@@ -11,25 +11,35 @@ import {
  * TSIA Conclusion Resolution Matrix
  * Draft 1.0
  *
- * Important:
- * Different qualities are complementary
- * unless an approved rule establishes
- * genuine tension.
+ * Rules:
+ * - Complement before Tension.
+ * - Tension requires explicit evidence.
+ * - Under-support is NOT reinforcement.
+ * - Context does not replace primary evidence.
+ * - Evidence count alone does not create strength.
  */
 
 export function hasIndependentSupport(
-  evidence: IntelligenceEvidence[]
+  evidence: readonly IntelligenceEvidence[]
 ): boolean {
-  for (let i = 0; i < evidence.length; i++) {
+  const supporting = evidence.filter(
+    item => item.direction === 'SUPPORTS'
+  )
+
+  for (
+    let i = 0;
+    i < supporting.length;
+    i++
+  ) {
     for (
       let j = i + 1;
-      j < evidence.length;
+      j < supporting.length;
       j++
     ) {
       if (
         canStrengthenConclusion(
-          evidence[i],
-          evidence[j]
+          supporting[i],
+          supporting[j]
         )
       ) {
         return true
@@ -40,82 +50,157 @@ export function hasIndependentSupport(
   return false
 }
 
-export function hasCompensation(
-  evidence: IntelligenceEvidence[]
+export function hasSupport(
+  evidence: readonly IntelligenceEvidence[]
+): boolean {
+  return evidence.some(
+    item => item.direction === 'SUPPORTS'
+  )
+}
+
+export function hasUnderSupport(
+  evidence: readonly IntelligenceEvidence[]
 ): boolean {
   return evidence.some(
     item =>
-      item.direction ===
-      'COMPENSATES'
+      item.direction === 'UNDER_SUPPORTS'
+  )
+}
+
+export function hasCompensation(
+  evidence: readonly IntelligenceEvidence[]
+): boolean {
+  return evidence.some(
+    item =>
+      item.direction === 'COMPENSATES'
   )
 }
 
 export function hasModeration(
-  evidence: IntelligenceEvidence[]
+  evidence: readonly IntelligenceEvidence[]
 ): boolean {
   return evidence.some(
-    item =>
-      item.direction ===
-      'MODERATES'
+    item => item.direction === 'MODERATES'
   )
 }
 
 export function hasExplicitTension(
-  evidence: IntelligenceEvidence[]
+  evidence: readonly IntelligenceEvidence[]
 ): boolean {
   return evidence.some(
-    item =>
-      item.direction ===
-      'TENSION'
+    item => item.direction === 'TENSION'
   )
 }
 
 export function hasContext(
-  evidence: IntelligenceEvidence[]
+  evidence: readonly IntelligenceEvidence[]
 ): boolean {
   return evidence.some(
     item =>
-      item.direction ===
-      'CONTEXTUALIZES'
+      item.direction === 'CONTEXTUALIZES'
   )
 }
 
 /**
- * Complement before Tension.
+ * Resolve the relationship between
+ * evidence objects for ONE functional quality.
  *
- * Tension is returned only when evidence
- * explicitly carries TENSION direction.
+ * Important:
+ * COMPLEMENT is mainly a cross-quality
+ * operation. Within a single quality,
+ * multiple independent SUPPORTS normally
+ * mean REINFORCE.
  */
 export function resolveOperation(
-  evidence: IntelligenceEvidence[]
+  evidence: readonly IntelligenceEvidence[]
 ): ResolutionOperation {
   if (evidence.length === 0) {
     return 'INSUFFICIENT'
   }
 
-  if (hasExplicitTension(evidence)) {
+  const support = hasSupport(evidence)
+  const underSupport =
+    hasUnderSupport(evidence)
+  const compensation =
+    hasCompensation(evidence)
+  const moderation =
+    hasModeration(evidence)
+  const tension =
+    hasExplicitTension(evidence)
+  const context =
+    hasContext(evidence)
+
+  /**
+   * Genuine tension must be explicit.
+   */
+  if (tension) {
     return 'TENSION'
   }
 
-  if (hasCompensation(evidence)) {
+  /**
+   * Compensation matters when an
+   * under-supported quality is being
+   * offset by another approved capability.
+   */
+  if (underSupport && compensation) {
     return 'COMPENSATE'
   }
 
-  if (hasModeration(evidence)) {
+  /**
+   * Moderation changes how a supported
+   * quality is likely to express.
+   */
+  if (support && moderation) {
     return 'MODERATE'
   }
 
-  if (hasIndependentSupport(evidence)) {
-    return 'REINFORCE'
-  }
-
-  if (hasContext(evidence)) {
+  /**
+   * Primary/supporting evidence with
+   * contextual evidence remains a
+   * supported quality with context.
+   */
+  if (support && context) {
     return 'CONTEXTUALIZE'
   }
 
-  if (evidence.length > 1) {
-    return 'COMPLEMENT'
+  /**
+   * Independent supporting evidence
+   * genuinely reinforces the quality.
+   */
+  if (
+    support &&
+    hasIndependentSupport(evidence)
+  ) {
+    return 'REINFORCE'
   }
 
-  return 'REINFORCE'
-}
+  /**
+   * A supported quality may stand as a
+   * primary finding even without a second
+   * independent confirmation.
+   */
+  if (support) {
+    return 'REINFORCE'
+  }
+
+  /**
+   * Critical safeguard:
+   *
+   * UNDER_SUPPORTS must never be called
+   * REINFORCE simply because it is the
+   * only evidence available.
+   *
+   * The current ResolutionOperation type
+   * has no separate DEVELOPMENT operation.
+   * Therefore the responsible resolution
+   * is CONTEXTUALIZE while development
+   * significance remains separately
+   * handled by the Conclusion Engine.
+   */
+  if (underSupport) {
+    return 'CONTEXTUALIZE'
+  }
+
+  /**
+   * Compound/context evidence alone
+   * cannot establish a
