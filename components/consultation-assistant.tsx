@@ -31,6 +31,10 @@ import type {
 } from '@/lib/numerology-intelligence/employeeoutput'
 
 import type {
+  EmployeeInterpretation,
+} from '@/lib/numerology-intelligence/employeeinterpretation'
+
+import type {
   ConsultationClient,
   ConsultationMode,
   ConsultationPurpose,
@@ -50,6 +54,13 @@ type Result = {
   employeeOutput: {
     version: string
     insights: readonly EmployeeInsight[]
+    warnings: readonly string[]
+  }
+
+  employeeInterpretation: {
+    version: string
+    interpretations:
+      readonly EmployeeInterpretation[]
     warnings: readonly string[]
   }
 }
@@ -131,6 +142,10 @@ export function ConsultationAssistant({
 
         employeeOutput:
           response.result.employeeOutput,
+
+        employeeInterpretation:
+          response.result
+            .employeeInterpretation,
       })
 
       setLoading(false)
@@ -439,6 +454,11 @@ export function ConsultationAssistant({
                   insights={
                     data.employeeOutput
                       .insights
+                  }
+                  interpretations={
+                    data
+                      .employeeInterpretation
+                      .interpretations
                   }
                 />
               )}
