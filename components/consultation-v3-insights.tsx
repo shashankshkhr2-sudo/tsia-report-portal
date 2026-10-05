@@ -456,4 +456,37 @@ function getDefaultExploration(
   insight: EmployeeInsight
 ): string {
   if (
-   
+    insight.relationship ===
+    'COMPLEMENT'
+  ) {
+    return 'Understand where these qualities naturally work together in the client’s real life and whether that changes across different situations.'
+  }
+
+  if (
+    insight.relationship ===
+    'CONTEXTUALIZE'
+  ) {
+    return 'Understand where this pattern appears clearly, where it appears differently, and what circumstances seem to change its expression.'
+  }
+
+  if (
+    insight.relationship ===
+    'TENSION'
+  ) {
+    return 'Understand whether the client experiences these qualities pulling in different directions, and in which situations that becomes most noticeable.'
+  }
+
+  return 'Understand where this pattern appears in the client’s real life, where it may appear differently, and how the client personally experiences it.'
+}
+
+function cleanStructureId(
+  value: string
+): string {
+  return value
+    .replaceAll('_', ' ')
+    .replace(
+      /\b\w/g,
+      (letter) =>
+        letter.toUpperCase()
+    )
+}
