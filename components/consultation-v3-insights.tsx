@@ -125,7 +125,7 @@ export function ConsultationV3Insights({
                         }
                         className="mt-3 flex w-full items-center justify-between border-t border-[#e7dccd] pt-3 text-left"
                       >
-                        <span className="text-[10px] font-semibold uppercase tracking-wide text-[#9a7b4f]">
+                        <span className="text-[11px] font-semibold uppercase tracking-wide text-[#9a7b4f]">
                           Consultation Guidance
                         </span>
 
@@ -137,7 +137,7 @@ export function ConsultationV3Insights({
                       </button>
 
                       {isOpen && (
-                        <div className="mt-3 space-y-3 rounded-xl border border-[#eadfce] bg-white p-3">
+                        <div className="mt-3 space-y-4 rounded-xl border border-[#eadfce] bg-white p-4">
                           <GuidanceBlock
                             label="Practitioner Meaning"
                             text={
@@ -162,12 +162,12 @@ export function ConsultationV3Insights({
                             }
                           />
 
-                          <div className="rounded-lg bg-[#fbf6ec] p-3">
-                            <p className="text-[9px] font-semibold uppercase tracking-wide text-[#ad7b40]">
+                          <div className="rounded-lg bg-[#fbf6ec] p-4">
+                            <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
                               Suggested Question
                             </p>
 
-                            <p className="mt-1 text-xs font-medium leading-5 text-[#24354c]">
+                            <p className="mt-2 text-[16px] font-medium leading-6 text-[#24354c]">
                               {
                                 interpretation
                                   .validationQuestion
@@ -196,11 +196,11 @@ function GuidanceBlock({
 }) {
   return (
     <div>
-      <p className="text-[9px] font-semibold uppercase tracking-wide text-[#ad7b40]">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
         {label}
       </p>
 
-      <p className="mt-1 text-xs leading-5 text-[#776d61]">
+      <p className="mt-2 text-[16px] leading-6 text-[#776d61]">
         {text}
       </p>
     </div>
