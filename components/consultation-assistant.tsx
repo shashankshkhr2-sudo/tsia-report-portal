@@ -401,4 +401,282 @@ export function ConsultationAssistant({
               <div className="mt-5 rounded-xl bg-[#fbf6ec] p-4">
                 <p className="text-[10px] font-semibold uppercase text-[#ad7b40]">
                   Today&apos;s Note
-                </p
+                </p>
+
+                <p className="mt-2 text-xs">
+                  {note}
+                </p>
+              </div>
+            )}
+
+            <Title
+              small="Live Conversation"
+              big="Talk With Client"
+            />
+
+            <div className="rounded-2xl border p-4">
+              <p className="text-[10px] uppercase text-[#ad7b40]">
+                Suggested Question
+              </p>
+
+              <p className="mt-2 text-sm font-semibold leading-6 text-[#24354c]">
+                Have you come across
+                numerology before, or is
+                this your first experience
+                with it?
+              </p>
+
+              <div className="mt-4 grid gap-2">
+                {[
+                  'First time',
+                  'Know a little',
+                  'Consultation before',
+                  'Know it quite well',
+                ].map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() =>
+                      setChoice(item)
+                    }
+                    className="flex justify-between rounded-xl border p-3 text-left text-sm"
+                  >
+                    {item}
+
+                    {choice === item && (
+                      <Check className="size-4 text-[#ad7b40]" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-2xl border p-4">
+              <p className="text-[10px] uppercase text-[#ad7b40]">
+                Client Says
+              </p>
+
+              <textarea
+                value={answer}
+                onChange={(e) =>
+                  setAnswer(e.target.value)
+                }
+                rows={3}
+                placeholder="Type the client's response..."
+                className="mt-3 w-full rounded-xl border p-3 text-sm"
+              />
+
+              <p className="mt-2 flex items-center gap-2 text-xs text-[#9a7b4f]">
+                <Mic className="size-4" />
+                Voice input - future
+              </p>
+            </div>
+
+            <div className="mt-4 rounded-2xl bg-[#24354c] p-4 text-white">
+              <p className="text-[10px] uppercase text-[#d6b47b]">
+                Employee Guidance
+              </p>
+
+              <p className="mt-2 text-xs leading-5">
+                Listen first. Compare the
+                client&apos;s response with
+                verified numerology before
+                explaining the analysis.
+              </p>
+            </div>
+
+            <div className="mt-4 rounded-2xl bg-[#fbf6ec] p-4">
+              <p className="text-[10px] uppercase text-[#ad7b40]">
+                Talking Point
+              </p>
+
+              <p className="mt-2 text-xs leading-5">
+                Use numerology as a framework
+                for discussing patterns and
+                tendencies, while validating
+                them through the client&apos;s
+                real experience.
+              </p>
+
+              <div className="mt-3 flex gap-2">
+                <button
+                  type="button"
+                  className="rounded-lg bg-[#24354c] px-4 py-2 text-xs text-white"
+                >
+                  Mark Used
+                </button>
+
+                <button
+                  type="button"
+                  className="rounded-lg border px-4 py-2 text-xs"
+                >
+                  Skip
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              disabled={!choice}
+              className="mt-5 flex h-12 w-full items-center justify-center rounded-xl bg-[#24354c] text-sm font-semibold text-white disabled:opacity-40"
+            >
+              Continue Consultation
+              <ChevronRight className="ml-2 size-4" />
+            </button>
+
+          </main>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function formatCompound(
+  compound: number,
+  final: number
+) {
+  return compound === final
+    ? String(final)
+    : `${compound}/${final}`
+}
+
+function repeatNumber(
+  number: number,
+  count: number
+) {
+  if (!count) return ''
+
+  return String(number).repeat(count)
+}
+
+function joinNumbers(
+  numbers: NumerologyDigit[]
+) {
+  return numbers.length
+    ? numbers.join(', ')
+    : 'None'
+}
+
+function formatRepeated(
+  repeated: Partial<
+    Record<NumerologyDigit, number>
+  >
+) {
+  const items =
+    Object.entries(repeated)
+      .filter(([, count]) =>
+        Number(count) > 1
+      )
+      .map(
+        ([number, count]) =>
+          `${number} × ${count}`
+      )
+
+  return items.length
+    ? items.join(', ')
+    : 'None'
+}
+
+function statusLabel(
+  status: string
+) {
+  if (status === 'complete') {
+    return 'Complete'
+  }
+
+  if (status === 'partial') {
+    return 'Partial'
+  }
+
+  return 'Absent'
+}
+
+function Tag({
+  text,
+}: {
+  text: string
+}) {
+  return (
+    <span className="rounded-full bg-white/10 px-3 py-1 text-[10px]">
+      {text}
+    </span>
+  )
+}
+
+function Title({
+  small,
+  big,
+}: {
+  small: string
+  big: string
+}) {
+  return (
+    <div className="mb-4 mt-7 border-t pt-5">
+      <p className="text-[10px] uppercase text-[#ad7b40]">
+        {small}
+      </p>
+
+      <h2 className="mt-1 font-serif text-xl font-semibold text-[#24354c]">
+        {big}
+      </h2>
+    </div>
+  )
+}
+
+function NumberBox({
+  title,
+  value,
+  graha,
+}: {
+  title: string
+  value: string
+  graha: string
+}) {
+  return (
+    <div className="rounded-xl bg-[#f8f4ed] p-3">
+      <p className="text-[9px] uppercase text-[#8c8175]">
+        {title}
+      </p>
+
+      <p className="mt-2 font-serif text-xl text-[#24354c]">
+        {value}
+      </p>
+
+      <p className="mt-1 text-[10px] text-[#ad7b40]">
+        {graha}
+      </p>
+    </div>
+  )
+}
+
+function GridCell({
+  text,
+}: {
+  text: string
+}) {
+  return (
+    <div className="flex h-14 items-center justify-center border text-sm font-semibold text-[#24354c]">
+      {text || ' '}
+    </div>
+  )
+}
+
+function MiniBox({
+  title,
+  text,
+}: {
+  title: string
+  text: string
+}) {
+  return (
+    <div className="rounded-xl border p-3">
+      <p className="text-[10px] font-semibold text-[#24354c]">
+        {title}
+      </p>
+
+      <p className="mt-1 text-xs text-[#776d61]">
+        {text}
+      </p>
+    </div>
+  )
+}
