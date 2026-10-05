@@ -349,6 +349,10 @@ export function ConsultationAssistant({
                       .employeeInterpretation
                       .interpretations
                   }
+                  evidence={
+                    data.intelligence
+                      .evidence
+                  }
                 />
               )}
 
