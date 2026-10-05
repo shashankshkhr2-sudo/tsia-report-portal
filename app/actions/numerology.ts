@@ -24,6 +24,10 @@ import {
   runNumerologyV3FromCalculation,
 } from '@/lib/numerology-intelligence/engine'
 
+import {
+  buildEmployeeOutput,
+} from '@/lib/numerology-intelligence/employeeoutput'
+
 export async function generateNumerologyV2(
   clientId: string
 ) {
@@ -96,10 +100,7 @@ export async function generateNumerologyV2(
     }
 
     /*
-     * FROZEN TSIA V2 CALCULATION
-     *
-     * This remains the deterministic
-     * numerology foundation.
+     * FROZEN V2 CALCULATION
      */
     const calculation =
       calculateNumerologyV2({
@@ -111,90 +112,4 @@ export async function generateNumerologyV2(
       })
 
     /*
-     * EXISTING V2 SYSTEM
-     *
-     * Do not replace or modify.
-     */
-    const evidence =
-      buildNumerologyEvidence(
-        calculation
-      )
-
-    const content =
-      buildNumerologyV2ReportContent(
-        calculation,
-        evidence
-      )
-
-    const narrative =
-      buildNumerologyV2Narrative(
-        content
-      )
-
-    /*
-     * TSIA NUMEROLOGY INTELLIGENCE V3
-     *
-     * IMPORTANT:
-     *
-     * V3 receives the SAME verified V2
-     * calculation.
-     *
-     * It does not recalculate the client.
-     * It does not modify V2.
-     */
-    const intelligence =
-      runNumerologyV3FromCalculation(
-        calculation
-      )
-
-    return {
-      error: null,
-
-      result: {
-        client: {
-          id:
-            client.id,
-
-          clientNumber:
-            client.client_number,
-
-          fullName:
-            client.full_name,
-
-          dateOfBirth:
-            client.date_of_birth,
-        },
-
-        /*
-         * Existing V2 outputs.
-         */
-        calculation,
-
-        evidence,
-
-        content,
-
-        narrative,
-
-        /*
-         * New V3 intelligence output.
-         */
-        intelligence,
-      },
-    }
-  } catch (error) {
-    console.error(
-      'Numerology generation error:',
-      error
-    )
-
-    return {
-      error:
-        error instanceof Error
-          ? error.message
-          : 'Unable to generate TSIA numerology analysis.',
-
-      result: null,
-    }
-  }
-}
+     * EXISTING V2
