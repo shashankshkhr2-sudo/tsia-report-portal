@@ -213,8 +213,158 @@ export function ConsultationAssistant({
 
           <main className="p-5">
 
+            {note.trim() && (
+              <div className="rounded-xl bg-[#fbf6ec] p-4">
+
+                <p className="text-[10px] font-semibold uppercase text-[#ad7b40]">
+                  Today&apos;s Note
+                </p>
+
+                <p className="mt-2 text-sm leading-6 text-[#24354c]">
+                  {note}
+                </p>
+
+              </div>
+            )}
+
             <Title
-              small="Numerology Snapshot"
+              small="Live Conversation"
+              big="Talk With Client"
+            />
+
+            <div className="rounded-2xl border p-4">
+
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
+                Opening Question
+              </p>
+
+              <p className="mt-2 text-base font-semibold leading-6 text-[#24354c]">
+                Have you come across
+                numerology before, or is
+                this your first experience
+                with it?
+              </p>
+
+              <div className="mt-4 grid gap-2">
+
+                {[
+                  'First time',
+                  'Know a little',
+                  'Consultation before',
+                  'Know it quite well',
+                ].map(
+                  (item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() =>
+                        setChoice(
+                          item
+                        )
+                      }
+                      className="flex justify-between rounded-xl border p-3 text-left text-sm"
+                    >
+                      {item}
+
+                      {choice ===
+                        item && (
+                        <Check className="size-4 text-[#ad7b40]" />
+                      )}
+                    </button>
+                  )
+                )}
+
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-2xl border p-4">
+
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
+                Client Says
+              </p>
+
+              <textarea
+                value={answer}
+                onChange={(event) =>
+                  setAnswer(
+                    event.target.value
+                  )
+                }
+                rows={3}
+                placeholder="Type the client's response..."
+                className="mt-3 w-full rounded-xl border p-3 text-sm"
+              />
+
+              <p className="mt-2 flex items-center gap-2 text-xs text-[#9a7b4f]">
+                <Mic className="size-4" />
+                Voice input - future
+              </p>
+
+            </div>
+
+            <button
+              type="button"
+              disabled={!choice}
+              className="mt-4 flex h-12 w-full items-center justify-center rounded-xl bg-[#24354c] text-sm font-semibold text-white disabled:opacity-40"
+            >
+              Continue Consultation
+
+              <ChevronRight className="ml-2 size-4" />
+            </button>
+
+            <Title
+              small="Employee Brief"
+              big="Key Client Insights"
+            />
+
+            {loading && (
+              <div className="flex items-center gap-2 rounded-xl bg-[#f8f4ed] p-4 text-xs text-[#776d61]">
+                <Loader2 className="size-4 animate-spin" />
+                Loading TSIA V3
+                intelligence...
+              </div>
+            )}
+
+            {error && (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-xs text-red-700">
+                {error}
+              </div>
+            )}
+
+            {!loading &&
+              data?.employeeOutput &&
+              data.employeeOutput.insights
+                .length > 0 && (
+                <ConsultationV3Insights
+                  insights={
+                    data.employeeOutput
+                      .insights
+                  }
+                  interpretations={
+                    data
+                      .employeeInterpretation
+                      .interpretations
+                  }
+                />
+              )}
+
+            {!loading &&
+              !error &&
+              data?.employeeOutput &&
+              data.employeeOutput.insights
+                .length === 0 && (
+                <div className="rounded-xl bg-[#f8f4ed] p-4">
+                  <p className="text-xs leading-5 text-[#776d61]">
+                    No approved V3
+                    employee insights are
+                    available for this
+                    client yet.
+                  </p>
+                </div>
+              )}
+
+            <Title
+              small="Numerology Reference"
               big="Client at a Glance"
             />
 
@@ -223,12 +373,6 @@ export function ConsultationAssistant({
                 <Loader2 className="size-4 animate-spin" />
                 Loading verified TSIA
                 numerology...
-              </div>
-            )}
-
-            {error && (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-xs text-red-700">
-                {error}
               </div>
             )}
 
@@ -338,7 +482,7 @@ export function ConsultationAssistant({
 
                 </div>
 
-                <div className="mt-4 rounded-xl bg-[#f8f4ed] p-4 text-xs leading-6 text-[#776d61]">
+                <div className="mt-4 rounded-xl bg-[#f8f4ed] p-4 text-sm leading-6 text-[#776d61]">
 
                   <p>
                     <b>Present:</b>{' '}
@@ -388,11 +532,11 @@ export function ConsultationAssistant({
 
                 <div className="mt-3 rounded-xl border p-4">
 
-                  <p className="text-xs font-semibold text-[#24354c]">
+                  <p className="text-sm font-semibold text-[#24354c]">
                     Core Graha Influence
                   </p>
 
-                  <p className="mt-2 text-xs leading-6 text-[#776d61]">
+                  <p className="mt-2 text-sm leading-6 text-[#776d61]">
 
                     Mulank:{' '}
                     <b>
@@ -432,200 +576,6 @@ export function ConsultationAssistant({
                 </div>
               </>
             )}
-
-            <Title
-              small="Employee Brief"
-              big="5 Important Client Insights"
-            />
-
-            {loading && (
-              <div className="flex items-center gap-2 rounded-xl bg-[#f8f4ed] p-4 text-xs text-[#776d61]">
-                <Loader2 className="size-4 animate-spin" />
-                Loading TSIA V3
-                intelligence...
-              </div>
-            )}
-
-            {!loading &&
-              data?.employeeOutput &&
-              data.employeeOutput.insights
-                .length > 0 && (
-                <ConsultationV3Insights
-                  insights={
-                    data.employeeOutput
-                      .insights
-                  }
-                  interpretations={
-                    data
-                      .employeeInterpretation
-                      .interpretations
-                  }
-                />
-              )}
-
-            {!loading &&
-              !error &&
-              data?.employeeOutput &&
-              data.employeeOutput.insights
-                .length === 0 && (
-                <div className="rounded-xl bg-[#f8f4ed] p-4">
-                  <p className="text-xs leading-5 text-[#776d61]">
-                    No approved V3
-                    employee insights are
-                    available for this
-                    client yet.
-                  </p>
-                </div>
-              )}
-
-            {note.trim() && (
-              <div className="mt-5 rounded-xl bg-[#fbf6ec] p-4">
-
-                <p className="text-[10px] font-semibold uppercase text-[#ad7b40]">
-                  Today&apos;s Note
-                </p>
-
-                <p className="mt-2 text-xs">
-                  {note}
-                </p>
-
-              </div>
-            )}
-
-            <Title
-              small="Live Conversation"
-              big="Talk With Client"
-            />
-
-            <div className="rounded-2xl border p-4">
-
-              <p className="text-[10px] uppercase text-[#ad7b40]">
-                Suggested Question
-              </p>
-
-              <p className="mt-2 text-sm font-semibold leading-6 text-[#24354c]">
-                Have you come across
-                numerology before, or is
-                this your first experience
-                with it?
-              </p>
-
-              <div className="mt-4 grid gap-2">
-
-                {[
-                  'First time',
-                  'Know a little',
-                  'Consultation before',
-                  'Know it quite well',
-                ].map(
-                  (item) => (
-                    <button
-                      key={item}
-                      type="button"
-                      onClick={() =>
-                        setChoice(
-                          item
-                        )
-                      }
-                      className="flex justify-between rounded-xl border p-3 text-left text-sm"
-                    >
-                      {item}
-
-                      {choice ===
-                        item && (
-                        <Check className="size-4 text-[#ad7b40]" />
-                      )}
-                    </button>
-                  )
-                )}
-
-              </div>
-            </div>
-
-            <div className="mt-4 rounded-2xl border p-4">
-
-              <p className="text-[10px] uppercase text-[#ad7b40]">
-                Client Says
-              </p>
-
-              <textarea
-                value={answer}
-                onChange={(event) =>
-                  setAnswer(
-                    event.target.value
-                  )
-                }
-                rows={3}
-                placeholder="Type the client's response..."
-                className="mt-3 w-full rounded-xl border p-3 text-sm"
-              />
-
-              <p className="mt-2 flex items-center gap-2 text-xs text-[#9a7b4f]">
-                <Mic className="size-4" />
-                Voice input - future
-              </p>
-
-            </div>
-
-            <div className="mt-4 rounded-2xl bg-[#24354c] p-4 text-white">
-
-              <p className="text-[10px] uppercase text-[#d6b47b]">
-                Employee Guidance
-              </p>
-
-              <p className="mt-2 text-xs leading-5">
-                Listen first. Compare the
-                client&apos;s response
-                with verified numerology
-                before explaining the
-                analysis.
-              </p>
-
-            </div>
-
-            <div className="mt-4 rounded-2xl bg-[#fbf6ec] p-4">
-
-              <p className="text-[10px] uppercase text-[#ad7b40]">
-                Talking Point
-              </p>
-
-              <p className="mt-2 text-xs leading-5">
-                Use numerology as a
-                framework for discussing
-                patterns and tendencies,
-                while validating them
-                through the client&apos;s
-                real experience.
-              </p>
-
-              <div className="mt-3 flex gap-2">
-
-                <button
-                  type="button"
-                  className="rounded-lg bg-[#24354c] px-4 py-2 text-xs text-white"
-                >
-                  Mark Used
-                </button>
-
-                <button
-                  type="button"
-                  className="rounded-lg border px-4 py-2 text-xs"
-                >
-                  Skip
-                </button>
-
-              </div>
-            </div>
-
-            <button
-              type="button"
-              disabled={!choice}
-              className="mt-5 flex h-12 w-full items-center justify-center rounded-xl bg-[#24354c] text-sm font-semibold text-white disabled:opacity-40"
-            >
-              Continue Consultation
-
-              <ChevronRight className="ml-2 size-4" />
-            </button>
 
           </main>
         </div>
