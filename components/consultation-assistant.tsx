@@ -17,10 +17,18 @@ import {
   generateNumerologyV2,
 } from '@/app/actions/numerology'
 
+import {
+  ConsultationV3Insights,
+} from '@/components/consultation-v3-insights'
+
 import type {
   NumerologyCalculationResult,
   NumerologyDigit,
 } from '@/lib/numerology/types'
+
+import type {
+  EmployeeInsight,
+} from '@/lib/numerology-intelligence/employeeoutput'
 
 import type {
   ConsultationClient,
@@ -37,24 +45,56 @@ type Props = {
 }
 
 type Result = {
-  calculation: NumerologyCalculationResult
+  calculation:
+    NumerologyCalculationResult
+
+  employeeOutput: {
+    version: string
+    insights:
+      readonly EmployeeInsight[]
+    warnings:
+      readonly string[]
+  }
 }
 
-const labels: Record<string, string> = {
-  numerology_report: 'Numerology Report',
-  future_numerology: 'Future Numerology',
-  career: 'Career',
-  business: 'Business',
-  money: 'Money & Wealth',
-  family: 'Family',
-  relationship: 'Relationship',
-  marriage: 'Marriage',
-  personal_direction: 'Personal Direction',
-  follow_up: 'Follow-up',
-  other: 'Other',
+const labels:
+  Record<string, string> = {
+  numerology_report:
+    'Numerology Report',
+
+  future_numerology:
+    'Future Numerology',
+
+  career:
+    'Career',
+
+  business:
+    'Business',
+
+  money:
+    'Money & Wealth',
+
+  family:
+    'Family',
+
+  relationship:
+    'Relationship',
+
+  marriage:
+    'Marriage',
+
+  personal_direction:
+    'Personal Direction',
+
+  follow_up:
+    'Follow-up',
+
+  other:
+    'Other',
 }
 
-const grid: NumerologyDigit[] = [
+const grid:
+  NumerologyDigit[] = [
   4, 9, 2,
   3, 5, 7,
   8, 1, 6,
@@ -94,7 +134,9 @@ export function ConsultationAssistant({
           client.id
         )
 
-      if (!active) return
+      if (!active) {
+        return
+      }
 
       if (
         response.error ||
@@ -112,6 +154,9 @@ export function ConsultationAssistant({
       setData({
         calculation:
           response.result.calculation,
+
+        employeeOutput:
+          response.result.employeeOutput,
       })
 
       setLoading(false)
@@ -137,7 +182,6 @@ export function ConsultationAssistant({
   return (
     <div className="min-h-full bg-[#f7f3ed] p-4">
       <div className="mx-auto max-w-3xl">
-
         <button
           type="button"
           onClick={onBack}
@@ -148,7 +192,6 @@ export function ConsultationAssistant({
         </button>
 
         <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
-
           <header className="bg-[#24354c] p-5 text-white">
             <p className="text-[10px] uppercase tracking-widest text-[#d6b47b]">
               TSIA Live Consultation
@@ -178,7 +221,6 @@ export function ConsultationAssistant({
           </header>
 
           <main className="p-5">
-
             <Title
               small="Numerology Snapshot"
               big="Client at a Glance"
@@ -187,7 +229,8 @@ export function ConsultationAssistant({
             {loading && (
               <div className="flex items-center gap-2 rounded-xl bg-[#f8f4ed] p-4 text-xs text-[#776d61]">
                 <Loader2 className="size-4 animate-spin" />
-                Loading verified TSIA V2 calculation...
+                Loading verified TSIA
+                numerology...
               </div>
             )}
 
@@ -203,12 +246,15 @@ export function ConsultationAssistant({
                   <NumberBox
                     title="Mulank"
                     value={formatCompound(
-                      calculation.mulank.compound,
-                      calculation.mulank.final
+                      calculation.mulank
+                        .compound,
+                      calculation.mulank
+                        .final
                     )}
                     graha={
                       calculation.grahas[
-                        calculation.mulank.final
+                        calculation.mulank
+                          .final
                       ]
                     }
                   />
@@ -216,12 +262,15 @@ export function ConsultationAssistant({
                   <NumberBox
                     title="Bhagyank"
                     value={formatCompound(
-                      calculation.bhagyank.compound,
-                      calculation.bhagyank.final
+                      calculation.bhagyank
+                        .compound,
+                      calculation.bhagyank
+                        .final
                     )}
                     graha={
                       calculation.grahas[
-                        calculation.bhagyank.final
+                        calculation.bhagyank
+                          .final
                       ]
                     }
                   />
@@ -255,12 +304,16 @@ export function ConsultationAssistant({
                     </p>
 
                     <div className="grid max-w-[230px] grid-cols-3">
-                      {grid.map((n) => (
-                        <GridCell
-                          key={n}
-                          text={String(n)}
-                        />
-                      ))}
+                      {grid.map(
+                        (number) => (
+                          <GridCell
+                            key={number}
+                            text={String(
+                              number
+                            )}
+                          />
+                        )
+                      )}
                     </div>
                   </div>
 
@@ -270,16 +323,21 @@ export function ConsultationAssistant({
                     </p>
 
                     <div className="grid max-w-[230px] grid-cols-3">
-                      {grid.map((n) => (
-                        <GridCell
-                          key={n}
-                          text={repeatNumber(
-                            n,
-                            calculation.loShu
-                              .counts[n]
-                          )}
-                        />
-                      ))}
+                      {grid.map(
+                        (number) => (
+                          <GridCell
+                            key={number}
+                            text={repeatNumber(
+                              number,
+                              calculation
+                                .loShu
+                                .counts[
+                                number
+                              ]
+                            )}
+                          />
+                        )
+                      )}
                     </div>
                   </div>
                 </div>
@@ -343,6 +401,7 @@ export function ConsultationAssistant({
                         ]
                       }
                     </b>
+
                     <br />
 
                     Bhagyank:{' '}
@@ -354,6 +413,7 @@ export function ConsultationAssistant({
                         ]
                       }
                     </b>
+
                     <br />
 
                     Name Number:{' '}
@@ -375,27 +435,38 @@ export function ConsultationAssistant({
               big="5 Important Client Insights"
             />
 
-            <div className="space-y-2">
-              {[1, 2, 3, 4, 5].map(
-                (n) => (
-                  <div
-                    key={n}
-                    className="flex gap-3 rounded-xl bg-[#f8f4ed] p-3"
-                  >
-                    <span className="font-semibold text-[#ad7b40]">
-                      {n}.
-                    </span>
+            {loading && (
+              <div className="flex items-center gap-2 rounded-xl bg-[#f8f4ed] p-4 text-xs text-[#776d61]">
+                <Loader2 className="size-4 animate-spin" />
+                Loading TSIA V3
+                intelligence...
+              </div>
+            )}
 
-                    <p className="text-xs text-[#776d61]">
-                      Verified interpretation
-                      insight will be connected
-                      from the TSIA V2 content
-                      layer.
-                    </p>
-                  </div>
-                )
+            {!loading &&
+              data?.employeeOutput && (
+                <ConsultationV3Insights
+                  insights={
+                    data.employeeOutput
+                      .insights
+                  }
+                />
               )}
-            </div>
+
+            {!loading &&
+              !error &&
+              data?.employeeOutput &&
+              data.employeeOutput
+                .insights.length === 0 && (
+                <div className="rounded-xl bg-[#f8f4ed] p-4">
+                  <p className="text-xs leading-5 text-[#776d61]">
+                    No approved V3
+                    employee insights are
+                    available for this
+                    client yet.
+                  </p>
+                </div>
+              )}
 
             {note.trim() && (
               <div className="mt-5 rounded-xl bg-[#fbf6ec] p-4">
@@ -432,22 +503,27 @@ export function ConsultationAssistant({
                   'Know a little',
                   'Consultation before',
                   'Know it quite well',
-                ].map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    onClick={() =>
-                      setChoice(item)
-                    }
-                    className="flex justify-between rounded-xl border p-3 text-left text-sm"
-                  >
-                    {item}
+                ].map(
+                  (item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() =>
+                        setChoice(
+                          item
+                        )
+                      }
+                      className="flex justify-between rounded-xl border p-3 text-left text-sm"
+                    >
+                      {item}
 
-                    {choice === item && (
-                      <Check className="size-4 text-[#ad7b40]" />
-                    )}
-                  </button>
-                ))}
+                      {choice ===
+                        item && (
+                        <Check className="size-4 text-[#ad7b40]" />
+                      )}
+                    </button>
+                  )
+                )}
               </div>
             </div>
 
@@ -458,225 +534,4 @@ export function ConsultationAssistant({
 
               <textarea
                 value={answer}
-                onChange={(e) =>
-                  setAnswer(e.target.value)
-                }
-                rows={3}
-                placeholder="Type the client's response..."
-                className="mt-3 w-full rounded-xl border p-3 text-sm"
-              />
-
-              <p className="mt-2 flex items-center gap-2 text-xs text-[#9a7b4f]">
-                <Mic className="size-4" />
-                Voice input - future
-              </p>
-            </div>
-
-            <div className="mt-4 rounded-2xl bg-[#24354c] p-4 text-white">
-              <p className="text-[10px] uppercase text-[#d6b47b]">
-                Employee Guidance
-              </p>
-
-              <p className="mt-2 text-xs leading-5">
-                Listen first. Compare the
-                client&apos;s response with
-                verified numerology before
-                explaining the analysis.
-              </p>
-            </div>
-
-            <div className="mt-4 rounded-2xl bg-[#fbf6ec] p-4">
-              <p className="text-[10px] uppercase text-[#ad7b40]">
-                Talking Point
-              </p>
-
-              <p className="mt-2 text-xs leading-5">
-                Use numerology as a framework
-                for discussing patterns and
-                tendencies, while validating
-                them through the client&apos;s
-                real experience.
-              </p>
-
-              <div className="mt-3 flex gap-2">
-                <button
-                  type="button"
-                  className="rounded-lg bg-[#24354c] px-4 py-2 text-xs text-white"
-                >
-                  Mark Used
-                </button>
-
-                <button
-                  type="button"
-                  className="rounded-lg border px-4 py-2 text-xs"
-                >
-                  Skip
-                </button>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              disabled={!choice}
-              className="mt-5 flex h-12 w-full items-center justify-center rounded-xl bg-[#24354c] text-sm font-semibold text-white disabled:opacity-40"
-            >
-              Continue Consultation
-              <ChevronRight className="ml-2 size-4" />
-            </button>
-
-          </main>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function formatCompound(
-  compound: number,
-  final: number
-) {
-  return compound === final
-    ? String(final)
-    : `${compound}/${final}`
-}
-
-function repeatNumber(
-  number: number,
-  count: number
-) {
-  if (!count) return ''
-
-  return String(number).repeat(count)
-}
-
-function joinNumbers(
-  numbers: NumerologyDigit[]
-) {
-  return numbers.length
-    ? numbers.join(', ')
-    : 'None'
-}
-
-function formatRepeated(
-  repeated: Partial<
-    Record<NumerologyDigit, number>
-  >
-) {
-  const items =
-    Object.entries(repeated)
-      .filter(([, count]) =>
-        Number(count) > 1
-      )
-      .map(
-        ([number, count]) =>
-          `${number} × ${count}`
-      )
-
-  return items.length
-    ? items.join(', ')
-    : 'None'
-}
-
-function statusLabel(
-  status: string
-) {
-  if (status === 'complete') {
-    return 'Complete'
-  }
-
-  if (status === 'partial') {
-    return 'Partial'
-  }
-
-  return 'Absent'
-}
-
-function Tag({
-  text,
-}: {
-  text: string
-}) {
-  return (
-    <span className="rounded-full bg-white/10 px-3 py-1 text-[10px]">
-      {text}
-    </span>
-  )
-}
-
-function Title({
-  small,
-  big,
-}: {
-  small: string
-  big: string
-}) {
-  return (
-    <div className="mb-4 mt-7 border-t pt-5">
-      <p className="text-[10px] uppercase text-[#ad7b40]">
-        {small}
-      </p>
-
-      <h2 className="mt-1 font-serif text-xl font-semibold text-[#24354c]">
-        {big}
-      </h2>
-    </div>
-  )
-}
-
-function NumberBox({
-  title,
-  value,
-  graha,
-}: {
-  title: string
-  value: string
-  graha: string
-}) {
-  return (
-    <div className="rounded-xl bg-[#f8f4ed] p-3">
-      <p className="text-[9px] uppercase text-[#8c8175]">
-        {title}
-      </p>
-
-      <p className="mt-2 font-serif text-xl text-[#24354c]">
-        {value}
-      </p>
-
-      <p className="mt-1 text-[10px] text-[#ad7b40]">
-        {graha}
-      </p>
-    </div>
-  )
-}
-
-function GridCell({
-  text,
-}: {
-  text: string
-}) {
-  return (
-    <div className="flex h-14 items-center justify-center border text-sm font-semibold text-[#24354c]">
-      {text || ' '}
-    </div>
-  )
-}
-
-function MiniBox({
-  title,
-  text,
-}: {
-  title: string
-  text: string
-}) {
-  return (
-    <div className="rounded-xl border p-3">
-      <p className="text-[10px] font-semibold text-[#24354c]">
-        {title}
-      </p>
-
-      <p className="mt-1 text-xs text-[#776d61]">
-        {text}
-      </p>
-    </div>
-  )
-}
+                onChange
