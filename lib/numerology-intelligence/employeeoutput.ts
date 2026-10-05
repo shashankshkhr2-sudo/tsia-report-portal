@@ -1,5 +1,6 @@
 import type {
   ConclusionEngineResult,
+  FunctionalQualityId,
   ResolvedConclusion,
 } from './types'
 
@@ -15,7 +16,9 @@ import type {
  * Purpose:
  *
  * Convert approved V3 intelligence into
- * a concise employee-facing brief.
+ * a concise employee-facing brief while
+ * preserving traceability to the actual
+ * V3 evidence.
  *
  * This layer does NOT:
  * - change calculations
@@ -27,9 +30,8 @@ import type {
  *   production conclusions
  */
 
-export const
-  EMPLOYEE_OUTPUT_VERSION =
-    'TSIA_NUM_V3_EMPLOYEE_OUTPUT_1.0' as const
+export const EMPLOYEE_OUTPUT_VERSION =
+  'TSIA_NUM_V3_EMPLOYEE_OUTPUT_1.1' as const
 
 export type EmployeeInsightSource =
   | 'CORE_CONCLUSION'
@@ -38,8 +40,7 @@ export type EmployeeInsightSource =
 export type EmployeeInsight = {
   id: string
 
-  source:
-    EmployeeInsightSource
+  source: EmployeeInsightSource
 
   title: string
 
@@ -47,17 +48,47 @@ export type EmployeeInsight = {
 
   priority: number
 
+  /**
+   * Preserve the actual Functional
+   * Qualities involved in this insight.
+   *
+   * Core conclusion normally has one.
+   * Cross-quality conclusion has two.
+   */
+  functionalQualityIds:
+    readonly FunctionalQualityId[]
+
+  /**
+   * References to the actual V3 evidence
+   * that contributed to this insight.
+   *
+   * The presentation layer must resolve
+   * these IDs against intelligence.evidence.
+   *
+   * It must never invent evidence.
+   */
+  evidenceIds:
+    readonly string[]
+
+  /**
+   * Existing approved structural evidence
+   * connected to the conclusion.
+   *
+   * Examples may include approved row,
+   * column or Rajyog structures.
+   */
+  relevantStructureIds:
+    readonly string[]
+
   strength?: string
 
   relationship?: string
 
-  developmentSignificance?:
-    string
+  developmentSignificance?: string
 }
 
 export type EmployeeOutputResult = {
-  version:
-    typeof EMPLOYEE_OUTPUT_VERSION
+  version: typeof EMPLOYEE_OUTPUT_VERSION
 
   insights:
     readonly EmployeeInsight[]
@@ -151,11 +182,6 @@ function conclusionPriority(
 /**
  * Only meaningful production conclusions
  * should enter the employee brief.
- *
- * INSUFFICIENT conclusions remain available
- * inside the full V3 result but are not
- * promoted as one of the five important
- * client insights.
  */
 function isUsableConclusion(
   conclusion: ResolvedConclusion
@@ -169,18 +195,8 @@ function isUsableConclusion(
 }
 
 /**
- * Cross-quality output is intentionally
+ * Cross-quality output remains intentionally
  * stricter than the raw resolver.
- *
- * We exclude:
- * - research-only pairs
- * - coexist-only pairs
- * - insufficient evidence
- * - structural-supremacy duplicates
- *
- * Only approved RESOLVED interactions
- * are candidates for employee-facing
- * prioritization.
  */
 function isUsableCrossQuality(
   resolution: CrossQualityResolution
@@ -228,9 +244,66 @@ function crossQualityPriority(
   return 0
 }
 
+/**
+ * Collect all evidence references from
+ * a single-quality resolved conclusion.
+ *
+ * Set removes duplicate references while
+ * preserving first-seen order.
+ */
+function conclusionEvidenceIds(
+  conclusion: ResolvedConclusion
+): string[] {
+  return Array.from(
+    new Set([
+      ...conclusion
+        .supportingEvidenceIds,
+
+      ...conclusion
+        .moderatingEvidenceIds,
+
+      ...conclusion
+        .compensatingEvidenceIds,
+
+      ...conclusion
+        .tensionEvidenceIds,
+
+      ...conclusion
+        .contextualEvidenceIds,
+    ])
+  )
+}
+
+/**
+ * Collect evidence references from both
+ * sides of a cross-quality conclusion.
+ */
+function crossQualityEvidenceIds(
+  resolution: CrossQualityResolution
+): string[] {
+  return Array.from(
+    new Set([
+      ...resolution
+        .qualityAEvidenceIds,
+
+      ...resolution
+        .qualityBEvidenceIds,
+    ])
+  )
+}
+
 function conclusionToInsight(
   conclusion: ResolvedConclusion
 ): EmployeeInsight {
+  const functionalQualityIds:
+    FunctionalQualityId[] =
+      conclusion.functionalQualityId
+        ? [
+            conclusion
+              .functionalQualityId,
+          ]
+        : []
+
   return {
     id:
       `EMP_${conclusion.id}`,
@@ -248,6 +321,17 @@ function conclusionToInsight(
       conclusionPriority(
         conclusion
       ),
+
+    functionalQualityIds,
+
+    evidenceIds:
+      conclusionEvidenceIds(
+        conclusion
+      ),
+
+    relevantStructureIds:
+      conclusion
+        .relevantStructureIds,
 
     strength:
       conclusion.strength,
@@ -279,6 +363,20 @@ function crossQualityToInsight(
         resolution
       ),
 
+    functionalQualityIds: [
+      resolution.qualityA,
+      resolution.qualityB,
+    ],
+
+    evidenceIds:
+      crossQualityEvidenceIds(
+        resolution
+      ),
+
+    relevantStructureIds:
+      resolution
+        .relevantStructureIds,
+
     relationship:
       resolution.relationship,
   }
@@ -288,11 +386,11 @@ function crossQualityToInsight(
  * Avoid displaying duplicate statements.
  *
  * The underlying engine output remains
- * unchanged. This only cleans the
- * employee presentation layer.
+ * unchanged.
  */
 function removeDuplicateStatements(
-  insights: readonly EmployeeInsight[]
+  insights:
+    readonly EmployeeInsight[]
 ): EmployeeInsight[] {
   const seen =
     new Set<string>()
@@ -321,6 +419,10 @@ function removeDuplicateStatements(
  * Build the employee-facing V3 brief.
  *
  * Default = five important insights.
+ *
+ * Ranking is unchanged from Version 1.0.
+ * Version 1.1 adds evidence traceability
+ * only.
  */
 export function buildEmployeeOutput(
   conclusions:
@@ -364,7 +466,10 @@ export function buildEmployeeOutput(
       )
       .slice(
         0,
-        Math.max(0, limit)
+        Math.max(
+          0,
+          limit
+        )
       )
 
   return {
