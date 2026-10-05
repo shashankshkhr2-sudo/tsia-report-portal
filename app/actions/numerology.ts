@@ -10,15 +10,15 @@ import {
 
 import {
   buildNumerologyEvidence,
-} from '@/lib/numerology/evidenceengine'
+} from '@/lib/numerology/evidence'
 
 import {
-  buildNumerologyV2ReportContent,
-} from '@/lib/numerology/reportcontent'
+  buildNumerologyV2Content,
+} from '@/lib/numerology/content'
 
 import {
   buildNumerologyV2Narrative,
-} from '@/lib/numerology/narrativeengine'
+} from '@/lib/numerology/narrative'
 
 import {
   runNumerologyV3FromCalculation,
@@ -28,28 +28,28 @@ import {
   buildEmployeeOutput,
 } from '@/lib/numerology-intelligence/employeeoutput'
 
+import {
+  buildEmployeeInterpretations,
+} from '@/lib/numerology-intelligence/employeeinterpretation'
+
 export async function generateNumerologyV2(
   clientId: string
 ) {
   try {
-    if (!clientId) {
-      return {
-        error: 'Client is required.',
-        result: null,
-      }
-    }
-
     const supabase =
       await createClient()
 
     const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
+      data: {
+        user,
+      },
+    } =
+      await supabase.auth.getUser()
 
-    if (userError || !user) {
+    if (!user) {
       return {
-        error: 'You must be signed in.',
+        error:
+          'You must be logged in.',
         result: null,
       }
     }
@@ -57,74 +57,137 @@ export async function generateNumerologyV2(
     const {
       data: client,
       error: clientError,
-    } = await supabase
-      .from('clients')
-      .select(`
-        id,
-        client_number,
-        full_name,
-        date_of_birth,
-        status
-      `)
-      .eq('id', clientId)
-      .single()
+    } =
+      await supabase
+        .from('clients')
+        .select(
+          `
+          id,
+          client_number,
+          full_name,
+          current_name,
+          date_of_birth,
+          gender
+          `
+        )
+        .eq('id', clientId)
+        .maybeSingle()
 
-    if (clientError || !client) {
+    if (clientError) {
+      console.error(
+        '[numerology] client lookup failed',
+        {
+          code:
+            clientError.code,
+          message:
+            clientError.message,
+        }
+      )
+
       return {
         error:
-          'Client could not be found.',
+          'Unable to load client.',
         result: null,
       }
     }
 
-    if (client.status === 'inactive') {
+    if (!client) {
       return {
         error:
-          'This client is inactive.',
+          'Client not found.',
         result: null,
       }
     }
 
-    if (
-      !client.full_name ||
-      !client.date_of_birth
-    ) {
+    const fullName =
+      (
+        client.current_name ||
+        client.full_name ||
+        ''
+      ).trim()
+
+    const dateOfBirth =
+      (
+        client.date_of_birth ||
+        ''
+      ).trim()
+
+    if (!fullName) {
       return {
         error:
-          'Full Name and Date of Birth are required for Numerology Version 2.',
+          'Client name is required for numerology.',
         result: null,
       }
     }
 
+    if (!dateOfBirth) {
+      return {
+        error:
+          'Client date of birth is required for numerology.',
+        result: null,
+      }
+    }
+
+    /*
+     * FROZEN V2 CALCULATION
+     *
+     * Business context, consultation
+     * answers, employee observations,
+     * payment status and customer
+     * behaviour must never alter this
+     * deterministic calculation.
+     */
     const calculation =
       calculateNumerologyV2({
-        fullName:
-          client.full_name,
-        dateOfBirth:
-          client.date_of_birth,
+        fullName,
+        dateOfBirth,
       })
 
+    /*
+     * EXISTING V2 EVIDENCE
+     */
     const evidence =
       buildNumerologyEvidence(
         calculation
       )
 
+    /*
+     * EXISTING V2 CONTENT
+     */
     const content =
-      buildNumerologyV2ReportContent(
+      buildNumerologyV2Content(
         calculation,
         evidence
       )
 
+    /*
+     * EXISTING V2 NARRATIVE
+     */
     const narrative =
       buildNumerologyV2Narrative(
+        calculation,
+        evidence,
         content
       )
 
+    /*
+     * V3 NUMEROLOGY INTELLIGENCE
+     *
+     * This interprets the frozen
+     * calculation. It does not modify
+     * V2 mathematics.
+     */
     const intelligence =
       runNumerologyV3FromCalculation(
         calculation
       )
 
+    /*
+     * EMPLOYEE OUTPUT
+     *
+     * Ranks approved V3 conclusions
+     * for practitioner use.
+     */
     const employeeOutput =
       buildEmployeeOutput(
         intelligence.conclusions,
@@ -132,29 +195,64 @@ export async function generateNumerologyV2(
         5
       )
 
+    /*
+     * EMPLOYEE INTERPRETATION
+     *
+     * Converts the already-resolved
+     * employee insights into
+     * practitioner guidance.
+     *
+     * It does NOT create new
+     * numerological findings.
+     */
+    const employeeInterpretation =
+      buildEmployeeInterpretations(
+        employeeOutput.insights,
+        5
+      )
+
     return {
       error: null,
+
       result: {
         client: {
-          id: client.id,
+          id:
+            client.id,
+
           clientNumber:
             client.client_number,
+
           fullName:
             client.full_name,
+
+          currentName:
+            client.current_name,
+
           dateOfBirth:
             client.date_of_birth,
+
+          gender:
+            client.gender,
         },
+
         calculation,
+
         evidence,
+
         content,
+
         narrative,
+
         intelligence,
+
         employeeOutput,
+
+        employeeInterpretation,
       },
     }
   } catch (error) {
     console.error(
-      'Numerology generation error:',
+      '[numerology] generation failed',
       error
     )
 
@@ -162,7 +260,7 @@ export async function generateNumerologyV2(
       error:
         error instanceof Error
           ? error.message
-          : 'Unable to generate TSIA numerology analysis.',
+          : 'Unable to generate numerology.',
       result: null,
     }
   }
