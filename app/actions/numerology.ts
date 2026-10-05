@@ -49,8 +49,7 @@ export async function generateNumerologyV2(
 
     if (userError || !user) {
       return {
-        error:
-          'You must be signed in.',
+        error: 'You must be signed in.',
         result: null,
       }
     }
@@ -60,15 +59,13 @@ export async function generateNumerologyV2(
       error: clientError,
     } = await supabase
       .from('clients')
-      .select(
-        `
+      .select(`
         id,
         client_number,
         full_name,
         date_of_birth,
         status
-        `
-      )
+      `)
       .eq('id', clientId)
       .single()
 
@@ -99,17 +96,74 @@ export async function generateNumerologyV2(
       }
     }
 
-    /*
-     * FROZEN V2 CALCULATION
-     */
     const calculation =
       calculateNumerologyV2({
         fullName:
           client.full_name,
-
         dateOfBirth:
           client.date_of_birth,
       })
 
-    /*
-     * EXISTING V2
+    const evidence =
+      buildNumerologyEvidence(
+        calculation
+      )
+
+    const content =
+      buildNumerologyV2ReportContent(
+        calculation,
+        evidence
+      )
+
+    const narrative =
+      buildNumerologyV2Narrative(
+        content
+      )
+
+    const intelligence =
+      runNumerologyV3FromCalculation(
+        calculation
+      )
+
+    const employeeOutput =
+      buildEmployeeOutput(
+        intelligence.conclusions,
+        intelligence.crossQuality,
+        5
+      )
+
+    return {
+      error: null,
+      result: {
+        client: {
+          id: client.id,
+          clientNumber:
+            client.client_number,
+          fullName:
+            client.full_name,
+          dateOfBirth:
+            client.date_of_birth,
+        },
+        calculation,
+        evidence,
+        content,
+        narrative,
+        intelligence,
+        employeeOutput,
+      },
+    }
+  } catch (error) {
+    console.error(
+      'Numerology generation error:',
+      error
+    )
+
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Unable to generate TSIA numerology analysis.',
+      result: null,
+    }
+  }
+}
