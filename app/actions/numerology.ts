@@ -10,15 +10,15 @@ import {
 
 import {
   buildNumerologyEvidence,
-} from '@/lib/numerology/evidence'
+} from '@/lib/numerology/evidenceengine'
 
 import {
-  buildNumerologyV2Content,
-} from '@/lib/numerology/content'
+  buildNumerologyV2ReportContent,
+} from '@/lib/numerology/reportcontent'
 
 import {
   buildNumerologyV2Narrative,
-} from '@/lib/numerology/narrative'
+} from '@/lib/numerology/narrativeengine'
 
 import {
   runNumerologyV3FromCalculation,
@@ -131,11 +131,12 @@ export async function generateNumerologyV2(
     /*
      * FROZEN V2 CALCULATION
      *
-     * Business context, consultation
-     * answers, employee observations,
-     * payment status and customer
-     * behaviour must never alter this
-     * deterministic calculation.
+     * This remains deterministic.
+     * Consultation answers,
+     * observations, payment,
+     * customer behaviour and
+     * V3 interpretation must never
+     * alter this calculation.
      */
     const calculation =
       calculateNumerologyV2({
@@ -144,7 +145,7 @@ export async function generateNumerologyV2(
       })
 
     /*
-     * EXISTING V2 EVIDENCE
+     * VERIFIED V2 EVIDENCE ENGINE
      */
     const evidence =
       buildNumerologyEvidence(
@@ -152,30 +153,31 @@ export async function generateNumerologyV2(
       )
 
     /*
-     * EXISTING V2 CONTENT
+     * VERIFIED V2 REPORT CONTENT
      */
     const content =
-      buildNumerologyV2Content(
+      buildNumerologyV2ReportContent(
         calculation,
         evidence
       )
 
     /*
-     * EXISTING V2 NARRATIVE
+     * VERIFIED V2 NARRATIVE ENGINE
+     *
+     * Narrative is generated from
+     * report content only.
      */
     const narrative =
       buildNumerologyV2Narrative(
-        calculation,
-        evidence,
         content
       )
 
     /*
      * V3 NUMEROLOGY INTELLIGENCE
      *
-     * This interprets the frozen
-     * calculation. It does not modify
-     * V2 mathematics.
+     * V3 interprets the frozen
+     * calculation independently.
+     * It does not rewrite V2.
      */
     const intelligence =
       runNumerologyV3FromCalculation(
@@ -185,8 +187,9 @@ export async function generateNumerologyV2(
     /*
      * EMPLOYEE OUTPUT
      *
-     * Ranks approved V3 conclusions
-     * for practitioner use.
+     * Selects and ranks approved
+     * V3 conclusions for the
+     * practitioner.
      */
     const employeeOutput =
       buildEmployeeOutput(
@@ -198,12 +201,12 @@ export async function generateNumerologyV2(
     /*
      * EMPLOYEE INTERPRETATION
      *
-     * Converts the already-resolved
+     * Converts already-resolved
      * employee insights into
-     * practitioner guidance.
+     * practitioner-facing guidance.
      *
-     * It does NOT create new
-     * numerological findings.
+     * This layer does not create
+     * new numerological findings.
      */
     const employeeInterpretation =
       buildEmployeeInterpretations(
