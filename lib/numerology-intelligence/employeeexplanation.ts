@@ -1186,4 +1186,122 @@ function removeDuplicateStrings(
  * Primary source is already represented
  * in the opening sentence.
  *
- * Currently only Mul
+ * Currently only Mulank/Bhagyank/Name
+ * Number produce empty additional
+ * sentences, so this is intentionally
+ * conservative.
+ */
+function isCoveredByIntroduction(
+  sentence: string,
+  _evidence: readonly IntelligenceEvidence[]
+): boolean {
+  return sentence.trim() === ''
+}
+
+function readableSourceValue(
+  evidence: IntelligenceEvidence
+): string | null {
+  if (
+    evidence.sourceValue ===
+      undefined ||
+    evidence.sourceValue ===
+      null
+  ) {
+    return null
+  }
+
+  const value =
+    String(
+      evidence.sourceValue
+    ).trim()
+
+  return value
+    ? value
+    : null
+}
+
+/**
+ * Example:
+ *
+ * source 46 + final 1
+ * → 46/1
+ *
+ * If the source already equals the final
+ * number, do not produce 1/1.
+ */
+function formatCompoundNumber(
+  sourceValue: string,
+  finalNumber: number
+): string {
+  if (
+    sourceValue ===
+    String(finalNumber)
+  ) {
+    return String(
+      finalNumber
+    )
+  }
+
+  return (
+    `${sourceValue}/${finalNumber}`
+  )
+}
+
+function parsePositiveInteger(
+  value: unknown
+): number | null {
+  if (
+    value === undefined ||
+    value === null
+  ) {
+    return null
+  }
+
+  const parsed =
+    Number(
+      String(value).trim()
+    )
+
+  if (
+    !Number.isInteger(parsed) ||
+    parsed <= 0
+  ) {
+    return null
+  }
+
+  return parsed
+}
+
+function cleanSentence(
+  value: string
+): string {
+  const cleaned =
+    value.trim()
+
+  if (!cleaned) {
+    return ''
+  }
+
+  if (
+    cleaned.endsWith('.') ||
+    cleaned.endsWith('!') ||
+    cleaned.endsWith('?')
+  ) {
+    return cleaned
+  }
+
+  return `${cleaned}.`
+}
+
+function lowercaseFirst(
+  value: string
+): string {
+  if (!value) {
+    return value
+  }
+
+  return (
+    value.charAt(0).toLowerCase() +
+    value.slice(1)
+  )
+}
