@@ -11,8 +11,34 @@ import {
   FUNCTIONAL_QUALITIES,
 } from './functionalqualities'
 
+/**
+ * TSIA Numerology Intelligence V3
+ * Employee Explanation Layer
+ *
+ * Version 1.1
+ *
+ * Purpose:
+ *
+ * Convert an already-approved employee
+ * insight and its ACTUAL V3 evidence into
+ * clear practitioner-facing language.
+ *
+ * Evidence remains authoritative.
+ *
+ * This layer does NOT:
+ * - calculate numerology
+ * - create new evidence
+ * - create a new conclusion
+ * - change evidence strength
+ * - change V3 methodology
+ * - infer life events
+ * - determine Needed Number
+ * - prescribe remedies
+ * - determine Y3
+ */
+
 export const EMPLOYEE_EXPLANATION_VERSION =
-  'TSIA_NUM_V3_EMPLOYEE_EXPLANATION_1.0' as const
+  'TSIA_NUM_V3_EMPLOYEE_EXPLANATION_1.1' as const
 
 export type EmployeeExplanation = {
   whyWeSayThis: string
@@ -20,20 +46,10 @@ export type EmployeeExplanation = {
 }
 
 /**
- * Employee Explanation Layer
+ * Build one employee explanation.
  *
- * Converts already-approved V3 findings
- * and their actual evidence into language
- * that is easier for a practitioner to use.
- *
- * It does NOT:
- * - create a numerology finding
- * - change evidence strength
- * - change V3 conclusions
- * - infer a life event
- * - determine Needed Number
- * - prescribe a remedy
- * - determine Y3
+ * Only evidence IDs already preserved
+ * by Employee Output are allowed.
  */
 export function buildEmployeeExplanation(
   insight: EmployeeInsight,
@@ -41,11 +57,9 @@ export function buildEmployeeExplanation(
     readonly IntelligenceEvidence[]
 ): EmployeeExplanation {
   const evidence =
-    allEvidence.filter(
-      (item) =>
-        insight.evidenceIds.includes(
-          item.id
-        )
+    resolveInsightEvidence(
+      insight,
+      allEvidence
     )
 
   return {
@@ -62,185 +76,453 @@ export function buildEmployeeExplanation(
   }
 }
 
+/**
+ * Resolve evidence strictly from the
+ * evidence IDs carried by the approved
+ * EmployeeInsight.
+ *
+ * No evidence is inferred from a number,
+ * title, Graha or Functional Quality.
+ */
+function resolveInsightEvidence(
+  insight: EmployeeInsight,
+  allEvidence:
+    readonly IntelligenceEvidence[]
+): IntelligenceEvidence[] {
+  const allowedIds =
+    new Set(
+      insight.evidenceIds
+    )
+
+  return allEvidence.filter(
+    (item) =>
+      allowedIds.has(item.id)
+  )
+}
+
+/**
+ * Build practitioner-friendly explanation.
+ *
+ * Important:
+ *
+ * The actual IntelligenceEvidence.statement
+ * remains the authoritative explanation
+ * of what each evidence record supports.
+ */
 function buildWhyWeSayThis(
   insight: EmployeeInsight,
   evidence:
     readonly IntelligenceEvidence[]
 ): string {
   if (evidence.length === 0) {
-    return 'This is an approved V3 numerology finding. Its detailed supporting evidence is not currently available in this view.'
+    return 'This is an approved V3 finding, but its supporting evidence is not available in the current consultation view.'
   }
 
-  const evidenceParts =
-    evidence.map(
-      describeEvidence
+  const opening =
+    buildOpening(
+      insight
     )
 
-  if (
-    insight.functionalQualityIds
-      .length === 1
-  ) {
-    const quality =
-      getQuality(
-        insight
-          .functionalQualityIds[0]
+  const evidenceText =
+    evidence
+      .map(
+        evidenceToExplanation
       )
+      .filter(
+        (text) =>
+          text.length > 0
+      )
+      .join(' ')
 
-    if (quality) {
-      return [
-        `${quality.number} is associated with ${quality.graha} and ${simpleQualityName(
-          quality.id
-        )}.`,
-        ...evidenceParts,
-        buildConclusionSentence(
-          insight
-        ),
-      ].join(' ')
-    }
-  }
-
-  if (
-    insight.functionalQualityIds
-      .length > 1
-  ) {
-    const qualities =
-      insight.functionalQualityIds
-        .map(getQuality)
-        .filter(
-          (
-            item
-          ): item is NonNullable<
-            ReturnType<
-              typeof getQuality
-            >
-          > => Boolean(item)
-        )
-
-    const qualityText =
-      qualities
-        .map(
-          (quality) =>
-            `${quality.number} (${quality.graha})`
-        )
-        .join(' and ')
-
-    return [
-      qualityText
-        ? `This finding brings together evidence connected with ${qualityText}.`
-        : 'This finding brings together more than one numerological quality.',
-      ...evidenceParts,
-      buildConclusionSentence(
-        insight
-      ),
-    ].join(' ')
-  }
+  const conclusion =
+    buildClosing(
+      insight
+    )
 
   return [
-    ...evidenceParts,
-    buildConclusionSentence(
-      insight
-    ),
-  ].join(' ')
+    opening,
+    evidenceText,
+    conclusion,
+  ]
+    .filter(Boolean)
+    .join(' ')
 }
 
-function describeEvidence(
+/**
+ * Opening identifies the actual
+ * Number + Graha connection for the
+ * Functional Quality involved.
+ *
+ * It does not claim that this alone
+ * proves the finding.
+ */
+function buildOpening(
+  insight: EmployeeInsight
+): string {
+  const qualities =
+    insight.functionalQualityIds
+      .map(
+        getFunctionalQualityById
+      )
+      .filter(
+        (
+          quality
+        ): quality is NonNullable<
+          ReturnType<
+            typeof getFunctionalQualityById
+          >
+        > =>
+          quality !== undefined
+      )
+
+  if (qualities.length === 0) {
+    return ''
+  }
+
+  if (qualities.length === 1) {
+    const quality =
+      qualities[0]
+
+    return (
+      `Number ${quality.number} is associated with ` +
+      `${quality.graha} and the TSIA functional quality ` +
+      `${quality.title}.`
+    )
+  }
+
+  const qualityText =
+    qualities
+      .map(
+        (quality) =>
+          `Number ${quality.number} (${quality.graha})`
+      )
+      .join(' and ')
+
+  return (
+    `This finding brings together ` +
+    `${qualityText}.`
+  )
+}
+
+/**
+ * Translate one ACTUAL evidence record
+ * into practitioner-friendly language.
+ *
+ * The evidence statement is always
+ * preserved as the central meaning.
+ *
+ * Layer/source information may clarify
+ * where the evidence came from, but it
+ * must not create an additional finding.
+ */
+function evidenceToExplanation(
   evidence: IntelligenceEvidence
 ): string {
-  const numberText =
-    evidence.number !== undefined
-      ? `Number ${evidence.number}`
-      : 'This evidence'
+  const statement =
+    cleanSentence(
+      evidence.statement
+    )
 
+  if (!statement) {
+    return ''
+  }
+
+  const source =
+    sourceIntroduction(
+      evidence
+    )
+
+  if (!source) {
+    return statement
+  }
+
+  return `${source} ${statement}`
+}
+
+/**
+ * Describe only the provenance/layer of
+ * evidence that ACTUALLY exists.
+ *
+ * This does not interpret what that
+ * evidence means. Meaning remains in
+ * evidence.statement.
+ */
+function sourceIntroduction(
+  evidence: IntelligenceEvidence
+): string {
   switch (evidence.layer) {
     case 'MULANK':
-      return `${numberText} appears as the client’s Mulank, making it part of the core birth-day pattern.`
+      return numberPrefix(
+        evidence,
+        'appears through the Mulank.'
+      )
 
     case 'BHAGYANK':
-      return `${numberText} appears as the client’s Bhagyank, making it part of the broader birth-date pattern.`
+      return numberPrefix(
+        evidence,
+        'appears through the Bhagyank.'
+      )
 
     case 'NAME_NUMBER':
-      return evidence.sourceValue
-        ? `The Name Number total is ${evidence.sourceValue} and reduces to ${evidence.number}, so this quality is also present in name-based or outward expression.`
-        : `${numberText} appears through the Name Number and contributes to name-based or outward expression.`
+      if (
+        evidence.sourceValue !==
+          undefined &&
+        evidence.sourceValue !==
+          null &&
+        String(
+          evidence.sourceValue
+        ).trim() !== ''
+      ) {
+        return (
+          `The Name Number source is ` +
+          `${evidence.sourceValue}` +
+          numberReductionText(
+            evidence
+          ) +
+          '.'
+        )
+      }
+
+      return numberPrefix(
+        evidence,
+        'appears through the Name Number.'
+      )
 
     case 'RAW_LO_SHU':
-      return `${numberText} is present directly through the birth-date digits in the Lo Shu structure.`
+      return numberPrefix(
+        evidence,
+        'is represented through the birth-date digits used in the Lo Shu analysis.'
+      )
 
     case 'DERIVED_LO_SHU':
-      return `${numberText} is present in the Personal Lo Shu through the approved TSIA construction.`
+      return numberPrefix(
+        evidence,
+        'is represented in the Personal Lo Shu through the approved TSIA calculation.'
+      )
 
     case 'REPETITION':
-      return evidence.sourceValue
-        ? `${numberText} appears ${evidence.sourceValue} times, giving this quality stronger representation in the Personal Lo Shu.`
-        : `${numberText} is repeated, giving this quality stronger representation in the Personal Lo Shu.`
+      if (
+        evidence.sourceValue !==
+          undefined &&
+        evidence.sourceValue !==
+          null &&
+        String(
+          evidence.sourceValue
+        ).trim() !== ''
+      ) {
+        return (
+          evidence.number !==
+          undefined
+            ? `Number ${evidence.number} has repetition evidence with source value ${evidence.sourceValue}.`
+            : `This repetition evidence has source value ${evidence.sourceValue}.`
+        )
+      }
+
+      return numberPrefix(
+        evidence,
+        'has verified repetition evidence.'
+      )
 
     case 'MISSING_NUMBER':
-      return `${numberText} is not represented in the Personal Lo Shu, so this quality is treated as an area that may require conscious development rather than as a negative prediction.`
+      return numberPrefix(
+        evidence,
+        'has verified missing-number evidence.'
+      )
 
     case 'ROW':
-      return 'An approved Lo Shu row pattern also contributes structural evidence to this finding.'
+      return structurePrefix(
+        evidence,
+        'Lo Shu row'
+      )
 
     case 'COLUMN':
-      return 'An approved Lo Shu column pattern also contributes structural evidence to this finding.'
+      return structurePrefix(
+        evidence,
+        'Lo Shu column'
+      )
 
     case 'RAJYOG':
-      return 'An approved Rajyog structure also contributes structural evidence to this finding.'
+      return structurePrefix(
+        evidence,
+        'Rajyog'
+      )
 
     case 'COMPOUND_BIRTH_CONTEXT':
-      return evidence.sourceValue
-        ? `The birth-date compound ${evidence.sourceValue} provides additional contextual evidence for this finding.`
-        : 'The birth-date compound provides additional contextual evidence for this finding.'
+      if (
+        evidence.sourceValue !==
+          undefined &&
+        evidence.sourceValue !==
+          null &&
+        String(
+          evidence.sourceValue
+        ).trim() !== ''
+      ) {
+        return (
+          `The verified compound birth ` +
+          `context is ${evidence.sourceValue}.`
+        )
+      }
+
+      return (
+        'Verified compound birth context ' +
+        'also contributes to this finding.'
+      )
+
+    default:
+      return ''
   }
 }
 
-function buildConclusionSentence(
+/**
+ * Number prefix is descriptive only.
+ */
+function numberPrefix(
+  evidence: IntelligenceEvidence,
+  description: string
+): string {
+  if (
+    evidence.number ===
+    undefined
+  ) {
+    return `This evidence ${description}`
+  }
+
+  return (
+    `Number ${evidence.number} ` +
+    description
+  )
+}
+
+/**
+ * For Name Number evidence, only state
+ * the final number if the evidence record
+ * itself contains it.
+ */
+function numberReductionText(
+  evidence: IntelligenceEvidence
+): string {
+  if (
+    evidence.number ===
+    undefined
+  ) {
+    return ''
+  }
+
+  return (
+    ` and its verified final number is ` +
+    `${evidence.number}`
+  )
+}
+
+/**
+ * Structural source identification.
+ *
+ * structureId is displayed only when
+ * it actually exists in V3 evidence.
+ */
+function structurePrefix(
+  evidence: IntelligenceEvidence,
+  label: string
+): string {
+  if (evidence.structureId) {
+    return (
+      `The approved ${label} structure ` +
+      `${evidence.structureId} contributes evidence.`
+    )
+  }
+
+  return (
+    `An approved ${label} structure ` +
+    'contributes evidence.'
+  )
+}
+
+/**
+ * Closing language describes the status
+ * of the APPROVED conclusion only.
+ *
+ * It does not upgrade or reinterpret
+ * evidence.
+ */
+function buildClosing(
   insight: EmployeeInsight
 ): string {
   if (
     insight.relationship ===
     'COMPLEMENT'
   ) {
-    return 'Taken together, the approved evidence shows that these qualities can operate alongside and support one another.'
+    return (
+      'The approved V3 conclusion is that ' +
+      'these qualities can operate together.'
+    )
   }
 
   if (
     insight.relationship ===
     'CONTEXTUALIZE'
   ) {
-    return 'Taken together, the evidence shows an uneven or context-sensitive relationship between these qualities, so the way they appear in real life should be understood carefully.'
+    return (
+      'The approved V3 conclusion requires ' +
+      'these qualities to be understood in context.'
+    )
   }
 
   if (
     insight.relationship ===
     'TENSION'
   ) {
-    return 'Taken together, the approved evidence indicates a possible functional tension whose real-life expression should be understood with the client.'
+    return (
+      'The approved V3 conclusion identifies ' +
+      'a possible functional tension that should ' +
+      'be understood through the client’s real experience.'
+    )
   }
 
   if (
     insight.strength ===
     'STRONGLY_SUPPORTED'
   ) {
-    return 'Together, this gives the pattern a clear presence in the client’s numerology.'
+    return (
+      'Together, the verified evidence gives ' +
+      'this finding clear numerological support.'
+    )
   }
 
   if (
     insight.strength ===
     'SUPPORTED'
   ) {
-    return 'Together, this gives the pattern visible support in the client’s numerology.'
+    return (
+      'Together, the verified evidence supports ' +
+      'this numerological finding.'
+    )
   }
 
   if (
     insight.strength ===
     'CONTEXT_DEPENDENT'
   ) {
-    return 'The pattern is present, but its expression may depend on the situation or surrounding numerological evidence.'
+    return (
+      'The approved finding is context-dependent, ' +
+      'so its real-life expression should be explored ' +
+      'with the client.'
+    )
   }
 
-  return 'These evidence sources together support the approved V3 finding.'
+  return (
+    'This explanation reflects only the ' +
+    'approved V3 finding and its connected evidence.'
+  )
 }
 
+/**
+ * This section does NOT validate whether
+ * numerology is "right".
+ *
+ * It tells the employee what must still
+ * be understood from the client's actual
+ * experience.
+ */
 function buildUnderstandFromClient(
   insight: EmployeeInsight
 ): string {
@@ -248,60 +530,141 @@ function buildUnderstandFromClient(
     insight.relationship ===
     'COMPLEMENT'
   ) {
-    return 'Understand where these qualities naturally work together in the client’s life, where one becomes more dominant, and whether their interaction changes between different situations.'
+    return (
+      'Understand where these qualities work together ' +
+      'in the client’s real life, where one becomes ' +
+      'more prominent, and whether their interaction ' +
+      'changes across different situations.'
+    )
   }
 
   if (
     insight.relationship ===
     'CONTEXTUALIZE'
   ) {
-    return 'Understand where this pattern appears clearly, where it appears differently, and which situations make one side of the pattern more visible than the other.'
+    return (
+      'Understand where this pattern appears clearly, ' +
+      'where it appears differently, and which situations ' +
+      'change the way the two qualities are expressed.'
+    )
   }
 
   if (
     insight.relationship ===
     'TENSION'
   ) {
-    return 'Understand whether the client actually experiences these qualities pulling in different directions, when that happens, and how the client usually responds.'
+    return (
+      'Understand whether the client actually experiences ' +
+      'these qualities pulling in different directions, ' +
+      'when that happens, and how the client responds.'
+    )
   }
 
   const qualityId =
     insight.functionalQualityIds[0]
 
+  if (!qualityId) {
+    return defaultClientUnderstanding()
+  }
+
+  return clientUnderstandingForQuality(
+    qualityId
+  )
+}
+
+/**
+ * These are exploration directions,
+ * not additional numerology conclusions.
+ *
+ * They deliberately ask what is not
+ * established by numerology alone.
+ */
+function clientUnderstandingForQuality(
+  qualityId: FunctionalQualityId
+): string {
   switch (qualityId) {
     case 'INDIVIDUAL_AGENCY':
-      return 'Understand how the client makes important decisions: where they rely strongly on their own judgment, where they seek other people’s input, and whether this changes between personal and professional situations.'
+      return (
+        'Understand how the client makes important decisions: ' +
+        'where they rely on their own judgment, where they seek ' +
+        'other people’s input, and whether this changes between ' +
+        'personal and professional situations.'
+      )
 
     case 'RELATIONAL_RECEPTIVITY':
-      return 'Understand how the client experiences other people’s feelings and viewpoints, how easily they consider different perspectives, and where emotional sensitivity or accommodation becomes stronger or weaker.'
+      return (
+        'Understand how the client experiences other people’s ' +
+        'feelings and viewpoints, how they respond to different ' +
+        'perspectives, and where this pattern becomes stronger ' +
+        'or weaker in real relationships.'
+      )
 
     case 'KNOWLEDGE_EXPRESSION':
-      return 'Understand how the client learns, develops ideas and explains what they know, including where expression comes naturally and where turning ideas into clear communication or action becomes harder.'
+      return (
+        'Understand how the client learns, develops ideas and ' +
+        'expresses what they know, including where expression ' +
+        'comes naturally and where converting ideas into clear ' +
+        'communication or action becomes more difficult.'
+      )
 
     case 'ADAPTIVE_RESTRUCTURING':
-      return 'Understand how the client responds when an existing approach stops working: whether they challenge it, restructure it, try an unconventional route or prefer to preserve the existing system.'
+      return (
+        'Understand how the client responds when an existing ' +
+        'approach stops working: whether they challenge it, ' +
+        'restructure it, try a different route or prefer to ' +
+        'preserve the existing approach.'
+      )
 
     case 'ADAPTIVE_INTELLIGENCE':
-      return 'Understand how the client handles changing information, communication and rapidly changing situations, including when adaptability feels natural and when it becomes more difficult.'
+      return (
+        'Understand how the client handles changing information, ' +
+        'communication and changing situations, including when ' +
+        'adaptability feels natural and when it becomes more difficult.'
+      )
 
     case 'HARMONIOUS_CONNECTION':
-      return 'Understand how the client expresses care, maintains harmony and handles responsibility toward close relationships, including where personal needs and responsibility toward others need balancing.'
+      return (
+        'Understand how the client expresses care, maintains ' +
+        'harmony and handles responsibility toward close relationships, ' +
+        'including where their own needs and responsibility toward ' +
+        'others need balancing.'
+      )
 
     case 'REFLECTIVE_DISCERNMENT':
-      return 'Understand how the client thinks through important matters, how much reflection they need before deciding, and when deeper analysis helps versus when it delays action.'
+      return (
+        'Understand how the client thinks through important matters, ' +
+        'how much reflection they need before deciding, and when ' +
+        'deeper analysis helps versus when it delays action.'
+      )
 
     case 'STRUCTURED_RESPONSIBILITY':
-      return 'Understand how the client handles long-term responsibility, commitments and sustained effort, including where persistence is natural and where responsibility begins to feel heavy.'
+      return (
+        'Understand how the client handles long-term responsibility, ' +
+        'commitments and sustained effort, including where persistence ' +
+        'comes naturally and where responsibility begins to feel heavy.'
+      )
 
     case 'DIRECTED_FORCE':
-      return 'Understand how the client acts when a situation requires courage or decisive action, including when they act quickly, when they hold back and how they respond under challenge.'
+      return (
+        'Understand how the client responds when a situation requires ' +
+        'courage or decisive action, including when they act quickly, ' +
+        'when they hold back and how they respond under challenge.'
+      )
 
     default:
-      return 'Understand where this numerological pattern appears in the client’s real life, where it appears differently, and what circumstances change its expression.'
+      return defaultClientUnderstanding()
   }
 }
 
-function getQuality(
+function defaultClientUnderstanding(): string {
+  return (
+    'Understand where this numerological pattern appears ' +
+    'in the client’s real life, where it appears differently, ' +
+    'and which circumstances change its expression.'
+  )
+}
+
+function getFunctionalQualityById(
   id: FunctionalQualityId
 ) {
   return Object.values(
@@ -312,35 +675,29 @@ function getQuality(
   )
 }
 
-function simpleQualityName(
-  id: FunctionalQualityId
+/**
+ * Normalize punctuation only.
+ *
+ * Do not rewrite the actual evidence
+ * statement here.
+ */
+function cleanSentence(
+  value: string
 ): string {
-  switch (id) {
-    case 'INDIVIDUAL_AGENCY':
-      return 'self-direction'
+  const cleaned =
+    value.trim()
 
-    case 'RELATIONAL_RECEPTIVITY':
-      return 'understanding others and emotional sensitivity'
-
-    case 'KNOWLEDGE_EXPRESSION':
-      return 'learning and meaningful expression'
-
-    case 'ADAPTIVE_RESTRUCTURING':
-      return 'handling change through different approaches'
-
-    case 'ADAPTIVE_INTELLIGENCE':
-      return 'communication and adaptability'
-
-    case 'HARMONIOUS_CONNECTION':
-      return 'care, harmony and connection'
-
-    case 'REFLECTIVE_DISCERNMENT':
-      return 'reflection and deeper thinking'
-
-    case 'STRUCTURED_RESPONSIBILITY':
-      return 'responsibility and persistence'
-
-    case 'DIRECTED_FORCE':
-      return 'courage and decisive action'
+  if (!cleaned) {
+    return ''
   }
+
+  if (
+    cleaned.endsWith('.') ||
+    cleaned.endsWith('!') ||
+    cleaned.endsWith('?')
+  ) {
+    return cleaned
+  }
+
+  return `${cleaned}.`
 }
