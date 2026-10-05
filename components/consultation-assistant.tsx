@@ -21,10 +21,18 @@ import {
   ConsultationV3Insights,
 } from '@/components/consultation-v3-insights'
 
+import {
+  ConsultationCompleteIntelligence,
+} from '@/components/consultation-complete-intelligence'
+
 import type {
   NumerologyCalculationResult,
   NumerologyDigit,
 } from '@/lib/numerology/types'
+
+import type {
+  NumerologyV3Result,
+} from '@/lib/numerology-intelligence/engine'
 
 import type {
   EmployeeInsight,
@@ -50,6 +58,8 @@ type Props = {
 
 type Result = {
   calculation: NumerologyCalculationResult
+
+  intelligence: NumerologyV3Result
 
   employeeOutput: {
     version: string
@@ -140,6 +150,9 @@ export function ConsultationAssistant({
         calculation:
           response.result.calculation,
 
+        intelligence:
+          response.result.intelligence,
+
         employeeOutput:
           response.result.employeeOutput,
 
@@ -215,7 +228,6 @@ export function ConsultationAssistant({
 
             {note.trim() && (
               <div className="rounded-xl bg-[#fbf6ec] p-4">
-
                 <p className="text-[10px] font-semibold uppercase text-[#ad7b40]">
                   Today&apos;s Note
                 </p>
@@ -223,7 +235,6 @@ export function ConsultationAssistant({
                 <p className="mt-2 text-sm leading-6 text-[#24354c]">
                   {note}
                 </p>
-
               </div>
             )}
 
@@ -233,7 +244,6 @@ export function ConsultationAssistant({
             />
 
             <div className="rounded-2xl border p-4">
-
               <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
                 Opening Question
               </p>
@@ -246,7 +256,6 @@ export function ConsultationAssistant({
               </p>
 
               <div className="mt-4 grid gap-2">
-
                 {[
                   'First time',
                   'Know a little',
@@ -258,9 +267,7 @@ export function ConsultationAssistant({
                       key={item}
                       type="button"
                       onClick={() =>
-                        setChoice(
-                          item
-                        )
+                        setChoice(item)
                       }
                       className="flex justify-between rounded-xl border p-3 text-left text-sm"
                     >
@@ -273,12 +280,10 @@ export function ConsultationAssistant({
                     </button>
                   )
                 )}
-
               </div>
             </div>
 
             <div className="mt-4 rounded-2xl border p-4">
-
               <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
                 Client Says
               </p>
@@ -299,7 +304,6 @@ export function ConsultationAssistant({
                 <Mic className="size-4" />
                 Voice input - future
               </p>
-
             </div>
 
             <button
@@ -363,6 +367,35 @@ export function ConsultationAssistant({
                 </div>
               )}
 
+            {!loading &&
+              !error &&
+              data?.intelligence && (
+                <>
+                  <Title
+                    small="Deep Analysis"
+                    big="Complete Numerology Intelligence"
+                  />
+
+                  <ConsultationCompleteIntelligence
+                    conclusions={
+                      data.intelligence
+                        .conclusions
+                        .conclusions
+                    }
+                    developmentAssessments={
+                      data.intelligence
+                        .conclusions
+                        .developmentAssessments
+                    }
+                    crossQualityResolutions={
+                      data.intelligence
+                        .crossQuality
+                        .resolutions
+                    }
+                  />
+                </>
+              )}
+
             <Title
               small="Numerology Reference"
               big="Client at a Glance"
@@ -379,7 +412,6 @@ export function ConsultationAssistant({
             {calculation && (
               <>
                 <div className="grid grid-cols-3 gap-2">
-
                   <NumberBox
                     title="Mulank"
                     value={formatCompound(
@@ -427,7 +459,6 @@ export function ConsultationAssistant({
                       ]
                     }
                   />
-
                 </div>
 
                 <Title
@@ -436,7 +467,6 @@ export function ConsultationAssistant({
                 />
 
                 <div className="grid gap-4 sm:grid-cols-2">
-
                   <div>
                     <p className="mb-2 text-xs font-semibold">
                       Standard Lo Shu
@@ -479,11 +509,9 @@ export function ConsultationAssistant({
                       )}
                     </div>
                   </div>
-
                 </div>
 
                 <div className="mt-4 rounded-xl bg-[#f8f4ed] p-4 text-sm leading-6 text-[#776d61]">
-
                   <p>
                     <b>Present:</b>{' '}
                     {joinNumbers(
@@ -507,11 +535,9 @@ export function ConsultationAssistant({
                         .repeatedNumbers
                     )}
                   </p>
-
                 </div>
 
                 <div className="mt-4 grid grid-cols-2 gap-2">
-
                   <MiniBox
                     title="Golden Rajyog"
                     text={`4-5-6 · ${statusLabel(
@@ -527,17 +553,14 @@ export function ConsultationAssistant({
                         .silver.status
                     )}`}
                   />
-
                 </div>
 
                 <div className="mt-3 rounded-xl border p-4">
-
                   <p className="text-sm font-semibold text-[#24354c]">
                     Core Graha Influence
                   </p>
 
                   <p className="mt-2 text-sm leading-6 text-[#776d61]">
-
                     Mulank:{' '}
                     <b>
                       {
@@ -571,7 +594,6 @@ export function ConsultationAssistant({
                         ]
                       }
                     </b>
-
                   </p>
                 </div>
               </>
@@ -673,7 +695,6 @@ function Title({
 }) {
   return (
     <div className="mb-4 mt-7 border-t pt-5">
-
       <p className="text-[10px] uppercase text-[#ad7b40]">
         {small}
       </p>
@@ -681,7 +702,6 @@ function Title({
       <h2 className="mt-1 font-serif text-xl font-semibold text-[#24354c]">
         {big}
       </h2>
-
     </div>
   )
 }
@@ -697,7 +717,6 @@ function NumberBox({
 }) {
   return (
     <div className="rounded-xl bg-[#f8f4ed] p-3">
-
       <p className="text-[9px] uppercase text-[#8c8175]">
         {title}
       </p>
@@ -709,7 +728,6 @@ function NumberBox({
       <p className="mt-1 text-[10px] text-[#ad7b40]">
         {graha}
       </p>
-
     </div>
   )
 }
@@ -735,7 +753,6 @@ function MiniBox({
 }) {
   return (
     <div className="rounded-xl border p-3">
-
       <p className="text-[10px] font-semibold text-[#24354c]">
         {title}
       </p>
@@ -743,7 +760,6 @@ function MiniBox({
       <p className="mt-1 text-xs text-[#776d61]">
         {text}
       </p>
-
     </div>
   )
 }
