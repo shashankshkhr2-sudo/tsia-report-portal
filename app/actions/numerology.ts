@@ -20,6 +20,10 @@ import {
   buildNumerologyV2Narrative,
 } from '@/lib/numerology/narrativeengine'
 
+import {
+  runNumerologyV3FromCalculation,
+} from '@/lib/numerology-intelligence/engine'
+
 export async function generateNumerologyV2(
   clientId: string
 ) {
@@ -91,6 +95,12 @@ export async function generateNumerologyV2(
       }
     }
 
+    /*
+     * FROZEN TSIA V2 CALCULATION
+     *
+     * This remains the deterministic
+     * numerology foundation.
+     */
     const calculation =
       calculateNumerologyV2({
         fullName:
@@ -100,6 +110,11 @@ export async function generateNumerologyV2(
           client.date_of_birth,
       })
 
+    /*
+     * EXISTING V2 SYSTEM
+     *
+     * Do not replace or modify.
+     */
     const evidence =
       buildNumerologyEvidence(
         calculation
@@ -116,12 +131,29 @@ export async function generateNumerologyV2(
         content
       )
 
+    /*
+     * TSIA NUMEROLOGY INTELLIGENCE V3
+     *
+     * IMPORTANT:
+     *
+     * V3 receives the SAME verified V2
+     * calculation.
+     *
+     * It does not recalculate the client.
+     * It does not modify V2.
+     */
+    const intelligence =
+      runNumerologyV3FromCalculation(
+        calculation
+      )
+
     return {
       error: null,
 
       result: {
         client: {
-          id: client.id,
+          id:
+            client.id,
 
           clientNumber:
             client.client_number,
@@ -133,6 +165,9 @@ export async function generateNumerologyV2(
             client.date_of_birth,
         },
 
+        /*
+         * Existing V2 outputs.
+         */
         calculation,
 
         evidence,
@@ -140,11 +175,16 @@ export async function generateNumerologyV2(
         content,
 
         narrative,
+
+        /*
+         * New V3 intelligence output.
+         */
+        intelligence,
       },
     }
   } catch (error) {
     console.error(
-      'Numerology V2 generation error:',
+      'Numerology generation error:',
       error
     )
 
@@ -152,7 +192,7 @@ export async function generateNumerologyV2(
       error:
         error instanceof Error
           ? error.message
-          : 'Unable to generate Numerology Version 2.',
+          : 'Unable to generate TSIA numerology analysis.',
 
       result: null,
     }
