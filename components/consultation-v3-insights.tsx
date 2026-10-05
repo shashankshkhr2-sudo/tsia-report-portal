@@ -18,13 +18,17 @@ import type {
 } from '@/lib/numerology-intelligence/employeeinterpretation'
 
 import type {
-  IntelligenceEvidence,
   FunctionalQualityId,
+  IntelligenceEvidence,
 } from '@/lib/numerology-intelligence/types'
 
 import {
   FUNCTIONAL_QUALITIES,
 } from '@/lib/numerology-intelligence/functionalqualities'
+
+import {
+  buildEmployeeExplanation,
+} from '@/lib/numerology-intelligence/employeeexplanation'
 
 type Props = {
   insights:
@@ -65,19 +69,18 @@ export function ConsultationV3Insights({
       {insights
         .slice(0, 5)
         .map((insight, index) => {
-          const interpretation =
-            interpretations.find(
-              (item) =>
-                item.sourceInsightId ===
-                insight.id
-            )
-
           const insightEvidence =
             evidence.filter(
               (item) =>
                 insight.evidenceIds.includes(
                   item.id
                 )
+            )
+
+          const explanation =
+            buildEmployeeExplanation(
+              insight,
+              evidence
             )
 
           const isOpen =
@@ -90,11 +93,13 @@ export function ConsultationV3Insights({
               className="rounded-2xl border border-[#eadfce] bg-[#f8f4ed] p-4"
             >
               <div className="flex gap-3">
+
                 <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#ad7b40] text-xs font-semibold text-white">
                   {index + 1}
                 </div>
 
                 <div className="min-w-0 flex-1">
+
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-[#9a7b4f]">
                     What the Numbers Show
                   </p>
@@ -104,16 +109,18 @@ export function ConsultationV3Insights({
                   </p>
 
                   <div className="mt-4 border-t border-[#e7dccd] pt-4">
+
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-[#9a7b4f]">
                       Why We Say This
                     </p>
 
                     <p className="mt-2 text-sm leading-6 text-[#655d54]">
-                      {getReasonSummary(
-                        insight,
-                        insightEvidence
-                      )}
+                      {
+                        explanation
+                          .whyWeSayThis
+                      }
                     </p>
+
                   </div>
 
                   <button
@@ -133,8 +140,10 @@ export function ConsultationV3Insights({
                       </p>
 
                       <p className="mt-1 text-[11px] leading-4 text-[#8a8177]">
-                        See the numbers, Grahas and
-                        evidence behind this finding
+                        See the numbers,
+                        Grahas and actual
+                        evidence behind this
+                        finding
                       </p>
                     </div>
 
@@ -146,10 +155,12 @@ export function ConsultationV3Insights({
                   </button>
 
                   {isOpen && (
-                    <div className="mt-3 space-y-3 rounded-xl border border-[#eadfce] bg-white p-4">
+                    <div className="mt-3 space-y-4 rounded-xl border border-[#eadfce] bg-white p-4">
+
                       <FunctionalQualityDetails
                         qualityIds={
-                          insight.functionalQualityIds
+                          insight
+                            .functionalQualityIds
                         }
                       />
 
@@ -159,8 +170,12 @@ export function ConsultationV3Insights({
                           {insightEvidence.map(
                             (item) => (
                               <EvidenceBlock
-                                key={item.id}
-                                evidence={item}
+                                key={
+                                  item.id
+                                }
+                                evidence={
+                                  item
+                                }
                               />
                             )
                           )}
@@ -168,10 +183,11 @@ export function ConsultationV3Insights({
                       ) : (
                         <div className="rounded-lg bg-[#fbf7f1] p-3">
                           <p className="text-sm leading-5 text-[#776d61]">
-                            Detailed evidence will
-                            appear here once the V3
-                            evidence connection is
-                            enabled.
+                            The detailed V3
+                            evidence for this
+                            finding is not
+                            available in the
+                            current view.
                           </p>
                         </div>
                       )}
@@ -180,6 +196,7 @@ export function ConsultationV3Insights({
                         .relevantStructureIds
                         .length > 0 && (
                         <div className="border-t border-[#eee5d8] pt-3">
+
                           <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
                             Relevant Structure
                           </p>
@@ -192,24 +209,28 @@ export function ConsultationV3Insights({
                               )
                               .join(', ')}
                           </p>
+
                         </div>
                       )}
+
                     </div>
                   )}
 
                   <div className="mt-4 rounded-xl bg-white/70 p-4">
+
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-[#9a7b4f]">
                       Understand From Client
                     </p>
 
                     <p className="mt-2 text-sm leading-6 text-[#655d54]">
-                      {interpretation
-                        ?.explorationFocus ??
-                        getDefaultExploration(
-                          insight
-                        )}
+                      {
+                        explanation
+                          .understandFromClient
+                      }
                     </p>
+
                   </div>
+
                 </div>
               </div>
             </div>
@@ -231,11 +252,13 @@ function FunctionalQualityDetails({
 
   return (
     <div>
+
       <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
         Number & Graha
       </p>
 
       <div className="mt-2 space-y-2">
+
         {qualityIds.map(
           (qualityId) => {
             const quality =
@@ -253,19 +276,23 @@ function FunctionalQualityDetails({
                 className="rounded-lg bg-[#fbf6ec] p-3"
               >
                 <p className="text-sm font-semibold text-[#24354c]">
-                  {quality.number} ·{' '}
+                  {quality.number}
+                  {' · '}
                   {quality.graha}
                 </p>
 
                 <p className="mt-1 text-xs leading-5 text-[#776d61]">
-                  {getSimpleQualityName(
-                    qualityId
-                  )}
+                  {
+                    getSimpleQualityName(
+                      qualityId
+                    )
+                  }
                 </p>
               </div>
             )
           }
         )}
+
       </div>
     </div>
   )
@@ -274,98 +301,49 @@ function FunctionalQualityDetails({
 function EvidenceBlock({
   evidence,
 }: {
-  evidence: IntelligenceEvidence
+  evidence:
+    IntelligenceEvidence
 }) {
   return (
     <div className="border-t border-[#eee5d8] pt-3">
+
       <div className="flex flex-wrap items-center gap-2">
+
         <span className="rounded-full bg-[#fbf6ec] px-2 py-1 text-[10px] font-semibold text-[#9a7b4f]">
-          {getEvidenceLayerLabel(
-            evidence.layer
-          )}
+          {
+            getEvidenceLayerLabel(
+              evidence.layer
+            )
+          }
         </span>
 
         {evidence.number !==
           undefined && (
           <span className="text-xs font-semibold text-[#24354c]">
-            Number {evidence.number}
+            Number{' '}
+            {evidence.number}
           </span>
         )}
+
       </div>
 
       <p className="mt-2 text-sm leading-6 text-[#655d54]">
         {evidence.statement}
       </p>
 
-      {evidence.sourceValue && (
+      {hasSourceValue(
+        evidence
+      ) && (
         <p className="mt-2 text-xs leading-5 text-[#8a8177]">
           Source:{' '}
-          {evidence.sourceValue}
+          {String(
+            evidence.sourceValue
+          )}
         </p>
       )}
+
     </div>
   )
-}
-
-function getReasonSummary(
-  insight: EmployeeInsight,
-  evidence:
-    readonly IntelligenceEvidence[]
-): string {
-  if (evidence.length === 0) {
-    return 'This conclusion comes from the verified V3 numerology analysis. Open the numerology details below to review its supporting evidence once the evidence connection is enabled.'
-  }
-
-  const sourceLabels =
-    Array.from(
-      new Set(
-        evidence.map(
-          (item) =>
-            getEvidenceLayerLabel(
-              item.layer
-            )
-        )
-      )
-    )
-
-  const qualities =
-    insight.functionalQualityIds
-      .map(
-        findFunctionalQuality
-      )
-      .filter(
-        (
-          item
-        ): item is NonNullable<
-          ReturnType<
-            typeof findFunctionalQuality
-          >
-        > => Boolean(item)
-      )
-
-  const numberGraha =
-    qualities
-      .map(
-        (quality) =>
-          `${quality.number} (${quality.graha})`
-      )
-      .join(' and ')
-
-  const sourceText =
-    sourceLabels.join(', ')
-
-  if (
-    numberGraha &&
-    sourceText
-  ) {
-    return `This finding is based on verified evidence connected with ${numberGraha}, including ${sourceText}. The detailed evidence used by V3 is shown below.`
-  }
-
-  if (sourceText) {
-    return `This finding is based on verified V3 evidence from ${sourceText}. The detailed evidence used for this conclusion is shown below.`
-  }
-
-  return 'This finding comes from verified V3 numerological evidence. The detailed evidence used for this conclusion is shown below.'
 }
 
 function findFunctionalQuality(
@@ -452,31 +430,19 @@ function getEvidenceLayerLabel(
   }
 }
 
-function getDefaultExploration(
-  insight: EmployeeInsight
-): string {
-  if (
-    insight.relationship ===
-    'COMPLEMENT'
-  ) {
-    return 'Understand where these qualities naturally work together in the client’s real life and whether that changes across different situations.'
-  }
-
-  if (
-    insight.relationship ===
-    'CONTEXTUALIZE'
-  ) {
-    return 'Understand where this pattern appears clearly, where it appears differently, and what circumstances seem to change its expression.'
-  }
-
-  if (
-    insight.relationship ===
-    'TENSION'
-  ) {
-    return 'Understand whether the client experiences these qualities pulling in different directions, and in which situations that becomes most noticeable.'
-  }
-
-  return 'Understand where this pattern appears in the client’s real life, where it may appear differently, and how the client personally experiences it.'
+function hasSourceValue(
+  evidence:
+    IntelligenceEvidence
+): boolean {
+  return (
+    evidence.sourceValue !==
+      undefined &&
+    evidence.sourceValue !==
+      null &&
+    String(
+      evidence.sourceValue
+    ).trim() !== ''
+  )
 }
 
 function cleanStructureId(
