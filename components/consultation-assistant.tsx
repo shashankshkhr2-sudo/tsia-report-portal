@@ -535,12 +535,12 @@ export function ConsultationAssistant({
               </div>
             )}
 
-            <Title
-              small="Employee Brief"
-              big="Key Client Insights"
-            />
+              <Title
+    small="Live Conversation"
+    big="Client Conversation"
+    />
 
-            {loading && (
+         {loading && (
               <div className="flex items-center gap-2 rounded-xl bg-[#f8f4ed] p-4 text-xs text-[#776d61]">
                 <Loader2 className="size-4 animate-spin" />
                 Loading TSIA V3
