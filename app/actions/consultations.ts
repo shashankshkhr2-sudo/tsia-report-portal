@@ -11,6 +11,13 @@ type StartInput = {
   note: string
 }
 
+type SaveAnswerInput = {
+  consultationId: string
+  clientId: string
+  questionText: string
+  clientAnswer: string
+}
+
 export async function startConsultation(
   input: StartInput
 ) {
@@ -66,11 +73,6 @@ export async function startConsultation(
       }
     }
 
-    /*
-     * Remove duplicate topic codes while
-     * preserving the employee's selection
-     * order.
-     */
     const topicCodes = Array.from(
       new Set(
         input.topicCodes.filter(Boolean)
@@ -85,10 +87,6 @@ export async function startConsultation(
       }
     }
 
-    /*
-     * The first selected topic is the
-     * primary topic.
-     */
     const primaryTopicCode =
       topicCodes[0]
 
@@ -181,10 +179,6 @@ export async function startConsultation(
         purpose_id:
           purpose.id,
 
-        /*
-         * Existing field remains intact
-         * for backwards compatibility.
-         */
         primary_topic_id:
           primaryTopic.id,
 
@@ -211,10 +205,6 @@ export async function startConsultation(
       }
     }
 
-    /*
-     * Save the complete topic selection
-     * in the new junction table.
-     */
     const topicRows =
       selectedTopics.map(
         (topic) => ({
@@ -242,10 +232,6 @@ export async function startConsultation(
       .insert(topicRows)
 
     if (topicInsertError) {
-      /*
-       * Avoid leaving a partially-created
-       * consultation if topic saving fails.
-       */
       await supabase
         .from('consultations')
         .delete()
@@ -283,3 +269,126 @@ export async function startConsultation(
     }
   }
 }
+
+export async function saveConsultationAnswer(
+  input: SaveAnswerInput
+) {
+  try {
+    const supabase = await createClient()
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return {
+        error: 'You must be signed in.',
+        result: null,
+      }
+    }
+
+    const { data: profile } =
+      await supabase
+        .from('profiles')
+        .select(
+          'id,organization_id,is_active'
+        )
+        .eq('id', user.id)
+        .single()
+
+    if (!profile || !profile.is_active) {
+      return {
+        error:
+          'Active employee profile not found.',
+        result: null,
+      }
+    }
+
+    const questionText =
+      input.questionText.trim()
+
+    const clientAnswer =
+      input.clientAnswer.trim()
+
+    if (!questionText) {
+      return {
+        error:
+          'Question text is required.',
+        result: null,
+      }
+    }
+
+    if (!clientAnswer) {
+      return {
+        error:
+          'Client response is required.',
+        result: null,
+      }
+    }
+
+    const {
+      data: consultation,
+      error: consultationError,
+    } = await supabase
+      .from('consultations')
+      .select('id,client_id')
+      .eq('id', input.consultationId)
+      .eq(
+        'organization_id',
+        profile.organization_id
+      )
+      .eq(
+        'client_id',
+        input.clientId
+      )
+      .single()
+
+    if (
+      consultationError ||
+      !consultation
+    ) {
+      return {
+        error:
+          'Consultation could not be verified.',
+        result: null,
+      }
+    }
+
+    const {
+      data: savedAnswer,
+      error: insertError,
+    } = await supabase
+      .from('consultation_answers')
+      .insert({
+        organization_id:
+          profile.organization_id,
+
+        consultation_id:
+          consultation.id,
+
+        client_id:
+          consultation.client_id,
+
+        question_text_snapshot:
+          questionText,
+
+        asked_by:
+          profile.id,
+
+        client_answer:
+          clientAnswer,
+
+        answer_method:
+          'typed',
+
+        answered_at:
+          new Date().toISOString(),
+      })
+      .select('id')
+      .single()
+
+    if (
+      insertError ||
+      !savedAnswer
+    ) {
+     
