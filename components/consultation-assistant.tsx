@@ -1,4 +1,4 @@
-'use client'
+.'use client'
 
 import {
   useEffect,
@@ -104,7 +104,7 @@ export function ConsultationAssistant({
   mode,
   purpose,
   topics,
-  note,,
+  note,
   consultationId,
   consultationNumber,
   onBack,
