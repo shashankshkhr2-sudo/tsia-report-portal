@@ -3,6 +3,7 @@
 import {
   ArrowLeft,
   ArrowRight,
+  Check,
   MapPin,
   Phone,
 } from 'lucide-react'
@@ -20,7 +21,7 @@ type Props = {
   client: ConsultationClient
   mode: ConsultationMode
   purpose: ConsultationPurpose
-  topic: ConsultationTopic
+  topics: ConsultationTopic[]
   note: string
   saving: boolean
   error: string
@@ -31,8 +32,8 @@ type Props = {
   onPurposeChange:
     (value: ConsultationPurpose) => void
 
-  onTopicChange:
-    (value: ConsultationTopic) => void
+  onTopicsChange:
+    (value: ConsultationTopic[]) => void
 
   onNoteChange:
     (value: string) => void
@@ -57,31 +58,55 @@ const purposes = [
   ],
 ] as const
 
-const topics = [
-  ['business', 'Business'],
-  ['career', 'Career'],
-  ['money', 'Money & Wealth'],
-  ['family', 'Family'],
-  ['relationship', 'Relationship'],
-  ['marriage', 'Marriage'],
-  [
-    'personal_direction',
-    'Personal Direction',
-  ],
-  ['other', 'Other'],
-] as const
+const topicOptions: {
+  value: ConsultationTopic
+  label: string
+}[] = [
+  {
+    value: 'business',
+    label: 'Business',
+  },
+  {
+    value: 'career',
+    label: 'Career',
+  },
+  {
+    value: 'money',
+    label: 'Money & Wealth',
+  },
+  {
+    value: 'family',
+    label: 'Family',
+  },
+  {
+    value: 'relationship',
+    label: 'Relationship',
+  },
+  {
+    value: 'marriage',
+    label: 'Marriage',
+  },
+  {
+    value: 'personal_direction',
+    label: 'Personal Direction',
+  },
+  {
+    value: 'other',
+    label: 'Other',
+  },
+]
 
 export function ConsultationSetup({
   client,
   mode,
   purpose,
-  topic,
+  topics,
   note,
   saving,
   error,
   onModeChange,
   onPurposeChange,
-  onTopicChange,
+  onTopicsChange,
   onNoteChange,
   onBack,
   onContinue,
@@ -89,7 +114,25 @@ export function ConsultationSetup({
   const ready =
     Boolean(mode) &&
     Boolean(purpose) &&
-    Boolean(topic)
+    topics.length > 0
+
+  function toggleTopic(
+    topic: ConsultationTopic
+  ) {
+    if (topics.includes(topic)) {
+      onTopicsChange(
+        topics.filter(
+          (item) => item !== topic
+        )
+      )
+      return
+    }
+
+    onTopicsChange([
+      ...topics,
+      topic,
+    ])
+  }
 
   return (
     <div className="min-h-full bg-[#f7f3ed] p-5">
@@ -133,7 +176,9 @@ export function ConsultationSetup({
             <ModeButton
               active={mode === 'in_person'}
               text="In-Person"
-              icon={<MapPin className="size-5" />}
+              icon={
+                <MapPin className="size-5" />
+              }
               onClick={() =>
                 onModeChange('in_person')
               }
@@ -142,7 +187,9 @@ export function ConsultationSetup({
             <ModeButton
               active={mode === 'phone'}
               text="Phone"
-              icon={<Phone className="size-5" />}
+              icon={
+                <Phone className="size-5" />
+              }
               onClick={() =>
                 onModeChange('phone')
               }
@@ -153,9 +200,9 @@ export function ConsultationSetup({
 
           <select
             value={purpose}
-            onChange={(e) =>
+            onChange={(event) =>
               onPurposeChange(
-                e.target
+                event.target
                   .value as ConsultationPurpose
               )
             }
@@ -177,41 +224,79 @@ export function ConsultationSetup({
             )}
           </select>
 
-          <Label text="Primary Topic *" />
+          <Label text="Consultation Topics *" />
 
-          <select
-            value={topic}
-            onChange={(e) =>
-              onTopicChange(
-                e.target
-                  .value as ConsultationTopic
-              )
-            }
-            className="h-12 w-full rounded-xl border px-3 text-sm"
-          >
-            <option value="">
-              Select topic
-            </option>
+          <p className="mb-3 text-xs leading-5 text-[#8e8275]">
+            Select one or more topics.
+            The first topic selected becomes
+            the primary topic.
+          </p>
 
-            {topics.map(
-              ([value, text]) => (
-                <option
-                  key={value}
-                  value={value}
-                >
-                  {text}
-                </option>
-              )
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {topicOptions.map(
+              (option) => {
+                const selected =
+                  topics.includes(
+                    option.value
+                  )
+
+                const primary =
+                  topics[0] ===
+                  option.value
+
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() =>
+                      toggleTopic(
+                        option.value
+                      )
+                    }
+                    className={`flex min-h-14 items-center justify-between rounded-xl border px-4 py-3 text-left ${
+                      selected
+                        ? 'border-[#b89556] bg-[#fbf5e9]'
+                        : 'border-[#e6ddd1] bg-white'
+                    }`}
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-[#24354c]">
+                        {option.label}
+                      </p>
+
+                      {primary && (
+                        <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-[#ad7b40]">
+                          Primary Topic
+                        </p>
+                      )}
+                    </div>
+
+                    <div
+                      className={`flex size-6 items-center justify-center rounded-full border ${
+                        selected
+                          ? 'border-[#b89556] bg-[#b89556] text-white'
+                          : 'border-[#cfc5b8]'
+                      }`}
+                    >
+                      {selected && (
+                        <Check className="size-4" />
+                      )}
+                    </div>
+                  </button>
+                )
+              }
             )}
-          </select>
+          </div>
 
           <Label text="Specific Concern / Note" />
 
           <textarea
             rows={3}
             value={note}
-            onChange={(e) =>
-              onNoteChange(e.target.value)
+            onChange={(event) =>
+              onNoteChange(
+                event.target.value
+              )
             }
             placeholder="Add only what is new for today's consultation."
             className="w-full rounded-xl border p-3 text-sm"
