@@ -47,7 +47,7 @@ import type {
   ConsultationMode,
   ConsultationPurpose,
   ConsultationTopic,
-} from '@/components/consultation-workspace''
+} from '@/components/consultation-workspace'
 
 type Props = {
   client: ConsultationClient
