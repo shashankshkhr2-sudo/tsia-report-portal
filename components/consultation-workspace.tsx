@@ -158,47 +158,47 @@ export function ConsultationWorkspace({
   }
 
   if (
-    stage === 'assistant' &&
-    consultationNumber
-  ) {
-    return (
-      <ConsultationAssistant
-  client={client}
-  mode={mode}
-  purpose={purpose}
-  note={note}
-  consultationId={consultationId}
-  consultationNumber={
-    consultationNumber
-  }
-  onBack={() =>
-    setStage('context')
-  }
-/>
-    )
-  }
-
+  stage === 'assistant' &&
+  consultationNumber
+) {
+  return (
+    <ConsultationAssistant
+      client={client}
+      mode={mode}
+      purpose={purpose}
+      topics={topics}
+      note={note}
+      consultationId={consultationId}
+      consultationNumber={
+        consultationNumber
+      }
+      onBack={() =>
+        setStage('context')
+      }
+    />
+  )
+}
   if (
-    stage === 'context' &&
-    consultationNumber
-  ) {
-    return (
-      <ConsultationAssistant
-  client={client}
-  mode={mode}
-  purpose={purpose}
-  note={note}
-  consultationId={consultationId}
-  consultationNumber={
-    consultationNumber
-  }
-  onBack={() =>
-    setStage('context')
-  }
-/>
-    )
-  }
-
+  stage === 'context' &&
+  consultationNumber
+) {
+  return (
+    <ConsultationAssistant
+      client={client}
+      mode={mode}
+      purpose={purpose}
+      topics={topics}
+      note={note}
+      consultationId={consultationId}
+      consultationNumber={
+        consultationNumber
+      }
+      onBack={() =>
+        setStage('context')
+      }
+    />
+  )
+}
   return (
     <ConsultationSetup
       client={client}
