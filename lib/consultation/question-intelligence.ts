@@ -144,10 +144,10 @@ export function decideNextQuestion(
      * first experience.
      */
     if (
-      indicatesPreviousExposure(
-        familiarityAnswer.clientAnswer
-      )
-    ) {
+  shouldAskPreviousNumerologist(
+    familiarityAnswer.clientAnswer
+  )
+) {
       const previousConsultationAnswer =
         findAnswer(
           input.currentAnswers,
