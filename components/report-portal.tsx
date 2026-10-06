@@ -27,10 +27,11 @@ import {
   Button,
 } from '@/components/ui/button'
 
+import { PortalDashboard } from '@/components/portal-dashboard'
+
 import {
   Logo,
 } from '@/components/portal-logo'
-
 import {
   ConsultationWorkspace,
 } from '@/components/consultation-workspace'
