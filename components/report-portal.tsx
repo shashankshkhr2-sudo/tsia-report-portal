@@ -29,6 +29,7 @@ import {
 
 import { PortalDashboard } from '@/components/portal-dashboard'
 
+import { DobInput } from '@/components/dob-input
 import {
   Logo,
 } from '@/components/portal-logo'
@@ -1282,29 +1283,19 @@ function NewClientPage({
             />
           </label>
 
-          <label
-            className={
-              labelClass
-            }
-          >
-            Date of Birth *
+        <label
+  className={
+    labelClass
+  }
+>
+  Date of Birth *
 
-            <input
-              type="date"
-              value={dob}
-              onChange={(
-                event
-              ) =>
-                setDob(
-                  event.target
-                    .value
-                )
-              }
-              className={
-                inputClass
-              }
-            />
-          </label>
+  <DobInput
+    value={dob}
+    onChange={setDob}
+    required
+  />
+</label>
 
           <label
             className={
