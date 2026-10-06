@@ -62,7 +62,7 @@ export type QuestionIntelligenceDecision = {
 }
 
 /*
- * Question Asking Intelligence
+ * TSIA Question Asking Intelligence
  *
  * Responsibilities:
  *
@@ -96,11 +96,9 @@ export function decideNextQuestion(
   /*
    * FIRST CONSULTATION
    *
-   * We only establish the client's previous
-   * exposure to numerology.
-   *
-   * These questions are NOT used to decide
-   * the client's consultation concern.
+   * Establish the client's familiarity
+   * with numerology before moving into
+   * their consultation concern.
    */
   if (input.consultationNumber <= 1) {
     const familiarityAnswer =
@@ -109,6 +107,9 @@ export function decideNextQuestion(
         'NUMEROLOGY_FAMILIARITY'
       )
 
+    /*
+     * No familiarity answer yet.
+     */
     if (!familiarityAnswer) {
       return {
         stage:
@@ -134,27 +135,35 @@ export function decideNextQuestion(
     }
 
     /*
-     * If the first answer indicates previous
-     * numerology exposure, establish whether
-     * the client has actually consulted a
-     * numerologist before.
+     * Some familiarity responses require
+     * one additional clarification:
      *
-     * We intentionally do not ask this when
-     * the client clearly says this is their
-     * first experience.
+     * Know a little
+     * Know it quite well
+     *
+     * These responses show familiarity,
+     * but do not tell us whether the client
+     * has actually consulted a numerologist.
+     *
+     * First time:
+     * do not ask.
+     *
+     * Consultation before:
+     * already confirms it, so do not
+     * repeat the question.
      */
     if (
-  shouldAskPreviousNumerologist(
-    familiarityAnswer.clientAnswer
-  )
-) {
-      const previousConsultationAnswer =
+      shouldAskPreviousNumerologist(
+        familiarityAnswer.clientAnswer
+      )
+    ) {
+      const previousNumerologistAnswer =
         findAnswer(
           input.currentAnswers,
           'PREVIOUS_NUMEROLOGIST'
         )
 
-      if (!previousConsultationAnswer) {
+      if (!previousNumerologistAnswer) {
         return {
           stage:
             'NUMEROLOGY_FAMILIARITY',
@@ -172,7 +181,7 @@ export function decideNextQuestion(
           secondaryTopics,
 
           reason:
-            'The client has previous exposure to numerology. Establish whether that exposure included an earlier numerology consultation.',
+            'The client is familiar with numerology, but it is not yet known whether they have previously consulted a numerologist.',
 
           shouldAskQuestion: true,
         }
@@ -183,13 +192,13 @@ export function decideNextQuestion(
   /*
    * CONCERN EXPLORATION
    *
-   * Today's note is valuable because the
-   * employee/client may have entered a more
-   * specific reason than the broad selected
-   * topic.
+   * Today's note may contain a more
+   * specific reason for today's meeting
+   * than the broad selected topic.
    *
-   * The note does NOT overwrite the stored
-   * primary topic.
+   * The note may guide questioning,
+   * but it NEVER overwrites the client's
+   * stored Primary Topic.
    */
   const todayNote =
     input.todayNote.trim()
@@ -204,6 +213,18 @@ export function decideNextQuestion(
     )
 
   if (!concernQuestionAlreadyAsked) {
+    /*
+     * NOTE HAS PRIORITY FOR QUESTION
+     * GENERATION.
+     *
+     * If a note exists, first understand
+     * the specific situation described
+     * for today's consultation.
+     *
+     * We deliberately do not repeat the
+     * note verbatim in the client-facing
+     * question.
+     */
     if (todayNote) {
       return {
         stage:
@@ -217,15 +238,6 @@ export function decideNextQuestion(
         questionKey:
           'TODAY_NOTE_EXPLORATION',
 
-        /*
-         * We deliberately do not insert the
-         * note verbatim into the question.
-         *
-         * The note may contain sensitive,
-         * awkward or employee-written text.
-         * A later controlled question
-         * generator can use its meaning.
-         */
         questionText:
           'Tell me a little more about what you would most like clarity on today.',
 
@@ -241,6 +253,12 @@ export function decideNextQuestion(
       }
     }
 
+    /*
+     * NO NOTE
+     *
+     * Use the client's Primary Topic
+     * to begin concern exploration.
+     */
     if (primaryTopic) {
       return {
         stage:
@@ -269,19 +287,29 @@ export function decideNextQuestion(
   }
 
   /*
+   * READY FOR V3
+   *
    * At this point:
    *
-   * - first-time numerology orientation has
-   *   been completed where required; and
+   * - first-consultation orientation has
+   *   been completed where required;
    *
-   * - the client's current concern has been
-   *   explored.
+   * - the client's present concern has
+   *   been explored;
+   *
+   * - Primary Topic remains preserved;
+   *
+   * - Today's Note remains context;
+   *
+   * - client responses remain consultation
+   *   information, not V3 evidence.
    *
    * The next layer may now select relevant
    * verified V3 intelligence.
    */
   return {
-    stage: 'READY_FOR_V3',
+    stage:
+      'READY_FOR_V3',
 
     source:
       latestMeaningfulSource(input),
@@ -318,26 +346,28 @@ function hasAnsweredAny(
     readonly ConsultationAnswerForIntelligence[],
   questionKeys: readonly string[]
 ) {
-  return answers.some((answer) =>
-    questionKeys.includes(
-      answer.questionKey
-    )
+  return answers.some(
+    (answer) =>
+      questionKeys.includes(
+        answer.questionKey
+      )
   )
 }
 
 /*
- * This is intentionally conservative.
+ * Decide whether the first consultation
+ * needs the additional question:
  *
- * The UI currently contains structured
- * familiarity options. We only need to
- * distinguish an explicit "first time"
- * response from previous exposure.
+ * "Have you consulted a numerologist before?"
  *
- * Later we should pass the structured option
- * key directly rather than interpreting
- * display text.
+ * IMPORTANT:
+ *
+ * The structured familiarity answer is
+ * currently represented by its display
+ * text. In a later refinement we can pass
+ * a stable option key instead.
  */
-function indicatesPreviousExposure(
+function shouldAskPreviousNumerologist(
   answer: string
 ) {
   const normalized =
@@ -347,67 +377,10 @@ function indicatesPreviousExposure(
     return false
   }
 
-  return ![
-    'first time',
-    'first-time',
-    'never',
-    'no',
-  ].includes(normalized)
-}
-
-/*
- * Approved concern-opening questions.
- *
- * These are intentionally neutral.
- * They do not tell the client what
- * numerology supposedly says about them.
- */
-function concernOpeningQuestion(
-  topic: string
-) {
-  switch (
-    topic.trim().toLowerCase()
-  ) {
-    case 'business':
-      return 'What is the main business situation you would like clarity about today?'
-
-    case 'career':
-      return 'What is the main career situation you would like clarity about today?'
-
-    case 'money & wealth':
-    case 'money and wealth':
-      return 'What would you most like to understand about your current money or financial direction?'
-
-    case 'family':
-      return 'What part of your family situation would you most like clarity about today?'
-
-    case 'relationship':
-    case 'relationships':
-      return 'What part of your relationship situation would you most like clarity about today?'
-
-    case 'marriage':
-      return 'What would you most like to understand about your marriage or marriage direction?'
-
-    case 'personal direction':
-      return 'What area of your personal direction feels most important for you to understand today?'
-
-    default:
-      return `What would you most like to understand about ${topic} today?`
-  }
-}
-
-function latestMeaningfulSource(
-  input: QuestionIntelligenceInput
-): QuestionSource {
-  if (input.todayNote.trim()) {
-    return input.topics.length > 0
-      ? 'CONCERN_AND_NOTE'
-      : 'TODAY_NOTE'
-  }
-
-  if (input.topics.length > 0) {
-    return 'SELECTED_CONCERN'
-  }
-
-  return 'CLIENT_RESPONSE'
-}
+  /*
+   * First time means there is no reason
+   * to ask about a previous numerologist.
+   */
+  if (
+    normalized.startsWith(
+      '
