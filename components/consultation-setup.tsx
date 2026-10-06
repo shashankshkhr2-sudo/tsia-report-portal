@@ -42,7 +42,7 @@ type Props = {
   onContinue: () => void
 }
 
-const purposes = [
+] as const
   [
     'numerology_report',
     'Report Discussion',
