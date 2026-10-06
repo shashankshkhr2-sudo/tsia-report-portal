@@ -102,6 +102,8 @@ export function ConsultationAssistant({
   mode,
   purpose,
   note,
+  consultationId,
+  consultationNumber,
   onBack,
 }: Props) {
   const [choice, setChoice] =
