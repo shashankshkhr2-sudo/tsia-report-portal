@@ -383,4 +383,112 @@ function shouldAskPreviousNumerologist(
    */
   if (
     normalized.startsWith(
-      '
+      'first time'
+    )
+  ) {
+    return false
+  }
+
+  /*
+   * "Consultation before" already tells
+   * us that the client has previously
+   * consulted.
+   *
+   * Do not ask the same thing again.
+   */
+  if (
+    normalized.startsWith(
+      'consultation before'
+    )
+  ) {
+    return false
+  }
+
+  /*
+   * Familiarity does not automatically
+   * mean previous consultation.
+   *
+   * Clarify it for these two states.
+   */
+  if (
+    normalized.startsWith(
+      'know a little'
+    ) ||
+    normalized.startsWith(
+      'know it quite well'
+    )
+  ) {
+    return true
+  }
+
+  /*
+   * Conservative fallback.
+   *
+   * Unknown/free-text responses should not
+   * create an unnecessary extra question.
+   */
+  return false
+}
+
+/*
+ * Approved concern-opening questions.
+ *
+ * These questions are deliberately neutral.
+ * They discover the client's real situation
+ * without telling the client what numerology
+ * supposedly says about them.
+ */
+function concernOpeningQuestion(
+  topic: string
+) {
+  switch (
+    topic.trim().toLowerCase()
+  ) {
+    case 'business':
+      return 'What is the main business situation you would like clarity about today?'
+
+    case 'career':
+      return 'What is the main career situation you would like clarity about today?'
+
+    case 'money':
+    case 'money & wealth':
+    case 'money and wealth':
+      return 'What would you most like to understand about your current money or financial direction?'
+
+    case 'family':
+      return 'What part of your family situation would you most like clarity about today?'
+
+    case 'relationship':
+    case 'relationships':
+      return 'What part of your relationship situation would you most like clarity about today?'
+
+    case 'marriage':
+      return 'What would you most like to understand about your marriage or marriage direction?'
+
+    case 'personal_direction':
+    case 'personal direction':
+      return 'What area of your personal direction feels most important for you to understand today?'
+
+    case 'other':
+      return 'What would you most like clarity about today?'
+
+    default:
+      return `What would you most like to understand about ${topic} today?`
+  }
+}
+
+function latestMeaningfulSource(
+  input: QuestionIntelligenceInput
+): QuestionSource {
+  if (input.todayNote.trim()) {
+    return input.topics.length > 0
+      ? 'CONCERN_AND_NOTE'
+      : 'TODAY_NOTE'
+  }
+
+  if (input.topics.length > 0) {
+    return 'SELECTED_CONCERN'
+  }
+
+  return 'CLIENT_RESPONSE'
+}
