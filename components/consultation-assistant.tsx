@@ -53,6 +53,8 @@ type Props = {
   mode: ConsultationMode
   purpose: ConsultationPurpose
   note: string
+  consultationId: string
+  consultationNumber: number
   onBack: () => void
 }
 
