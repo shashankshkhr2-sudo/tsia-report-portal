@@ -391,4 +391,27 @@ export async function saveConsultationAnswer(
       insertError ||
       !savedAnswer
     ) {
-     
+      return {
+        error:
+          insertError?.message ||
+          'Unable to save client response.',
+        result: null,
+      }
+    }
+
+    return {
+      error: null,
+      result: {
+        id: savedAnswer.id,
+      },
+    }
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Unable to save client response.',
+      result: null,
+    }
+  }
+}
