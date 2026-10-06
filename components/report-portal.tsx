@@ -29,7 +29,7 @@ import {
 
 import { PortalDashboard } from '@/components/portal-dashboard'
 
-import { DobInput } from '@/components/dob-input
+import { DobInput } from '@/components/dob-input'
 import {
   Logo,
 } from '@/components/portal-logo'
