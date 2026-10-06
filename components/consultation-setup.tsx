@@ -45,13 +45,12 @@ type Props = {
 const purposes = [
   [
     'numerology_report',
-    'Numerology Report Explanation',
+    'Report Discussion',
   ],
   [
-    'future_numerology',
-    'Future Numerology',
+    'follow_up',
+    'Follow-up Consultation',
   ],
-  ['follow_up', 'Follow-up'],
   [
     'general_consultation',
     'General Consultation',
