@@ -7,6 +7,7 @@ type StartInput = {
   mode: 'in_person' | 'phone'
   purposeCode: string
   topicCode: string
+  topicCodes: string[]
   note: string
 }
 
@@ -65,21 +66,69 @@ export async function startConsultation(
       }
     }
 
-    const { data: topic } =
+    /*
+     * Remove duplicate topic codes while
+     * preserving the employee's selection
+     * order.
+     */
+    const topicCodes = Array.from(
+      new Set(
+        input.topicCodes.filter(Boolean)
+      )
+    )
+
+    if (topicCodes.length === 0) {
+      return {
+        error:
+          'Select at least one consultation topic.',
+        result: null,
+      }
+    }
+
+    /*
+     * The first selected topic is the
+     * primary topic.
+     */
+    const primaryTopicCode =
+      topicCodes[0]
+
+    const { data: selectedTopics } =
       await supabase
         .from('consultation_topics')
-        .select('id')
+        .select('id,topic_code')
         .eq(
           'organization_id',
           profile.organization_id
         )
-        .eq('topic_code', input.topicCode)
+        .in(
+          'topic_code',
+          topicCodes
+        )
         .eq('is_active', true)
-        .single()
 
-    if (!topic) {
+    if (
+      !selectedTopics ||
+      selectedTopics.length !==
+        topicCodes.length
+    ) {
       return {
-        error: 'Consultation topic not found.',
+        error:
+          'One or more consultation topics were not found.',
+        result: null,
+      }
+    }
+
+    const primaryTopic =
+      selectedTopics.find(
+        (topic) =>
+          topic.topic_code ===
+          primaryTopicCode
+      )
+
+    if (!primaryTopic) {
+      return {
+        error:
+          'Primary consultation topic not found.',
         result: null,
       }
     }
@@ -88,7 +137,10 @@ export async function startConsultation(
       await supabase
         .from('consultations')
         .select('consultation_number')
-        .eq('client_id', input.clientId)
+        .eq(
+          'client_id',
+          input.clientId
+        )
         .order(
           'consultation_number',
           { ascending: false }
@@ -96,7 +148,8 @@ export async function startConsultation(
         .limit(1)
 
     const lastNumber =
-      previous?.[0]?.consultation_number || 0
+      previous?.[0]
+        ?.consultation_number || 0
 
     const nextNumber =
       Number(lastNumber) + 1
@@ -128,8 +181,12 @@ export async function startConsultation(
         purpose_id:
           purpose.id,
 
+        /*
+         * Existing field remains intact
+         * for backwards compatibility.
+         */
         primary_topic_id:
-          topic.id,
+          primaryTopic.id,
 
         specific_concern:
           input.note.trim() || null,
@@ -142,11 +199,65 @@ export async function startConsultation(
       )
       .single()
 
-    if (insertError || !consultation) {
+    if (
+      insertError ||
+      !consultation
+    ) {
       return {
         error:
           insertError?.message ||
           'Unable to create consultation.',
+        result: null,
+      }
+    }
+
+    /*
+     * Save the complete topic selection
+     * in the new junction table.
+     */
+    const topicRows =
+      selectedTopics.map(
+        (topic) => ({
+          organization_id:
+            profile.organization_id,
+
+          consultation_id:
+            consultation.id,
+
+          topic_id:
+            topic.id,
+
+          is_primary:
+            topic.topic_code ===
+            primaryTopicCode,
+        })
+      )
+
+    const {
+      error: topicInsertError,
+    } = await supabase
+      .from(
+        'consultation_selected_topics'
+      )
+      .insert(topicRows)
+
+    if (topicInsertError) {
+      /*
+       * Avoid leaving a partially-created
+       * consultation if topic saving fails.
+       */
+      await supabase
+        .from('consultations')
+        .delete()
+        .eq(
+          'id',
+          consultation.id
+        )
+
+      return {
+        error:
+          topicInsertError.message ||
+          'Unable to save consultation topics.',
         result: null,
       }
     }
@@ -157,7 +268,8 @@ export async function startConsultation(
         id: consultation.id,
         consultationNumber:
           Number(
-            consultation.consultation_number
+            consultation
+              .consultation_number
           ),
       },
     }
