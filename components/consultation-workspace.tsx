@@ -179,23 +179,19 @@ export function ConsultationWorkspace({
     consultationNumber
   ) {
     return (
-      <ConsultationContext
-        client={client}
-        mode={mode}
-        purpose={purpose}
-        topic={topics[0]}
-        note={note}
-        consultationId={consultationId}
-        consultationNumber={
-          consultationNumber
-        }
-        onBack={() =>
-          setStage('setup')
-        }
-        onOpenAssistant={() =>
-          setStage('assistant')
-        }
-      />
+      <ConsultationAssistant
+  client={client}
+  mode={mode}
+  purpose={purpose}
+  note={note}
+  consultationId={consultationId}
+  consultationNumber={
+    consultationNumber
+  }
+  onBack={() =>
+    setStage('context')
+  }
+/>
     )
   }
 
