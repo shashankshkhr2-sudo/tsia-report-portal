@@ -39,7 +39,6 @@ export type ConsultationTopic =
   | 'marriage'
   | 'personal_direction'
   | 'other'
-  | ''
 
 export type ConsultationClient = {
   id: string
@@ -71,8 +70,16 @@ export function ConsultationWorkspace({
   const [purpose, setPurpose] =
     useState<ConsultationPurpose>('')
 
-  const [topic, setTopic] =
-    useState<ConsultationTopic>('')
+  /*
+   * The first selected topic is treated
+   * as the Primary Topic.
+   *
+   * Any additional selected topics are
+   * stored as additional consultation
+   * topics.
+   */
+  const [topics, setTopics] =
+    useState<ConsultationTopic[]>([])
 
   const [note, setNote] =
     useState('')
@@ -95,7 +102,7 @@ export function ConsultationWorkspace({
     if (
       !mode ||
       !purpose ||
-      !topic ||
+      topics.length === 0 ||
       saving
     ) {
       return
@@ -109,7 +116,20 @@ export function ConsultationWorkspace({
         clientId: client.id,
         mode,
         purposeCode: purpose,
-        topicCode: topic,
+
+        /*
+         * Keep the first selected topic
+         * as the primary topic so the
+         * existing consultation structure
+         * remains compatible.
+         */
+        topicCode: topics[0],
+
+        /*
+         * Complete selected topic list.
+         */
+        topicCodes: topics,
+
         note,
       })
 
@@ -163,7 +183,7 @@ export function ConsultationWorkspace({
         client={client}
         mode={mode}
         purpose={purpose}
-        topic={topic}
+        topic={topics[0]}
         note={note}
         consultationId={consultationId}
         consultationNumber={
@@ -184,13 +204,13 @@ export function ConsultationWorkspace({
       client={client}
       mode={mode}
       purpose={purpose}
-      topic={topic}
+      topics={topics}
       note={note}
       saving={saving}
       error={error}
       onModeChange={setMode}
       onPurposeChange={setPurpose}
-      onTopicChange={setTopic}
+      onTopicsChange={setTopics}
       onNoteChange={setNote}
       onBack={onBack}
       onContinue={handleStart}
