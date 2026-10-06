@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useMemo,
   useState,
 } from 'react'
 
@@ -24,6 +25,15 @@ import {
 import {
   ConsultationCompleteIntelligence,
 } from '@/components/consultation-complete-intelligence'
+
+import {
+  decideNextQuestion,
+} from '@/lib/consultation/question-intelligence'
+
+import type {
+  ConsultationAnswerForIntelligence,
+  QuestionIntelligenceDecision,
+} from '@/lib/consultation/question-intelligence'
 
 import type {
   NumerologyCalculationResult,
@@ -82,16 +92,27 @@ type Result = {
 const labels: Record<string, string> = {
   numerology_report: 'Numerology Report',
   future_numerology: 'Future Numerology',
-  career: 'Career',
+  follow_up: 'Follow-up',
+  general_consultation:
+    'General Consultation',
+
   business: 'Business',
+  career: 'Career',
   money: 'Money & Wealth',
   family: 'Family',
   relationship: 'Relationship',
   marriage: 'Marriage',
-  personal_direction: 'Personal Direction',
-  follow_up: 'Follow-up',
+  personal_direction:
+    'Personal Direction',
   other: 'Other',
 }
+
+const familiarityOptions = [
+  'First time',
+  'Know a little',
+  'Consultation before',
+  'Know it quite well',
+] as const
 
 const grid: NumerologyDigit[] = [
   4, 9, 2,
@@ -114,6 +135,13 @@ export function ConsultationAssistant({
 
   const [answer, setAnswer] =
     useState('')
+
+  const [
+    currentAnswers,
+    setCurrentAnswers,
+  ] = useState<
+    ConsultationAnswerForIntelligence[]
+  >([])
 
   const [data, setData] =
     useState<Result | null>(null)
@@ -178,6 +206,25 @@ export function ConsultationAssistant({
     }
   }, [client.id])
 
+  const decision =
+    useMemo<QuestionIntelligenceDecision>(
+      () =>
+        decideNextQuestion({
+          consultationNumber,
+          purpose,
+          topics,
+          todayNote: note,
+          currentAnswers,
+        }),
+      [
+        consultationNumber,
+        purpose,
+        topics,
+        note,
+        currentAnswers,
+      ]
+    )
+
   const calculation =
     data?.calculation
 
@@ -187,6 +234,90 @@ export function ConsultationAssistant({
       : mode === 'phone'
         ? 'Phone'
         : 'Consultation'
+
+  const primaryTopic =
+    topics[0] || null
+
+  const isFamiliarityQuestion =
+    decision.questionKey ===
+    'NUMEROLOGY_FAMILIARITY'
+
+  const isReadyForV3 =
+    decision.stage ===
+      'READY_FOR_V3' ||
+    !decision.shouldAskQuestion
+
+  /*
+   * For the first familiarity question,
+   * the structured option is required.
+   *
+   * For later questions, the employee
+   * records the client's actual response
+   * in the text field.
+   */
+  const canContinue =
+    isFamiliarityQuestion
+      ? Boolean(choice)
+      : Boolean(answer.trim())
+
+  function handleContinue() {
+    if (
+      !decision.shouldAskQuestion ||
+      !decision.questionKey ||
+      !decision.questionText
+    ) {
+      return
+    }
+
+    /*
+     * Familiarity is represented by the
+     * selected structured option.
+     *
+     * If the employee also typed useful
+     * context into Client Says, preserve
+     * it after the option text.
+     *
+     * This allows question intelligence
+     * to identify the structured answer
+     * with startsWith(), while retaining
+     * the client's additional wording.
+     */
+    const clientAnswer =
+      isFamiliarityQuestion
+        ? answer.trim()
+          ? `${choice}. ${answer.trim()}`
+          : choice
+        : answer.trim()
+
+    if (!clientAnswer) {
+      return
+    }
+
+    const recordedAnswer:
+      ConsultationAnswerForIntelligence = {
+        questionKey:
+          decision.questionKey,
+
+        questionText:
+          decision.questionText,
+
+        clientAnswer,
+      }
+
+    setCurrentAnswers(
+      (previous) => [
+        ...previous,
+        recordedAnswer,
+      ]
+    )
+
+    /*
+     * Reset controls for the next
+     * intelligent question.
+     */
+    setChoice('')
+    setAnswer('')
+  }
 
   return (
     <div className="min-h-full bg-[#f7f3ed] p-4">
@@ -216,7 +347,8 @@ export function ConsultationAssistant({
               {client.clientNumber ||
                 'TSIA Client'}
               {' · '}
-              Consultation #1
+              Consultation #
+              {consultationNumber}
             </p>
 
             <div className="mt-4 flex flex-wrap gap-2">
@@ -228,6 +360,16 @@ export function ConsultationAssistant({
                   'Consultation'
                 }
               />
+
+              {primaryTopic && (
+                <Tag
+                  text={
+                    labels[
+                      primaryTopic
+                    ] || primaryTopic
+                  }
+                />
+              )}
             </div>
           </header>
 
@@ -250,78 +392,148 @@ export function ConsultationAssistant({
               big="Talk With Client"
             />
 
-            <div className="rounded-2xl border p-4">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
-                Opening Question
-              </p>
+            {!isReadyForV3 && (
+              <>
+                <div className="rounded-2xl border p-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
+                    {decision.stage ===
+                    'NUMEROLOGY_FAMILIARITY'
+                      ? 'Opening Question'
+                      : 'Current Question'}
+                  </p>
 
-              <p className="mt-2 text-base font-semibold leading-6 text-[#24354c]">
-                Have you come across
-                numerology before, or is
-                this your first experience
-                with it?
-              </p>
+                  <p className="mt-2 text-base font-semibold leading-6 text-[#24354c]">
+                    {
+                      decision.questionText
+                    }
+                  </p>
 
-              <div className="mt-4 grid gap-2">
-                {[
-                  'First time',
-                  'Know a little',
-                  'Consultation before',
-                  'Know it quite well',
-                ].map(
-                  (item) => (
-                    <button
-                      key={item}
-                      type="button"
-                      onClick={() =>
-                        setChoice(item)
-                      }
-                      className="flex justify-between rounded-xl border p-3 text-left text-sm"
-                    >
-                      {item}
+                  {isFamiliarityQuestion && (
+                    <div className="mt-4 grid gap-2">
+                      {familiarityOptions.map(
+                        (item) => (
+                          <button
+                            key={item}
+                            type="button"
+                            onClick={() =>
+                              setChoice(
+                                item
+                              )
+                            }
+                            className="flex justify-between rounded-xl border p-3 text-left text-sm"
+                          >
+                            {item}
 
-                      {choice ===
-                        item && (
-                        <Check className="size-4 text-[#ad7b40]" />
+                            {choice ===
+                              item && (
+                              <Check className="size-4 text-[#ad7b40]" />
+                            )}
+                          </button>
+                        )
                       )}
-                    </button>
-                  )
-                )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-4 rounded-2xl border p-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
+                    Client Says
+                  </p>
+
+                  <textarea
+                    value={answer}
+                    onChange={(event) =>
+                      setAnswer(
+                        event.target.value
+                      )
+                    }
+                    rows={3}
+                    placeholder={
+                      isFamiliarityQuestion
+                        ? "Optional: add the client's own words..."
+                        : "Type the client's response..."
+                    }
+                    className="mt-3 w-full rounded-xl border p-3 text-sm"
+                  />
+
+                  <p className="mt-2 flex items-center gap-2 text-xs text-[#9a7b4f]">
+                    <Mic className="size-4" />
+                    Voice input - future
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={!canContinue}
+                  onClick={
+                    handleContinue
+                  }
+                  className="mt-4 flex h-12 w-full items-center justify-center rounded-xl bg-[#24354c] text-sm font-semibold text-white disabled:opacity-40"
+                >
+                  Continue Consultation
+
+                  <ChevronRight className="ml-2 size-4" />
+                </button>
+              </>
+            )}
+
+            {isReadyForV3 && (
+              <div className="rounded-2xl border border-[#dfd3c1] bg-[#fbf6ec] p-5">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
+                  Opening Context Complete
+                </p>
+
+                <h3 className="mt-2 font-serif text-lg font-semibold text-[#24354c]">
+                  Ready for Personalized
+                  Discussion
+                </h3>
+
+                <p className="mt-2 text-sm leading-6 text-[#776d61]">
+                  The client&apos;s
+                  orientation and current
+                  concern have been
+                  established. Relevant
+                  verified TSIA V3
+                  intelligence can now be
+                  used for the consultation.
+                </p>
               </div>
-            </div>
+            )}
 
-            <div className="mt-4 rounded-2xl border p-4">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
-                Client Says
-              </p>
+            {currentAnswers.length >
+              0 && (
+              <div className="mt-4 rounded-2xl bg-[#f8f4ed] p-4">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
+                  Conversation Context
+                </p>
 
-              <textarea
-                value={answer}
-                onChange={(event) =>
-                  setAnswer(
-                    event.target.value
-                  )
-                }
-                rows={3}
-                placeholder="Type the client's response..."
-                className="mt-3 w-full rounded-xl border p-3 text-sm"
-              />
+                <div className="mt-3 space-y-3">
+                  {currentAnswers.map(
+                    (
+                      item,
+                      index
+                    ) => (
+                      <div
+                        key={`${item.questionKey}-${index}`}
+                        className="border-b border-[#e8dfd3] pb-3 last:border-b-0 last:pb-0"
+                      >
+                        <p className="text-xs font-semibold leading-5 text-[#24354c]">
+                          {
+                            item.questionText
+                          }
+                        </p>
 
-              <p className="mt-2 flex items-center gap-2 text-xs text-[#9a7b4f]">
-                <Mic className="size-4" />
-                Voice input - future
-              </p>
-            </div>
-
-            <button
-              type="button"
-              disabled={!choice}
-              className="mt-4 flex h-12 w-full items-center justify-center rounded-xl bg-[#24354c] text-sm font-semibold text-white disabled:opacity-40"
-            >
-              Continue Consultation
-
-              <ChevronRight className="ml-2 size-4" />
-            </button>
+                        <p className="mt-1 text-xs leading-5 text-[#776d61]">
+                          {
+                            item.clientAnswer
+                          }
+                        </p>
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            )}
 
             <Title
               small="Employee Brief"
@@ -344,8 +556,9 @@ export function ConsultationAssistant({
 
             {!loading &&
               data?.employeeOutput &&
-              data.employeeOutput.insights
-                .length > 0 && (
+              data.employeeOutput
+                .insights.length >
+                0 && (
                 <ConsultationV3Insights
                   insights={
                     data.employeeOutput
@@ -366,8 +579,9 @@ export function ConsultationAssistant({
             {!loading &&
               !error &&
               data?.employeeOutput &&
-              data.employeeOutput.insights
-                .length === 0 && (
+              data.employeeOutput
+                .insights.length ===
+                0 && (
                 <div className="rounded-xl bg-[#f8f4ed] p-4">
                   <p className="text-xs leading-5 text-[#776d61]">
                     No approved V3
@@ -600,7 +814,8 @@ export function ConsultationAssistant({
                     <b>
                       {
                         calculation.grahas[
-                          calculation.nameNumber
+                          calculation
+                            .nameNumber
                             .finalNumber
                         ]
                       }
