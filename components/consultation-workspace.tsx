@@ -163,14 +163,18 @@ export function ConsultationWorkspace({
   ) {
     return (
       <ConsultationAssistant
-        client={client}
-        mode={mode}
-        purpose={purpose}
-        note={note}
-        onBack={() =>
-          setStage('context')
-        }
-      />
+  client={client}
+  mode={mode}
+  purpose={purpose}
+  note={note}
+  consultationId={consultationId}
+  consultationNumber={
+    consultationNumber
+  }
+  onBack={() =>
+    setStage('context')
+  }
+/>
     )
   }
 
