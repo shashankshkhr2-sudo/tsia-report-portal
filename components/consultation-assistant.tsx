@@ -46,12 +46,14 @@ import type {
   ConsultationClient,
   ConsultationMode,
   ConsultationPurpose,
-} from '@/components/consultation-workspace'
+  ConsultationTopic,
+} from '@/components/consultation-workspace''
 
 type Props = {
   client: ConsultationClient
   mode: ConsultationMode
   purpose: ConsultationPurpose
+  topics: readonly ConsultationTopic[]
   note: string
   consultationId: string
   consultationNumber: number
@@ -101,7 +103,8 @@ export function ConsultationAssistant({
   client,
   mode,
   purpose,
-  note,
+  topics,
+  note,,
   consultationId,
   consultationNumber,
   onBack,
