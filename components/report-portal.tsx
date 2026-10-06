@@ -352,104 +352,24 @@ function Dashboard({
 
   return (
     <div className="p-5 sm:p-8 lg:p-10">
-      <PageTitle
-        eyebrow="Your workspace"
-        title={`Good morning, ${
-          fullName.split(
-            /\s+/
-          )[0] || 'there'
-        }`}
-        description="Manage clients and prepare personalized TSIA reports."
-      >
-        <Button
-          onClick={() =>
-            setView(
-              'new-client'
-            )
-          }
-          className="h-11 rounded-xl bg-[#24354c] px-5 text-white hover:bg-[#30445f]"
-        >
-          <Plus className="mr-2 size-4" />
-          Add Client
-        </Button>
-      </PageTitle>
-
-      <div className="grid gap-4 sm:grid-cols-3">
-        {[
-          {
-            label:
-              'My Clients',
-            value:
-              clients.length,
-            icon: Users,
-          },
-          {
-            label: 'Reports',
-            value:
-              reports.length,
-            icon: FileText,
-          },
-          {
-            label:
-              'In Progress',
-            value:
-              processing,
-            icon: Clock3,
-          },
-        ].map(
-          ({
-            label,
-            value,
-            icon: Icon,
-          }) => (
-            <div
-              key={label}
-              className="rounded-2xl border border-[#e8dfd3] bg-white p-5"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs text-[#8e8478]">
-                    {label}
-                  </p>
-
-                  <p className="mt-3 font-serif text-3xl font-semibold text-[#24354c]">
-                    {value}
-                  </p>
-                </div>
-
-                <div className="flex size-9 items-center justify-center rounded-xl bg-[#f3eadc] text-[#ad7b40]">
-                  <Icon className="size-[18px]" />
-                </div>
-              </div>
-            </div>
-          )
-        )}
-      </div>
-
-      <div className="mt-8 rounded-2xl bg-[#24354c] p-6 text-white">
-        <Sparkles className="size-5 text-[#d6b47b]" />
-
-        <h3 className="mt-5 font-serif text-xl">
-          Create a new report
-        </h3>
-
-        <p className="mt-2 text-sm text-[#c6cbd1]">
-          Generate a personalized
-          report for an existing
-          client.
-        </p>
-
-        <Button
-          onClick={() =>
-            setView('generate')
-          }
-          className="mt-6 rounded-xl bg-[#d6b47b] text-[#24354c] hover:bg-[#e6c98f]"
-        >
-          Generate Report
-
-          <ArrowRight className="ml-2 size-4" />
-        </Button>
-      </div>
+      <PortalDashboard
+        fullName={fullName}
+        clientCount={clients.length}
+        reportCount={reports.length}
+        processingCount={processing}
+        onAddClient={() =>
+          setView('new-client')
+        }
+        onViewClients={() =>
+          setView('clients')
+        }
+        onViewReports={() =>
+          setView('reports')
+        }
+        onGenerateReport={() =>
+          setView('generate')
+        }
+      />
     </div>
   )
 }
