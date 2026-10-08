@@ -1160,3 +1160,7 @@ export function ConsultationAssistant({
     introductionComplete
       ? null
       : introduction[introStep]
+  const currentIntro =
+    introductionComplete
+      ? null
+      : introduction[introStep]
