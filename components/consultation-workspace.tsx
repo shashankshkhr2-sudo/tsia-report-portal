@@ -103,14 +103,15 @@ export function ConsultationWorkspace({
     setError('')
 
     try {
-      const response = await startConsultation({
-        clientId: client.id,
-        mode,
-        purposeCode: purpose,
-        topicCode: topics[0],
-        topicCodes: topics,
-        note,
-      })
+      const response =
+        await startConsultation({
+          clientId: client.id,
+          mode,
+          purposeCode: purpose,
+          topicCode: topics[0],
+          topicCodes: topics,
+          note,
+        })
 
       if (
         response.error ||
@@ -163,19 +164,22 @@ export function ConsultationWorkspace({
   if (
     stage === 'context' &&
     consultationNumber !== null &&
-    consultationId
+    consultationId &&
+    topics.length > 0
   ) {
     return (
       <ConsultationContext
         client={client}
         mode={mode}
         purpose={purpose}
-        topics={topics}
+        topic={topics[0]}
         note={note}
         consultationId={consultationId}
         consultationNumber={consultationNumber}
         onBack={() => setStage('setup')}
-        onContinue={() => setStage('assistant')}
+        onOpenAssistant={() =>
+          setStage('assistant')
+        }
       />
     )
   }
