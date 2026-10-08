@@ -408,14 +408,13 @@ function containsAny(
   text: string,
   words: readonly string[]
 ): boolean {
-  const tokens =
-    text.toLowerCase().match(/[a-z]+/g) || []
+  const tokens: string[] =
+    text.toLowerCase().match(/[a-z]+/g) ?? []
 
   return words.some((word) =>
-    tokens.includes(word)
+    tokens.includes(word.toLowerCase())
   )
 }
-
 function unique<T>(
   values: readonly T[]
 ): T[] {
