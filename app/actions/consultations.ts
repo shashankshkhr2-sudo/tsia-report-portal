@@ -16,6 +16,13 @@ type SaveAnswerInput = {
   clientId: string
   questionText: string
   clientAnswer: string
+  employeeObservation?: string
+  importantForNextConsultation?: boolean
+}
+
+type GetAnswersInput = {
+  consultationId: string
+  clientId: string
 }
 
 export async function startConsultation(
@@ -26,16 +33,17 @@ export async function startConsultation(
 
     const {
       data: { user },
+      error: authError,
     } = await supabase.auth.getUser()
 
-    if (!user) {
+    if (authError || !user) {
       return {
         error: 'You must be signed in.',
         result: null,
       }
     }
 
-    const { data: profile } =
+    const { data: profile, error: profileError } =
       await supabase
         .from('profiles')
         .select(
@@ -44,14 +52,29 @@ export async function startConsultation(
         .eq('id', user.id)
         .single()
 
-    if (!profile || !profile.is_active) {
+    if (
+      profileError ||
+      !profile ||
+      !profile.is_active ||
+      !profile.organization_id
+    ) {
       return {
         error: 'Active employee profile not found.',
         result: null,
       }
     }
 
-    const { data: purpose } =
+    if (
+      !input.clientId ||
+      !['in_person', 'phone'].includes(input.mode)
+    ) {
+      return {
+        error: 'Invalid consultation details.',
+        result: null,
+      }
+    }
+
+    const { data: purpose, error: purposeError } =
       await supabase
         .from('consultation_purposes')
         .select('id')
@@ -59,14 +82,11 @@ export async function startConsultation(
           'organization_id',
           profile.organization_id
         )
-        .eq(
-          'purpose_code',
-          input.purposeCode
-        )
+        .eq('purpose_code', input.purposeCode)
         .eq('is_active', true)
         .single()
 
-    if (!purpose) {
+    if (purposeError || !purpose) {
       return {
         error: 'Consultation purpose not found.',
         result: null,
@@ -75,39 +95,38 @@ export async function startConsultation(
 
     const topicCodes = Array.from(
       new Set(
-        input.topicCodes.filter(Boolean)
+        input.topicCodes
+          .map((code) => code.trim())
+          .filter(Boolean)
       )
     )
 
     if (topicCodes.length === 0) {
       return {
-        error:
-          'Select at least one consultation topic.',
+        error: 'Select at least one consultation topic.',
         result: null,
       }
     }
 
-    const primaryTopicCode =
-      topicCodes[0]
+    const primaryTopicCode = topicCodes[0]
 
-    const { data: selectedTopics } =
-      await supabase
-        .from('consultation_topics')
-        .select('id,topic_code')
-        .eq(
-          'organization_id',
-          profile.organization_id
-        )
-        .in(
-          'topic_code',
-          topicCodes
-        )
-        .eq('is_active', true)
+    const {
+      data: selectedTopics,
+      error: topicsError,
+    } = await supabase
+      .from('consultation_topics')
+      .select('id,topic_code')
+      .eq(
+        'organization_id',
+        profile.organization_id
+      )
+      .in('topic_code', topicCodes)
+      .eq('is_active', true)
 
     if (
+      topicsError ||
       !selectedTopics ||
-      selectedTopics.length !==
-        topicCodes.length
+      selectedTopics.length !== topicCodes.length
     ) {
       return {
         error:
@@ -116,41 +135,44 @@ export async function startConsultation(
       }
     }
 
-    const primaryTopic =
-      selectedTopics.find(
-        (topic) =>
-          topic.topic_code ===
-          primaryTopicCode
-      )
+    const primaryTopic = selectedTopics.find(
+      (topic) =>
+        topic.topic_code === primaryTopicCode
+    )
 
     if (!primaryTopic) {
       return {
-        error:
-          'Primary consultation topic not found.',
+        error: 'Primary consultation topic not found.',
         result: null,
       }
     }
 
-    const { data: previous } =
+    const { data: previous, error: previousError } =
       await supabase
         .from('consultations')
         .select('consultation_number')
+        .eq('client_id', input.clientId)
         .eq(
-          'client_id',
-          input.clientId
+          'organization_id',
+          profile.organization_id
         )
-        .order(
-          'consultation_number',
-          { ascending: false }
-        )
+        .order('consultation_number', {
+          ascending: false,
+        })
         .limit(1)
 
-    const lastNumber =
-      previous?.[0]
-        ?.consultation_number || 0
+    if (previousError) {
+      return {
+        error: 'Unable to verify consultation history.',
+        result: null,
+      }
+    }
 
-    const nextNumber =
-      Number(lastNumber) + 1
+    const lastNumber = Number(
+      previous?.[0]?.consultation_number || 0
+    )
+
+    const nextNumber = lastNumber + 1
 
     const {
       data: consultation,
@@ -158,45 +180,21 @@ export async function startConsultation(
     } = await supabase
       .from('consultations')
       .insert({
-        organization_id:
-          profile.organization_id,
-
-        client_id:
-          input.clientId,
-
-        consultation_number:
-          nextNumber,
-
-        employee_id:
-          profile.id,
-
-        location_id:
-          profile.location_id,
-
-        consultation_mode:
-          input.mode,
-
-        purpose_id:
-          purpose.id,
-
-        primary_topic_id:
-          primaryTopic.id,
-
-        specific_concern:
-          input.note.trim() || null,
-
-        status:
-          'in_progress',
+        organization_id: profile.organization_id,
+        client_id: input.clientId,
+        consultation_number: nextNumber,
+        employee_id: profile.id,
+        location_id: profile.location_id,
+        consultation_mode: input.mode,
+        purpose_id: purpose.id,
+        primary_topic_id: primaryTopic.id,
+        specific_concern: input.note.trim() || null,
+        status: 'in_progress',
       })
-      .select(
-        'id,consultation_number'
-      )
+      .select('id,consultation_number')
       .single()
 
-    if (
-      insertError ||
-      !consultation
-    ) {
+    if (insertError || !consultation) {
       return {
         error:
           insertError?.message ||
@@ -205,45 +203,37 @@ export async function startConsultation(
       }
     }
 
-    const topicRows =
-      selectedTopics.map(
-        (topic) => ({
-          organization_id:
-            profile.organization_id,
+    const topicRows = selectedTopics.map(
+      (topic) => ({
+        organization_id: profile.organization_id,
+        consultation_id: consultation.id,
+        topic_id: topic.id,
+        is_primary:
+          topic.topic_code === primaryTopicCode,
+      })
+    )
 
-          consultation_id:
-            consultation.id,
-
-          topic_id:
-            topic.id,
-
-          is_primary:
-            topic.topic_code ===
-            primaryTopicCode,
-        })
-      )
-
-    const {
-      error: topicInsertError,
-    } = await supabase
-      .from(
-        'consultation_selected_topics'
-      )
-      .insert(topicRows)
+    const { error: topicInsertError } =
+      await supabase
+        .from('consultation_selected_topics')
+        .insert(topicRows)
 
     if (topicInsertError) {
-      await supabase
-        .from('consultations')
-        .delete()
-        .eq(
-          'id',
-          consultation.id
-        )
+      const { error: rollbackError } =
+        await supabase
+          .from('consultations')
+          .delete()
+          .eq('id', consultation.id)
+          .eq(
+            'organization_id',
+            profile.organization_id
+          )
 
       return {
-        error:
-          topicInsertError.message ||
-          'Unable to save consultation topics.',
+        error: rollbackError
+          ? 'Unable to save consultation topics. An incomplete consultation record may remain; please contact the administrator.'
+          : topicInsertError.message ||
+            'Unable to save consultation topics.',
         result: null,
       }
     }
@@ -252,11 +242,9 @@ export async function startConsultation(
       error: null,
       result: {
         id: consultation.id,
-        consultationNumber:
-          Number(
-            consultation
-              .consultation_number
-          ),
+        consultationNumber: Number(
+          consultation.consultation_number
+        ),
       },
     }
   } catch (error) {
@@ -278,16 +266,17 @@ export async function saveConsultationAnswer(
 
     const {
       data: { user },
+      error: authError,
     } = await supabase.auth.getUser()
 
-    if (!user) {
+    if (authError || !user) {
       return {
         error: 'You must be signed in.',
         result: null,
       }
     }
 
-    const { data: profile } =
+    const { data: profile, error: profileError } =
       await supabase
         .from('profiles')
         .select(
@@ -296,32 +285,45 @@ export async function saveConsultationAnswer(
         .eq('id', user.id)
         .single()
 
-    if (!profile || !profile.is_active) {
+    if (
+      profileError ||
+      !profile ||
+      !profile.is_active ||
+      !profile.organization_id
+    ) {
       return {
-        error:
-          'Active employee profile not found.',
+        error: 'Active employee profile not found.',
         result: null,
       }
     }
 
     const questionText =
-      input.questionText.trim()
+      input.questionText?.trim() || ''
 
     const clientAnswer =
-      input.clientAnswer.trim()
+      input.clientAnswer?.trim() || ''
 
-    if (!questionText) {
+    const employeeObservation =
+      input.employeeObservation?.trim() || ''
+
+    if (!input.consultationId || !input.clientId) {
       return {
-        error:
-          'Question text is required.',
+        error: 'Consultation identification is required.',
         result: null,
       }
     }
 
-    if (!clientAnswer) {
+    if (!questionText) {
+      return {
+        error: 'Question text is required.',
+        result: null,
+      }
+    }
+
+    if (!clientAnswer && !employeeObservation) {
       return {
         error:
-          'Client response is required.',
+          'Enter a client answer or practitioner observation.',
         result: null,
       }
     }
@@ -331,25 +333,39 @@ export async function saveConsultationAnswer(
       error: consultationError,
     } = await supabase
       .from('consultations')
-      .select('id,client_id')
+      .select('id,client_id,employee_id,status')
       .eq('id', input.consultationId)
       .eq(
         'organization_id',
         profile.organization_id
       )
-      .eq(
-        'client_id',
-        input.clientId
-      )
+      .eq('client_id', input.clientId)
       .single()
 
-    if (
-      consultationError ||
-      !consultation
-    ) {
+    if (consultationError || !consultation) {
+      return {
+        error: 'Consultation could not be verified.',
+        result: null,
+      }
+    }
+
+    // Stage B initially allows the practitioner who
+    // created the consultation to save its answers.
+    // Manager/admin permissions can be added later
+    // after reviewing the role hierarchy.
+
+    if (consultation.employee_id !== profile.id) {
       return {
         error:
-          'Consultation could not be verified.',
+          'Only the assigned consultation practitioner can save answers.',
+        result: null,
+      }
+    }
+
+    if (consultation.status !== 'in_progress') {
+      return {
+        error:
+          'This consultation is not currently in progress.',
         result: null,
       }
     }
@@ -360,41 +376,27 @@ export async function saveConsultationAnswer(
     } = await supabase
       .from('consultation_answers')
       .insert({
-        organization_id:
-          profile.organization_id,
-
-        consultation_id:
-          consultation.id,
-
-        client_id:
-          consultation.client_id,
-
-        question_text_snapshot:
-          questionText,
-
-        asked_by:
-          profile.id,
-
-        client_answer:
-          clientAnswer,
-
-        answer_method:
-          'typed',
-
-        answered_at:
-          new Date().toISOString(),
+        organization_id: profile.organization_id,
+        consultation_id: consultation.id,
+        client_id: consultation.client_id,
+        question_text_snapshot: questionText,
+        asked_by: profile.id,
+        client_answer: clientAnswer,
+        employee_observation:
+          employeeObservation || null,
+        important_for_next_consultation:
+          input.importantForNextConsultation === true,
+        answer_method: 'typed',
+        answered_at: new Date().toISOString(),
       })
       .select('id')
       .single()
 
-    if (
-      insertError ||
-      !savedAnswer
-    ) {
+    if (insertError || !savedAnswer) {
       return {
         error:
           insertError?.message ||
-          'Unable to save client response.',
+          'Unable to save consultation answer.',
         result: null,
       }
     }
@@ -410,7 +412,133 @@ export async function saveConsultationAnswer(
       error:
         error instanceof Error
           ? error.message
-          : 'Unable to save client response.',
+          : 'Unable to save consultation answer.',
+      result: null,
+    }
+  }
+}
+
+export async function getConsultationAnswers(
+  input: GetAnswersInput
+) {
+  try {
+    const supabase = await createClient()
+
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return {
+        error: 'You must be signed in.',
+        result: null,
+      }
+    }
+
+    const { data: profile, error: profileError } =
+      await supabase
+        .from('profiles')
+        .select('id,organization_id,is_active')
+        .eq('id', user.id)
+        .single()
+
+    if (
+      profileError ||
+      !profile ||
+      !profile.is_active ||
+      !profile.organization_id
+    ) {
+      return {
+        error: 'Active employee profile not found.',
+        result: null,
+      }
+    }
+
+    if (!input.consultationId || !input.clientId) {
+      return {
+        error: 'Consultation identification is required.',
+        result: null,
+      }
+    }
+
+    const {
+      data: consultation,
+      error: consultationError,
+    } = await supabase
+      .from('consultations')
+      .select('id,employee_id')
+      .eq('id', input.consultationId)
+      .eq('client_id', input.clientId)
+      .eq(
+        'organization_id',
+        profile.organization_id
+      )
+      .single()
+
+    if (consultationError || !consultation) {
+      return {
+        error: 'Consultation could not be verified.',
+        result: null,
+      }
+    }
+
+    if (consultation.employee_id !== profile.id) {
+      return {
+        error:
+          'Only the assigned consultation practitioner can view these answers.',
+        result: null,
+      }
+    }
+
+    const {
+      data: answers,
+      error: answersError,
+    } = await supabase
+      .from('consultation_answers')
+      .select(
+        'id,question_text_snapshot,client_answer,employee_observation,important_for_next_consultation,answered_at,created_at'
+      )
+      .eq(
+        'organization_id',
+        profile.organization_id
+      )
+      .eq('consultation_id', consultation.id)
+      .eq('client_id', input.clientId)
+      .order('created_at', {
+        ascending: true,
+      })
+
+    if (answersError) {
+      return {
+        error: answersError.message,
+        result: null,
+      }
+    }
+
+    return {
+      error: null,
+      result: (answers || []).map(
+        (answer) => ({
+          id: answer.id,
+          questionText:
+            answer.question_text_snapshot || '',
+          clientAnswer: answer.client_answer || '',
+          employeeObservation:
+            answer.employee_observation || '',
+          importantForNextConsultation:
+            answer.important_for_next_consultation === true,
+          answeredAt: answer.answered_at,
+          createdAt: answer.created_at,
+        })
+      ),
+    }
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Unable to load consultation answers.',
       result: null,
     }
   }
