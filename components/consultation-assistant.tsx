@@ -624,4 +624,26 @@ export function ConsultationAssistant({
                   </p>
 
                   <p>
-                    <b>Missing
+                                        <b>Missing:</b>{' '}
+                    {joinNumbers(
+                      calculation.loShu.missingNumbers
+                    )}
+function MiniBox({
+  title,
+  text,
+}: {
+  title: string
+  text: string
+}) {
+  return (
+    <div className="rounded-xl border p-3">
+      <p className="text-[10px] font-semibold text-[#24354c]">
+        {title}
+      </p>
+
+      <p className="mt-1 text-xs text-[#776d61]">
+        {text}
+      </p>
+    </div>
+  )
+}
