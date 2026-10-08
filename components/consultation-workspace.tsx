@@ -25,7 +25,6 @@ export type ConsultationMode =
 
 export type ConsultationPurpose =
   | 'numerology_report'
-  | 'future_numerology'
   | 'follow_up'
   | 'general_consultation'
   | ''
