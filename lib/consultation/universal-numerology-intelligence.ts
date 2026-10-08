@@ -19,7 +19,7 @@ import type {
 } from '@/lib/consultation/consultation-scope-engine'
 
 export const UNIVERSAL_NUMEROLOGY_VERSION =
-  'TSIA_UNIVERSAL_NUMEROLOGY_1.2' as const
+  'TSIA_UNIVERSAL_NUMEROLOGY_1.3' as const
 
 export type UniversalConsultationTopic =
   | 'career'
@@ -75,6 +75,12 @@ export type ConcernInterpretation = {
   supportingQualityIds: readonly FunctionalQualityId[]
 }
 
+export type ConsultationFollowUp = {
+  question: string
+  reason: string
+  answered: boolean
+}
+
 export type UniversalNumerologyResult = {
   version: typeof UNIVERSAL_NUMEROLOGY_VERSION
   topic: UniversalConsultationTopic
@@ -91,6 +97,8 @@ export type UniversalNumerologyResult = {
   suggestedQuestions: readonly string[]
   warnings: readonly string[]
   concernInterpretation: ConcernInterpretation
+  nextFollowUp: ConsultationFollowUp
+  confirmedClientContext: readonly string[]
 }
 
 export type UniversalNumerologyInput = {
@@ -99,6 +107,11 @@ export type UniversalNumerologyInput = {
   clarification?: string
   calculation: NumerologyCalculationResult
   conclusions: ConclusionEngineResult
+  followUpAnswers?: readonly {
+    question: string
+    clientAnswer: string
+    practitionerObservation?: string
+  }[]
 }
 
 type QualityDefinition = {
@@ -119,7 +132,7 @@ const QUALITIES: readonly QualityDefinition[] = [
     strength:
       'initiative, independence, leadership and personal direction',
     challenge:
-      'independent decision-making may sometimes become excessive self-reliance',
+      'independent decision-making may become excessive self-reliance',
     improvement:
       'Balance independent action with feedback, cooperation and clear priorities.',
     question:
@@ -132,7 +145,7 @@ const QUALITIES: readonly QualityDefinition[] = [
     strength:
       'emotional awareness, cooperation, listening and sensitivity',
     challenge:
-      'sensitivity may sometimes make criticism or uncertainty difficult to manage',
+      'criticism or uncertainty may feel difficult',
     improvement:
       'Practise constructive feedback, emotional boundaries and direct communication.',
     question:
@@ -143,9 +156,9 @@ const QUALITIES: readonly QualityDefinition[] = [
     number: 3,
     title: 'Knowledge & Creative Expression',
     strength:
-      'learning, creative expression, teaching and communication of ideas',
+      'learning, creative expression, teaching and communicating ideas',
     challenge:
-      'many ideas may compete for attention without consistent execution',
+      'many ideas may compete for attention',
     improvement:
       'Select clear priorities and turn creative ideas into completed work.',
     question:
@@ -158,11 +171,11 @@ const QUALITIES: readonly QualityDefinition[] = [
     strength:
       'original approaches, restructuring and unconventional problem-solving',
     challenge:
-      'unconventional approaches may create friction with established systems',
+      'new approaches may create friction with established systems',
     improvement:
       'Test new ideas practically and communicate changes before implementation.',
     question:
-      'Do you often prefer a different approach from the people around you?',
+      'Do you often prefer a different approach from people around you?',
   },
   {
     id: 'ADAPTIVE_INTELLIGENCE',
@@ -175,7 +188,7 @@ const QUALITIES: readonly QualityDefinition[] = [
     improvement:
       'Use communication and adaptability while maintaining long-term focus.',
     question:
-      'How easily do you adapt when professional or personal plans change?',
+      'How easily do you adapt when plans change?',
   },
   {
     id: 'HARMONIOUS_CONNECTION',
@@ -186,9 +199,9 @@ const QUALITIES: readonly QualityDefinition[] = [
     challenge:
       'the desire for harmony may lead to over-accommodation',
     improvement:
-      'Maintain healthy boundaries while supporting relationships and responsibilities.',
+      'Maintain healthy boundaries while supporting relationships.',
     question:
-      'Do you sometimes compromise your own priorities to maintain harmony?',
+      'Do you compromise your priorities to maintain harmony?',
   },
   {
     id: 'REFLECTIVE_DISCERNMENT',
@@ -197,11 +210,11 @@ const QUALITIES: readonly QualityDefinition[] = [
     strength:
       'observation, reflection, research, intuition and analytical depth',
     challenge:
-      'reflection may become overanalysis, hesitation or excessive withdrawal',
+      'reflection may become overanalysis or hesitation',
     improvement:
       'Use reflection for preparation, then set decision deadlines and act.',
     question:
-      'Do you sometimes spend too long analysing a decision before acting?',
+      'Do you sometimes spend too long analysing before acting?',
   },
   {
     id: 'STRUCTURED_RESPONSIBILITY',
@@ -210,11 +223,11 @@ const QUALITIES: readonly QualityDefinition[] = [
     strength:
       'discipline, persistence, management and responsibility',
     challenge:
-      'a strong sense of responsibility may create rigidity or excessive pressure',
+      'responsibility may create rigidity or excessive pressure',
     improvement:
       'Use realistic milestones, delegation and regular progress reviews.',
     question:
-      'Do you often carry more responsibility than you comfortably manage?',
+      'Do you carry more responsibility than you can comfortably manage?',
   },
   {
     id: 'DIRECTED_FORCE',
@@ -223,7 +236,7 @@ const QUALITIES: readonly QualityDefinition[] = [
     strength:
       'courage, determination, energetic action and commitment',
     challenge:
-      'strong determination may sometimes become impatience or confrontation',
+      'determination may become impatience',
     improvement:
       'Channel energy into planned action and measured responses.',
     question:
@@ -312,15 +325,20 @@ const GRAHAS: Record<number, string> = {
   9: 'Mangal',
 }
 
-const CONCERN_SIGNALS: {
+const SIGNALS: readonly {
   words: readonly string[]
   qualities: readonly FunctionalQualityId[]
 }[] = [
   {
     words: [
-      'actor', 'acting', 'film', 'movie',
-      'cinema', 'creative', 'artist',
-      'director', 'producer',
+      'actor',
+      'acting',
+      'film',
+      'movie',
+      'cinema',
+      'artist',
+      'director',
+      'producer',
     ],
     qualities: [
       'KNOWLEDGE_EXPRESSION',
@@ -330,8 +348,12 @@ const CONCERN_SIGNALS: {
   },
   {
     words: [
-      'hit', 'success', 'recognition',
-      'famous', 'popularity', 'audience',
+      'hit',
+      'success',
+      'recognition',
+      'famous',
+      'popularity',
+      'audience',
     ],
     qualities: [
       'ADAPTIVE_INTELLIGENCE',
@@ -341,36 +363,43 @@ const CONCERN_SIGNALS: {
   },
   {
     words: [
-      'conflict', 'argument', 'fight',
-      'misunderstanding', 'communication',
+      'conflict',
+      'argument',
+      'fight',
+      'misunderstanding',
     ],
     qualities: [
       'RELATIONAL_RECEPTIVITY',
       'HARMONIOUS_CONNECTION',
-      'ADAPTIVE_INTELLIGENCE',
     ],
   },
   {
     words: [
-      'income', 'money', 'saving',
-      'investment', 'loss', 'profit',
+      'income',
+      'money',
+      'saving',
+      'investment',
+      'loss',
+      'profit',
       'debt',
     ],
     qualities: [
       'STRUCTURED_RESPONSIBILITY',
       'REFLECTIVE_DISCERNMENT',
-      'ADAPTIVE_INTELLIGENCE',
     ],
   },
   {
     words: [
-      'decision', 'confused', 'direction',
-      'change', 'uncertain', 'choice',
+      'decision',
+      'confused',
+      'direction',
+      'change',
+      'uncertain',
+      'choice',
     ],
     qualities: [
       'REFLECTIVE_DISCERNMENT',
       'INDIVIDUAL_AGENCY',
-      'ADAPTIVE_INTELLIGENCE',
     ],
   },
 ]
@@ -379,78 +408,64 @@ function containsAny(
   text: string,
   words: readonly string[]
 ): boolean {
-  const normalized = text.toLowerCase()
+  const tokens =
+    text.toLowerCase().match(/[a-z]+/g) || []
 
   return words.some((word) =>
-    new RegExp(
-      `(^|[^a-z])${word.replace(
-        /[.*+?^${}()|[\]\\]/g,
-        '\\$&'
-      )}([^a-z]|$)`
-    ).test(normalized)
+    tokens.includes(word)
   )
 }
 
-function unique<T>(items: readonly T[]): T[] {
-  return [...new Set(items)]
-}
-
-function numberDefinition(
-  number: number
-): QualityDefinition | undefined {
-  return QUALITIES.find(
-    (quality) => quality.number === number
-  )
+function unique<T>(
+  values: readonly T[]
+): T[] {
+  return [...new Set(values)]
 }
 
 function numberDescription(
   number: number
 ): string {
-  const quality = numberDefinition(number)
-
-  if (!quality) return `Number ${number}`
-
-  return (
-    `${number} (${GRAHAS[number]}) — ` +
-    quality.strength
+  const quality = QUALITIES.find(
+    (item) => item.number === number
   )
+
+  return quality
+    ? `${number} (${GRAHAS[number]}) — ${quality.strength}`
+    : `Number ${number}`
 }
 
 function getEvidence(
   calculation: NumerologyCalculationResult,
   number: NumerologyDigit
 ): NumerologyEvidenceReference[] {
-  const evidence: NumerologyEvidenceReference[] = []
+  const result: NumerologyEvidenceReference[] = []
 
   if (calculation.mulank.final === number) {
-    evidence.push({
+    result.push({
       source: 'MULANK',
       number,
       description:
-        `Mulank ${number} (${GRAHAS[number]}) ` +
-        'is a primary birth-number indicator.',
+        `Mulank ${number} (${GRAHAS[number]}) is a birth-number indicator.`,
     })
   }
 
   if (calculation.bhagyank.final === number) {
-    evidence.push({
+    result.push({
       source: 'BHAGYANK',
       number,
       description:
-        `Bhagyank ${number} (${GRAHAS[number]}) ` +
-        'is a primary life-path-number indicator.',
+        `Bhagyank ${number} (${GRAHAS[number]}) is a life-path-number indicator.`,
     })
   }
 
   if (
     calculation.nameNumber.finalNumber === number
   ) {
-    evidence.push({
+    result.push({
       source: 'NAME_NUMBER',
       number,
       description:
-        `Name Number ${number} (${GRAHAS[number]}) ` +
-        'is the verified Chaldean name indicator.',
+        `Name Number ${number} (${GRAHAS[number]}) is the calculated Chaldean name indicator.`,
     })
   }
 
@@ -458,17 +473,15 @@ function getEvidence(
     calculation.loShu.counts[number] || 0
 
   if (count > 0) {
-    evidence.push({
+    result.push({
       source: 'LO_SHU',
       number,
       description:
-        `Number ${number} appears ${count} ` +
-        `time${count === 1 ? '' : 's'} ` +
-        'in the verified personal Lo Shu grid.',
+        `Number ${number} appears ${count} time${count === 1 ? '' : 's'} in the personal Lo Shu grid.`,
     })
   }
 
-  return evidence
+  return result
 }
 
 function approvedConclusions(
@@ -476,81 +489,57 @@ function approvedConclusions(
   qualityId: FunctionalQualityId,
   topic: UniversalConsultationTopic
 ): ResolvedConclusion[] {
-  const domains = TOPIC_DOMAINS[topic]
-
   return conclusions.conclusions.filter(
-    (conclusion) =>
-      conclusion.functionalQualityId === qualityId &&
-      conclusion.strength !==
+    (item) =>
+      item.functionalQualityId === qualityId &&
+      item.strength !==
         'INSUFFICIENT_EVIDENCE' &&
-      conclusion.allowedDomains.some(
-        (domain) => domains.includes(domain)
+      item.allowedDomains.some((domain) =>
+        TOPIC_DOMAINS[topic].includes(domain)
       )
   )
 }
 
-function concernBoosts(
-  concern: string
-): FunctionalQualityId[] {
-  const found: FunctionalQualityId[] = []
-
-  for (const signal of CONCERN_SIGNALS) {
-    if (containsAny(concern, signal.words)) {
-      found.push(...signal.qualities)
-    }
-  }
-
-  return unique(found)
-}
-
-function qualityScore(
+function score(
   quality: NumerologyQualityAssessment,
   topic: UniversalConsultationTopic,
   boosted: readonly FunctionalQualityId[]
 ): number {
-  let score = 0
+  let result = 0
 
-  const priorities = TOPIC_PRIORITIES[topic]
-  const position = priorities.indexOf(
-    quality.qualityId
-  )
+  const index =
+    TOPIC_PRIORITIES[topic].indexOf(
+      quality.qualityId
+    )
 
-  if (position >= 0) {
-    score += 12 - position * 2
+  if (index >= 0) {
+    result += 12 - index * 2
   }
 
   if (boosted.includes(quality.qualityId)) {
-    score += 8
+    result += 8
   }
 
   if (
     quality.verificationStatus ===
     'V3_SUPPORTED'
   ) {
-    score += 12
+    result += 12
   }
 
   for (const evidence of quality.evidence) {
-    switch (evidence.source) {
-      case 'MULANK':
-      case 'BHAGYANK':
-        score += 7
-        break
-      case 'NAME_NUMBER':
-        score += 5
-        break
-      case 'LO_SHU':
-        score += 3
-        break
-      case 'V3_CONCLUSION':
-        score += 4
-        break
-      default:
-        break
-    }
+    result +=
+      evidence.source === 'MULANK' ||
+      evidence.source === 'BHAGYANK'
+        ? 7
+        : evidence.source === 'NAME_NUMBER'
+          ? 5
+          : evidence.source === 'LO_SHU'
+            ? 3
+            : 4
   }
 
-  return score
+  return result
 }
 
 function buildAssessment(
@@ -574,12 +563,12 @@ function buildAssessment(
     return null
   }
 
-  for (const conclusion of approved) {
+  for (const item of approved) {
     evidence.push({
       source: 'V3_CONCLUSION',
-      conclusionId: conclusion.id,
+      conclusionId: item.id,
       description:
-        `Approved V3 conclusion: ${conclusion.title}`,
+        `Approved V3 conclusion: ${item.title}`,
     })
   }
 
@@ -587,48 +576,23 @@ function buildAssessment(
     qualityId: definition.id,
     title: definition.title,
     interpretation:
-      `Traditional number ${definition.number} ` +
-      `(${GRAHAS[definition.number]}) ` +
-      `is associated with ${definition.strength}. ` +
-      'Discuss whether these qualities are ' +
-      'actually visible in the client’s experience.',
+      `In traditional Ank Shastra, number ${definition.number} ` +
+      `(${GRAHAS[definition.number]}) is associated with ` +
+      `${definition.strength}. Ask whether this description ` +
+      "fits the client's actual experience.",
     relevance: 'SUPPORTING',
     evidence,
     approvedV3ConclusionIds:
       approved.map((item) => item.id),
     verificationStatus:
-      approved.length > 0
+      approved.length
         ? 'V3_SUPPORTED'
         : 'TRADITIONAL_ASSOCIATION',
     confirmationQuestion: definition.question,
   }
 }
 
-function buildDevelopment(
-  qualities: readonly NumerologyQualityAssessment[]
-): BehaviouralDevelopmentItem[] {
-  return qualities.slice(0, 5).map(
-    (quality) => {
-      const definition = QUALITIES.find(
-        (item) => item.id === quality.qualityId
-      )!
-
-      return {
-        id: `DEVELOPMENT_${definition.number}`,
-        title: definition.title,
-        possiblePattern:
-          `A possible pattern to explore: ` +
-          definition.challenge + '.',
-        practicalImprovement:
-          definition.improvement,
-        evidence: quality.evidence,
-        requiresClientConfirmation: true,
-      }
-    }
-  )
-}
-
-function coreNumberNarrative(
+function coreNarrative(
   calculation: NumerologyCalculationResult
 ): string {
   const mulank = calculation.mulank.final
@@ -644,74 +608,74 @@ function coreNumberNarrative(
 
   if (mulank === bhagyank) {
     parts.push(
-      `Mulank and Bhagyank are both ${mulank}. ` +
-      'In traditional interpretation this ' +
-      'repeats the same numerical theme. ' +
-      'It does not establish that a trait ' +
-      'is stronger in real life.'
+      `Mulank and Bhagyank both equal ${mulank}; ` +
+      'this repeats a traditional theme but does ' +
+      'not prove stronger real-life traits.'
     )
   }
 
-  if (name !== mulank && name !== bhagyank) {
+  if (
+    name !== mulank &&
+    name !== bhagyank
+  ) {
     parts.push(
-      `Name Number ${name} introduces a ` +
-      'different traditional theme to explore ' +
-      'alongside the birth numbers.'
+      `Name Number ${name} adds another ` +
+      'traditional theme for discussion.'
     )
   }
 
   return parts.join(' ')
 }
 
-function topicGuidance(
-  topic: UniversalConsultationTopic,
-  concern: string
-): {
+type Guidance = {
   suitability: string
   improvement: string
   question: string
-} {
-  const entertainment = containsAny(
-    concern,
-    [
-      'actor', 'acting', 'film', 'movie',
-      'cinema', 'director', 'producer',
-    ]
-  )
+  actions: readonly string[]
+}
 
-  const recognition = containsAny(
-    concern,
-    [
-      'hit', 'success', 'recognition',
-      'famous', 'popularity',
-    ]
-  )
-
-  if (topic === 'career' && entertainment) {
+function topicGuidance(
+  topic: UniversalConsultationTopic,
+  concern: string
+): Guidance {
+  if (
+    topic === 'career' &&
+    containsAny(concern, [
+      'actor',
+      'acting',
+      'film',
+      'movie',
+      'cinema',
+      'director',
+      'producer',
+    ])
+  ) {
     return {
       suitability:
-        'For film-related work, explore how ' +
-        'reflection may support character ' +
-        'understanding, how communication may ' +
-        'support professional relationships, ' +
-        'and how discipline may support preparation. ' +
-        'Confirm whether the client works as an ' +
-        'actor, director, producer or in another role. ' +
-        'Numerology cannot determine actual talent.',
+        'For screen and film work, explore demonstrated ' +
+        'acting or production skills, role choices, ' +
+        'preparation, professional relationships and ' +
+        'audience-facing opportunities. Traditional ' +
+        'number themes may guide reflective questions, ' +
+        'but cannot establish talent or commercial success.',
       improvement:
-        'Review recent projects, role selection, ' +
-        'preparation, feedback, industry relationships ' +
-        'and consistency. Set practical development ' +
-        'goals for the next projects. ' +
-        (recognition
-          ? 'A commercially successful film depends ' +
-            'on many factors beyond one individual, ' +
-            'including the project, distribution, ' +
-            'marketing and audience response.'
-          : 'Measure progress using actual work and feedback.'),
+        'Review recent projects and feedback. Identify ' +
+        'the strongest role categories, improve audition ' +
+        'or portfolio materials, and set measurable ' +
+        'professional outreach and preparation goals. ' +
+        'A hit depends on scripts, production, marketing, ' +
+        'distribution and audience response as well ' +
+        'as the individual.',
       question:
-        'What is your exact role in the film industry, ' +
-        'and what would a successful project mean to you?',
+        'Which part of your film career is the biggest ' +
+        'obstacle right now: finding suitable roles, ' +
+        'choosing projects, industry visibility, or the ' +
+        'commercial success of released work?',
+      actions: [
+        'Review your last three projects and record what worked, what did not, and feedback received.',
+        'Identify two types of roles that best demonstrate your skills and prepare updated audition or portfolio material.',
+        'Set a realistic monthly plan for auditions, professional outreach and skill development; review results without assuming a hit is guaranteed.',
+      ],
     }
   }
 
@@ -719,212 +683,184 @@ function topicGuidance(
     case 'career':
       return {
         suitability:
-          'Discuss the client’s current profession, ' +
-          'work responsibilities, preferred environment ' +
-          'and demonstrated skills before exploring ' +
-          'how traditional number themes might relate.',
+          'Discuss actual skills, responsibilities, ' +
+          'work conditions and professional feedback ' +
+          'before applying traditional number themes.',
         improvement:
-          'Identify one skill to strengthen, obtain ' +
-          'specific professional feedback and set ' +
-          'measurable career-development goals.',
+          'Identify one skill gap, request specific ' +
+          'feedback and set measurable career goals.',
         question:
           'What is the biggest obstacle in your current work?',
+        actions: [
+          'Describe the specific career obstacle in observable terms.',
+          'Seek feedback from a relevant colleague or mentor.',
+          'Set one measurable professional goal for the next month.',
+        ],
       }
 
     case 'business':
       return {
         suitability:
-          'Explore decision-making, client communication, ' +
-          'risk management, planning and operational ' +
-          'responsibility in the client’s actual business.',
+          'Explore actual customers, decision-making, ' +
+          'execution, financial risks and operational responsibilities.',
         improvement:
-          'Review cash flow, customer demand, execution, ' +
-          'responsibilities and decision processes. ' +
-          'Validate important business choices with data.',
+          'Review cash flow, customer demand and execution using real records.',
         question:
-          'Which part of the business currently needs ' +
-          'the most attention?',
+          'Which business problem currently needs the most attention?',
+        actions: [
+          'Review recent customer and sales evidence.',
+          'Identify one operational bottleneck and its owner.',
+          'Track a realistic improvement metric each week.',
+        ],
       }
 
     case 'money':
       return {
         suitability:
-          'Explore financial habits, planning, discipline ' +
-          'and decision-making as discussion themes, ' +
-          'not predictions of wealth.',
+          'Discuss financial habits and decisions, not predictions of wealth.',
         improvement:
-          'Review income, expenses, savings, obligations ' +
-          'and financial risks. Use qualified financial ' +
-          'advice for investment decisions.',
+          'Review income, expenses, debts and risks; consult a qualified adviser for investment decisions.',
         question:
-          'Is your main concern income, savings, debt, ' +
-          'business losses or financial planning?',
+          'Is your main concern income, savings, debt, losses or planning?',
+        actions: [
+          'List actual monthly inflows and obligations.',
+          'Identify a controllable spending or income improvement.',
+          'Seek qualified advice before major financial decisions.',
+        ],
       }
 
     case 'family':
       return {
         suitability:
-          'Explore communication, responsibility, ' +
-          'emotional needs and boundaries within the ' +
-          'family without assuming how relatives behave.',
+          'Explore family communication and boundaries without claiming to know relatives’ feelings.',
         improvement:
-          'Identify the specific relationship difficulty, ' +
-          'listen to each person’s perspective and agree ' +
-          'on realistic communication improvements.',
+          'Identify a specific difficulty, listen to perspectives and agree on practical changes.',
         question:
-          'Which family relationship would you like ' +
-          'to understand better?',
+          'Which family relationship or situation needs attention?',
+        actions: [
+          'Identify one specific recurring difficulty.',
+          'Arrange a calm conversation with clear boundaries.',
+          'Agree on one practical change and review it later.',
+        ],
       }
 
     case 'relationship':
     case 'marriage':
       return {
         suitability:
-          'Explore emotional connection, communication, ' +
-          'expectations, cooperation and responsibility. ' +
-          'A numerological profile cannot establish ' +
-          'compatibility or another person’s feelings.',
+          'Explore communication, expectations, cooperation and responsibility; numerology cannot establish compatibility or another person’s feelings.',
         improvement:
-          'Discuss expectations openly, clarify boundaries ' +
-          'and address repeated communication difficulties ' +
-          'through practical conversation.',
+          'Clarify expectations and address recurring difficulties through conversation.',
         question:
-          'What is the main relationship concern you ' +
-          'would like to discuss?',
+          'What relationship concern would you like to discuss first?',
+        actions: [
+          'Identify one unmet expectation clearly.',
+          'Ask the other person about their perspective.',
+          'Agree on one respectful communication improvement.',
+        ],
       }
 
     case 'personal_direction':
       return {
         suitability:
-          'Explore the client’s values, current choices, ' +
-          'interests and practical responsibilities.',
+          'Explore values, actual choices, interests and responsibilities.',
         improvement:
-          'Clarify priorities, compare realistic options ' +
-          'and create a short action plan with review dates.',
+          'Compare realistic options and create a short action plan.',
         question:
-          'Which important decision or direction feels unclear?',
+          'Which decision or direction feels most unclear?',
+        actions: [
+          'Write down the decision and realistic options.',
+          'Identify constraints and what matters most.',
+          'Choose one reversible next step and a review date.',
+        ],
       }
 
     default:
       return {
         suitability:
-          'Explore the concern through verified core ' +
-          'numbers and relevant traditional qualities, ' +
-          'while confirming each interpretation.',
+          'Explore the concern through calculated numbers and traditional associations, confirming every personal interpretation.',
         improvement:
-          'Identify the specific problem, distinguish ' +
-          'controllable factors and agree on practical steps.',
+          'Identify controllable factors and practical next steps.',
         question:
           'What change would you most like to achieve?',
+        actions: [
+          'Clarify the concern in specific terms.',
+          'Identify one controllable factor.',
+          'Agree on a realistic action and review date.',
+        ],
       }
   }
 }
 
-function buildConcernInterpretation(
-  input: UniversalNumerologyInput,
-  scope: ConsultationScopeResult,
-  qualities: readonly NumerologyQualityAssessment[]
-): ConcernInterpretation {
-  const guidance = topicGuidance(
-    input.topic,
-    [
-      input.clientConcern,
-      input.clarification || '',
-    ].join(' ')
+function buildFollowUp(
+  guidance: Guidance,
+  input: UniversalNumerologyInput
+): ConsultationFollowUp {
+  const answered = (
+    input.followUpAnswers || []
+  ).filter(
+    (item) => item.clientAnswer.trim()
   )
 
-  const foundation = coreNumberNarrative(
-    input.calculation
-  )
-
-  const relevant = qualities.slice(0, 3)
-
-  const qualitySummary = relevant.length
-    ? relevant
-        .map((quality) => {
-          const definition = QUALITIES.find(
-            (item) => item.id === quality.qualityId
-          )
-
-          return definition
-            ? `${definition.title}: ${definition.strength}`
-            : quality.title
-        })
-        .join('; ')
-    : 'No additional topic-specific quality is established.'
-
-  const improvement = relevant
-    .map((quality) =>
-      QUALITIES.find(
-        (item) => item.id === quality.qualityId
-      )?.improvement
-    )
-    .filter((item): item is string => Boolean(item))
-
-  if (!scope.canProvideNumerologyGuidance) {
+  if (!answered.length) {
     return {
-      title: 'Personalized Consultation Scope',
-      suitabilityDiscussion:
-        'The client’s concern requires a separate ' +
-        'Life Path assessment for the requested ' +
-        'timing or prediction. Do not infer such ' +
-        'results from numerology alone.',
-      personalityConnection:
-        'Verified numerological numbers are available, ' +
-        'but they do not establish the requested ' +
-        'future event or timing.',
-      improvementDirection:
-        'Clarify the client’s immediate practical ' +
-        'concern and explain the appropriate scope ' +
-        'of the TSIA Life Path Guidance Report.',
-      limitation:
-        'No event timing, guaranteed result or ' +
-        'astrological prediction has been calculated.',
-      supportingQualityIds: [],
+      question: guidance.question,
+      reason:
+        'Clarify the real situation before making a personal recommendation.',
+      answered: false,
     }
   }
 
+  const next =
+    input.topic === 'career'
+      ? 'What concrete feedback have you received about your recent work, and what would you like to change in your next project?'
+      : 'Which practical change have you already tried, and what happened?'
+
   return {
-    title: 'Personalized Numerology Consultation',
-    suitabilityDiscussion:
-      `${foundation} ${guidance.suitability}`,
-    personalityConnection:
-      `The most relevant available traditional ` +
-      `themes for this discussion are: ` +
-      `${qualitySummary}. ` +
-      'These are interpretations to discuss, ' +
-      'not verified personality facts. ' +
-      'Ask the client which observations fit ' +
-      'their real experience.',
-    improvementDirection:
-      [
-        guidance.improvement,
-        ...unique(improvement),
-      ].join(' '),
-    limitation:
-      'These are traditional numerological ' +
-      'interpretations, not proof of personality, ' +
-      'professional suitability or future outcomes. ' +
-      'Approved V3 findings and traditional ' +
-      'associations must remain distinct.',
-    supportingQualityIds:
-      relevant.map((item) => item.qualityId),
+    question: next,
+    reason:
+      'Use the client’s recorded experience to choose the next practical step.',
+    answered: false,
   }
 }
 
 export function buildUniversalNumerologyIntelligence(
   input: UniversalNumerologyInput
 ): UniversalNumerologyResult {
-  const concern = input.clientConcern.trim()
+  const concern =
+    input.clientConcern.trim()
+
+  const clarification =
+    input.clarification || ''
 
   const scope = determineConsultationScope({
     primaryTopic: input.topic,
     clientConcern: concern,
-    clarification: input.clarification || '',
+    clarification,
   })
 
-  const boosted = concernBoosts(
-    `${concern} ${input.clarification || ''}`
+  const confirmedClientContext = (
+    input.followUpAnswers || []
+  )
+    .map((item) =>
+      item.clientAnswer.trim()
+    )
+    .filter(Boolean)
+
+  const context = [
+    concern,
+    clarification,
+    ...confirmedClientContext,
+  ].join(' ')
+
+  const boosted = unique(
+    SIGNALS
+      .filter((signal) =>
+        containsAny(context, signal.words)
+      )
+      .flatMap(
+        (signal) => signal.qualities
+      )
   )
 
   const assessments = QUALITIES
@@ -944,86 +880,153 @@ export function buildUniversalNumerologyIntelligence(
     )
     .sort(
       (a, b) =>
-        qualityScore(b, input.topic, boosted) -
-        qualityScore(a, input.topic, boosted)
+        score(b, input.topic, boosted) -
+        score(a, input.topic, boosted)
     )
 
   const relevantQualities =
-    assessments.slice(0, 6).map(
-      (quality, index) => ({
+    assessments
+      .slice(0, 6)
+      .map((quality, index) => ({
         ...quality,
         relevance:
           index < 3
             ? ('PRIMARY' as const)
             : ('SUPPORTING' as const),
-      })
-    )
-
-  const behaviouralDevelopment =
-    buildDevelopment(relevantQualities)
-
-  const concernInterpretation =
-    buildConcernInterpretation(
-      input,
-      scope,
-      relevantQualities
-    )
+      }))
 
   const guidance = topicGuidance(
     input.topic,
-    `${concern} ${input.clarification || ''}`
+    context
   )
+
+  const followUp = buildFollowUp(
+    guidance,
+    input
+  )
+
+  const behaviouralDevelopment:
+    BehaviouralDevelopmentItem[] =
+    relevantQualities
+      .slice(0, 5)
+      .map((quality, index) => {
+        const definition = QUALITIES.find(
+          (item) =>
+            item.id === quality.qualityId
+        )!
+
+        return {
+          id: `DEVELOPMENT_${definition.number}`,
+          title: definition.title,
+          possiblePattern:
+            `A possible pattern to explore: ${definition.challenge}.`,
+          practicalImprovement:
+            index < 3
+              ? guidance.actions[index]
+              : definition.improvement,
+          evidence: quality.evidence,
+          requiresClientConfirmation: true,
+        }
+      })
+
+  const relevant =
+    relevantQualities.slice(0, 3)
+
+  const concernInterpretation:
+    ConcernInterpretation =
+    scope.canProvideNumerologyGuidance
+      ? {
+          title:
+            'Personalized Numerology Consultation',
+          suitabilityDiscussion:
+            `${coreNarrative(input.calculation)} ${guidance.suitability}`,
+          personalityConnection:
+            `Relevant traditional themes: ` +
+            `${
+              relevant
+                .map((item) => item.title)
+                .join('; ') ||
+              'none established'
+            }. ` +
+            'These are discussion prompts, not confirmed personality facts. ' +
+            (
+              confirmedClientContext.length
+                ? `Client-reported follow-up information: ${confirmedClientContext.join(' | ')}.`
+                : 'Ask the client to confirm which themes reflect actual experience.'
+            ),
+          improvementDirection:
+            guidance.improvement,
+          limitation:
+            'Traditional numerology does not prove personality, career suitability, future events or commercial outcomes. Client statements and V3 calculations are different evidence categories.',
+          supportingQualityIds:
+            relevant.map(
+              (item) => item.qualityId
+            ),
+        }
+      : {
+          title:
+            'Personalized Consultation Scope',
+          suitabilityDiscussion:
+            'This question requires separate Life Path assessment for the requested timing or prediction. Numerology alone cannot calculate the event.',
+          personalityConnection:
+            'Calculated numerology numbers do not establish the requested future event or timing.',
+          improvementDirection:
+            'Clarify the immediate practical concern and explain the scope of Jeevan Sutra Premium Life Path Guidance.',
+          limitation:
+            'No event timing or astrological prediction has been calculated.',
+          supportingQualityIds: [],
+        }
 
   const suggestedQuestions = unique(
     [
-      guidance.question,
-      ...relevantQualities
-        .slice(0, 3)
-        .map(
-          (quality) =>
-            quality.confirmationQuestion
-        ),
+      followUp.question,
+      ...relevant.map(
+        (item) =>
+          item.confirmationQuestion
+      ),
       scope.requiresLifePathGuidance
         ? scope.nextQuestion
         : '',
-    ].filter((item): item is string => Boolean(item))
+    ].filter(Boolean)
   )
 
   const warnings = unique([
     ...scope.warnings,
-    'Traditional number associations are not ' +
-      'scientifically validated personality assessments.',
-    'Client statements provide discussion context ' +
-      'and must not be treated as numerological evidence.',
-    'Numerology does not establish guaranteed ' +
-      'professional, financial or relationship outcomes.',
+    'Traditional number associations are interpretive, not scientifically validated personality assessments.',
+    'Client statements are discussion context, not calculated numerology evidence.',
+    'Do not promise professional, financial, relationship or film-industry outcomes.',
   ])
 
   const practitionerSummary =
     scope.canProvideNumerologyGuidance
       ? (
           `Client concern: ${concern}. ` +
-          coreNumberNarrative(input.calculation) +
-          ' Discuss the relevant qualities, ' +
-          'confirm possible patterns with the client, ' +
-          'and connect improvements to real circumstances.'
+          coreNarrative(
+            input.calculation
+          ) +
+          (
+            confirmedClientContext.length
+              ? ` Client-reported follow-up: ${confirmedClientContext.join(' | ')}. `
+              : ' '
+          ) +
+          'Ask the next question, verify possible patterns and focus on practical circumstances.'
         )
       : (
           `Client concern: ${concern}. ` +
-          'The requested prediction or timing requires ' +
-          'separate Life Path Guidance. Do not present ' +
-          'a numerological interpretation as an ' +
-          'astrological calculation.'
+          'Requested timing or prediction requires separate Life Path Guidance; do not present numerology as astrological calculation.'
         )
 
   return {
-    version: UNIVERSAL_NUMEROLOGY_VERSION,
+    version:
+      UNIVERSAL_NUMEROLOGY_VERSION,
     topic: input.topic,
     clientConcern: concern,
     scope,
     coreNumbers: {
-      mulank: input.calculation.mulank.final,
-      bhagyank: input.calculation.bhagyank.final,
+      mulank:
+        input.calculation.mulank.final,
+      bhagyank:
+        input.calculation.bhagyank.final,
       nameNumber:
         input.calculation.nameNumber.finalNumber,
     },
@@ -1033,5 +1036,7 @@ export function buildUniversalNumerologyIntelligence(
     suggestedQuestions,
     warnings,
     concernInterpretation,
+    nextFollowUp: followUp,
+    confirmedClientContext,
   }
 }
