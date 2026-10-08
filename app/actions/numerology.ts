@@ -39,6 +39,12 @@ export async function generateNumerologyV2(
     const supabase =
       await createClient()
 
+    /*
+     * AUTHENTICATION
+     *
+     * Only authenticated users
+     * may request client numerology.
+     */
     const {
       data: {
         user,
@@ -54,6 +60,29 @@ export async function generateNumerologyV2(
       }
     }
 
+    /*
+     * INPUT VALIDATION
+     */
+    if (
+      typeof clientId !== 'string' ||
+      !clientId.trim()
+    ) {
+      return {
+        error:
+          'A valid client ID is required.',
+        result: null,
+      }
+    }
+
+    /*
+     * CLIENT LOOKUP
+     *
+     * Supabase RLS must restrict
+     * access to authorized clients.
+     *
+     * Authentication alone does
+     * not establish authorization.
+     */
     const {
       data: client,
       error: clientError,
@@ -70,7 +99,7 @@ export async function generateNumerologyV2(
           gender
           `
         )
-        .eq('id', clientId)
+        .eq('id', clientId.trim())
         .maybeSingle()
 
     if (clientError) {
@@ -94,11 +123,14 @@ export async function generateNumerologyV2(
     if (!client) {
       return {
         error:
-          'Client not found.',
+          'Client not found or access denied.',
         result: null,
       }
     }
 
+    /*
+     * CLIENT INPUT
+     */
     const fullName =
       (
         client.current_name ||
@@ -131,12 +163,13 @@ export async function generateNumerologyV2(
     /*
      * FROZEN V2 CALCULATION
      *
-     * This remains deterministic.
+     * Deterministic calculation.
+     *
      * Consultation answers,
-     * observations, payment,
+     * observations, payments,
      * customer behaviour and
-     * V3 interpretation must never
-     * alter this calculation.
+     * V3 interpretations must
+     * never change this result.
      */
     const calculation =
       calculateNumerologyV2({
@@ -145,7 +178,7 @@ export async function generateNumerologyV2(
       })
 
     /*
-     * VERIFIED V2 EVIDENCE ENGINE
+     * VERIFIED V2 EVIDENCE
      */
     const evidence =
       buildNumerologyEvidence(
@@ -162,10 +195,7 @@ export async function generateNumerologyV2(
       )
 
     /*
-     * VERIFIED V2 NARRATIVE ENGINE
-     *
-     * Narrative is generated from
-     * report content only.
+     * VERIFIED V2 NARRATIVE
      */
     const narrative =
       buildNumerologyV2Narrative(
@@ -173,11 +203,12 @@ export async function generateNumerologyV2(
       )
 
     /*
-     * V3 NUMEROLOGY INTELLIGENCE
+     * VERIFIED V3 INTELLIGENCE
      *
-     * V3 interprets the frozen
-     * calculation independently.
-     * It does not rewrite V2.
+     * Reuses the existing V2
+     * calculation.
+     *
+     * No second V2 calculation.
      */
     const intelligence =
       runNumerologyV3FromCalculation(
@@ -185,11 +216,14 @@ export async function generateNumerologyV2(
       )
 
     /*
-     * EMPLOYEE OUTPUT
+     * EXISTING EMPLOYEE OUTPUT
      *
-     * Selects and ranks approved
-     * V3 conclusions for the
-     * practitioner.
+     * Preserve the approved
+     * five-insight output.
+     *
+     * Existing report and
+     * employee workflows remain
+     * compatible.
      */
     const employeeOutput =
       buildEmployeeOutput(
@@ -199,14 +233,12 @@ export async function generateNumerologyV2(
       )
 
     /*
-     * EMPLOYEE INTERPRETATION
+     * EXISTING EMPLOYEE
+     * INTERPRETATIONS
      *
-     * Converts already-resolved
-     * employee insights into
-     * practitioner-facing guidance.
-     *
-     * This layer does not create
-     * new numerological findings.
+     * Preserve the current
+     * five-insight interpretation
+     * behaviour.
      */
     const employeeInterpretation =
       buildEmployeeInterpretations(
@@ -214,6 +246,36 @@ export async function generateNumerologyV2(
         5
       )
 
+    /*
+     * COMPLETE APPROVED
+     * CONSULTATION INSIGHT POOL
+     *
+     * The existing employee
+     * output function already
+     * supports configurable
+     * result limits.
+     *
+     * Using MAX_SAFE_INTEGER
+     * returns the complete
+     * available approved pool.
+     *
+     * No new intelligence
+     * methodology is introduced.
+     *
+     * Topic selection will use
+     * this pool without changing
+     * V2 or V3 calculations.
+     */
+    const consultationInsightPool =
+      buildEmployeeOutput(
+        intelligence.conclusions,
+        intelligence.crossQuality,
+        Number.MAX_SAFE_INTEGER
+      )
+
+    /*
+     * RETURN VERIFIED RESULTS
+     */
     return {
       error: null,
 
@@ -251,9 +313,18 @@ export async function generateNumerologyV2(
         employeeOutput,
 
         employeeInterpretation,
+
+        consultationInsightPool,
       },
     }
   } catch (error) {
+    /*
+     * Log unexpected failures
+     * on the server.
+     *
+     * Do not expose internal
+     * error details to clients.
+     */
     console.error(
       '[numerology] generation failed',
       error
@@ -261,9 +332,7 @@ export async function generateNumerologyV2(
 
     return {
       error:
-        error instanceof Error
-          ? error.message
-          : 'Unable to generate numerology.',
+        'Unable to generate numerology. Please try again.',
       result: null,
     }
   }
