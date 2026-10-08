@@ -34,6 +34,10 @@ import {
   selectConsultationIntelligence,
 } from '@/lib/consultation/consultation-intelligence-selector'
 
+import {
+  buildConsultationOutcome,
+} from '@/lib/consultation/consultation-outcome-engine'
+
 import type {
   ConsultationAnswerForIntelligence,
   QuestionIntelligenceDecision,
@@ -117,27 +121,43 @@ const grid: NumerologyDigit[] = [
 function getConcernAnswer(
   answers: readonly ConsultationAnswerForIntelligence[]
 ): string {
-  const concern = answers.find(
-    (item) =>
-      item.questionKey === 'TODAY_NOTE_EXPLORATION' ||
-      item.questionKey === 'PRIMARY_CONCERN_EXPLORATION'
-  )
+  for (let index = answers.length - 1; index >= 0; index--) {
+    const item = answers[index]
 
-  return concern?.clientAnswer.trim() || ''
+    if (
+      (
+        item.questionKey === 'TODAY_NOTE_EXPLORATION' ||
+        item.questionKey === 'PRIMARY_CONCERN_EXPLORATION'
+      ) &&
+      item.clientAnswer.trim()
+    ) {
+      return item.clientAnswer.trim()
+    }
+  }
+
+  return ''
 }
 
 function getClarificationAnswer(
   answers: readonly ConsultationAnswerForIntelligence[]
 ): string {
-  const clarification = answers.find(
-    (item) =>
-      item.questionKey === 'CONCERN_CLARIFICATION'
-  )
+  for (let index = answers.length - 1; index >= 0; index--) {
+    const item = answers[index]
 
-  return clarification?.clientAnswer.trim() || ''
+    if (
+      item.questionKey === 'CONCERN_CLARIFICATION' &&
+      item.clientAnswer.trim()
+    ) {
+      return item.clientAnswer.trim()
+    }
+  }
+
+  return ''
 }
 
-function readableTopic(topic: string | null): string {
+function readableTopic(
+  topic: string | null
+): string {
   if (!topic) {
     return 'General Consultation'
   }
@@ -179,11 +199,11 @@ export function ConsultationAssistant({
   /*
    * LOAD VERIFIED NUMEROLOGY
    *
-   * V2 is calculated on the server.
-   * V3 reuses the same calculation.
+   * V2 calculations remain server-side.
+   * V3 uses the verified calculation.
    *
-   * Consultation context does not modify
-   * the verified numerology.
+   * Consultation answers never modify
+   * numerological evidence.
    */
   useEffect(() => {
     let active = true
@@ -201,7 +221,10 @@ export function ConsultationAssistant({
           return
         }
 
-        if (response.error || !response.result) {
+        if (
+          response.error ||
+          !response.result
+        ) {
           setError(
             response.error ||
               'Unable to load numerology.'
@@ -226,14 +249,20 @@ export function ConsultationAssistant({
         }
 
         setData({
-          calculation: result.calculation,
-          intelligence: result.intelligence,
+          calculation:
+            result.calculation,
+
+          intelligence:
+            result.intelligence,
+
           consultationInsightPool:
             result.consultationInsightPool,
         })
       } catch {
         if (active) {
-          setError('Unable to load numerology.')
+          setError(
+            'Unable to load numerology.'
+          )
         }
       } finally {
         if (active) {
@@ -251,10 +280,6 @@ export function ConsultationAssistant({
 
   /*
    * QUESTION INTELLIGENCE
-   *
-   * Clarification is requested by
-   * the practitioner, not guessed
-   * from client keywords.
    */
   const decision =
     useMemo<QuestionIntelligenceDecision>(
@@ -279,6 +304,9 @@ export function ConsultationAssistant({
 
   /*
    * VERIFIED TOPIC SELECTION
+   *
+   * Used for the supporting
+   * V3 intelligence section.
    */
   const consultationSelection =
     useMemo<ConsultationSelectionResult | null>(
@@ -299,6 +327,37 @@ export function ConsultationAssistant({
       },
       [data, purpose, topics]
     )
+
+  /*
+   * OPTION A — CONSULTATION OUTCOME
+   *
+   * Reuses the approved selector
+   * through the outcome engine.
+   *
+   * No new evidence is created.
+   */
+  const consultationOutcome = useMemo(() => {
+    if (!data) {
+      return null
+    }
+
+    return buildConsultationOutcome({
+      purpose,
+      topics,
+      todayNote: note,
+      answers: currentAnswers,
+      insights:
+        data.consultationInsightPool.insights,
+      conclusions:
+        data.intelligence.conclusions,
+    })
+  }, [
+    data,
+    purpose,
+    topics,
+    note,
+    currentAnswers,
+  ])
 
   const directInsights =
     consultationSelection?.insights.filter(
@@ -329,14 +388,19 @@ export function ConsultationAssistant({
         ? 'Phone'
         : 'Consultation'
 
-  const primaryTopic = topics[0] || null
+  const primaryTopic =
+    topics[0] || null
 
-  const concernAnswer = getConcernAnswer(currentAnswers)
+  const concernAnswer =
+    getConcernAnswer(currentAnswers)
+
   const clarificationAnswer =
     getClarificationAnswer(currentAnswers)
 
   const hasConcern =
-    Boolean(concernAnswer || note.trim())
+    Boolean(
+      concernAnswer || note.trim()
+    )
 
   const isFamiliarityQuestion =
     decision.questionKey ===
@@ -352,23 +416,22 @@ export function ConsultationAssistant({
       : Boolean(answer.trim())
 
   /*
-   * INITIAL OUTCOME
-   *
-   * Display after the concern is
-   * recorded, even if the practitioner
-   * requests additional clarification.
-   *
-   * The findings remain unchanged
-   * when the client answers questions.
+   * Show initial consultation outcome
+   * after the concern is recorded.
    */
   const showInitialOutcome =
     hasConcern &&
     currentAnswers.some(
       (item) =>
-        item.questionKey ===
-          'TODAY_NOTE_EXPLORATION' ||
-        item.questionKey ===
-          'PRIMARY_CONCERN_EXPLORATION'
+        (
+          item.questionKey ===
+            'TODAY_NOTE_EXPLORATION' ||
+          item.questionKey ===
+            'PRIMARY_CONCERN_EXPLORATION'
+        ) &&
+        Boolean(
+          item.clientAnswer.trim()
+        )
     )
 
   const outcomeStatus =
@@ -377,12 +440,10 @@ export function ConsultationAssistant({
       : 'Initial Discussion Context'
 
   /*
-   * RECORD CONSULTATION ANSWER
+   * RECORD ANSWER
    *
-   * Phase 1: local React state.
-   *
-   * Database persistence will be
-   * implemented separately.
+   * Current phase: local React state.
+   * Database persistence is separate.
    */
   function handleContinue() {
     if (
@@ -406,8 +467,12 @@ export function ConsultationAssistant({
 
     const recordedAnswer:
       ConsultationAnswerForIntelligence = {
-        questionKey: decision.questionKey,
-        questionText: decision.questionText,
+        questionKey:
+          decision.questionKey,
+
+        questionText:
+          decision.questionText,
+
         clientAnswer,
       }
 
@@ -424,9 +489,6 @@ export function ConsultationAssistant({
 
   /*
    * PRACTITIONER CLARIFICATION
-   *
-   * One optional clarification per
-   * opening concern.
    */
   function requestClarification() {
     if (clarificationReviewed) {
@@ -480,6 +542,7 @@ export function ConsultationAssistant({
             </p>
 
             <div className="mt-4 flex flex-wrap gap-2">
+
               <Tag text={modeLabel} />
 
               <Tag
@@ -491,9 +554,12 @@ export function ConsultationAssistant({
 
               {primaryTopic && (
                 <Tag
-                  text={readableTopic(primaryTopic)}
+                  text={
+                    readableTopic(primaryTopic)
+                  }
                 />
               )}
+
             </div>
 
           </header>
@@ -550,6 +616,7 @@ export function ConsultationAssistant({
                         </p>
 
                       </div>
+
                     </div>
                   )
                 )}
@@ -598,6 +665,7 @@ export function ConsultationAssistant({
                             {choice === item && (
                               <Check className="size-4 text-[#ad7b40]" />
                             )}
+
                           </button>
                         )
                       )}
@@ -716,7 +784,7 @@ export function ConsultationAssistant({
               </div>
             )}
 
-            {/* SECTION 2: DISCUSSION-SPECIFIC OUTCOME */}
+            {/* SECTION 2: OPTION A CONSULTATION OUTCOME */}
 
             {showInitialOutcome && (
               <>
@@ -772,104 +840,165 @@ export function ConsultationAssistant({
                   </div>
                 )}
 
-                {!loading && !error && consultationSelection && (
-                  <div className="mt-4 space-y-4">
+                {!loading &&
+                  !error &&
+                  consultationOutcome && (
+                    <div className="mt-4 space-y-4">
 
-                    <div className="rounded-2xl border border-[#e6ddd1] p-5">
+                      {/* RELEVANT FINDINGS */}
 
-                      <h3 className="font-serif text-lg font-semibold text-[#24354c]">
-                        Relevant Numerological Findings
-                      </h3>
+                      <div className="rounded-2xl border border-[#e6ddd1] p-5">
 
-                      {directInsights.length > 0 ? (
-                        <div className="mt-4 space-y-3">
-                          {directInsights.map(
-                            (item) => (
-                              <div
-                                key={item.insight.id}
-                                className="rounded-xl bg-[#f8f4ed] p-4"
-                              >
-                                <p className="text-sm font-semibold text-[#24354c]">
-                                  {item.insight.title}
-                                </p>
+                        <h3 className="font-serif text-lg font-semibold text-[#24354c]">
+                          Relevant Numerological Findings
+                        </h3>
 
-                                <p className="mt-2 text-sm leading-6 text-[#776d61]">
-                                  {item.insight.statement}
-                                </p>
+                        {directInsights.length > 0 ? (
+                          <div className="mt-4 space-y-3">
 
-                                <p className="mt-2 text-[10px] uppercase tracking-wide text-[#ad7b40]">
-                                  {item.relevanceLevel === 'PRIMARY'
-                                    ? 'Directly matched to primary topic'
-                                    : 'Matched to secondary topic'}
-                                </p>
-                              </div>
-                            )
-                          )}
-                        </div>
-                      ) : (
-                        <p className="mt-3 text-sm leading-6 text-[#776d61]">
-                          No verified V3 conclusion
-                          directly matches the selected
-                          discussion topic. General
-                          numerology observations must
-                          not be presented as a direct
-                          explanation of the client's
-                          concern.
-                        </p>
-                      )}
+                            {directInsights.map(
+                              (item) => (
+                                <div
+                                  key={item.insight.id}
+                                  className="rounded-xl bg-[#f8f4ed] p-4"
+                                >
 
-                    </div>
+                                  <p className="text-sm font-semibold text-[#24354c]">
+                                    {item.insight.title}
+                                  </p>
 
-                    <div className="rounded-2xl border border-[#e6ddd1] p-5">
+                                  <p className="mt-2 text-sm leading-6 text-[#776d61]">
+                                    {item.insight.statement}
+                                  </p>
 
-                      <h3 className="font-serif text-lg font-semibold text-[#24354c]">
-                        Practitioner Guidance
-                      </h3>
+                                  <p className="mt-2 text-[10px] uppercase tracking-wide text-[#ad7b40]">
+                                    {item.relevanceLevel === 'PRIMARY'
+                                      ? 'Matched to primary topic'
+                                      : 'Matched to secondary topic'}
+                                  </p>
 
-                      <p className="mt-3 text-sm leading-6 text-[#776d61]">
-                        Discuss the client's stated
-                        concern alongside the verified
-                        findings above. Explore which
-                        observations the client
-                        recognizes in their own
-                        experience before suggesting
-                        practical next steps.
-                      </p>
+                                </div>
+                              )
+                            )}
 
-                      <p className="mt-3 text-sm leading-6 text-[#776d61]">
-                        Client statements provide
-                        real-world context. They do
-                        not establish numerological
-                        causes or change the
-                        approved V3 conclusions.
-                      </p>
-
-                      {!clarificationAnswer &&
-                        !clarificationReviewed && (
+                          </div>
+                        ) : (
                           <p className="mt-3 text-sm leading-6 text-[#776d61]">
-                            The practitioner may
-                            request one clarification
-                            question to understand
-                            the situation more
-                            precisely.
+                            No approved V3 conclusion
+                            directly matches this
+                            consultation topic.
+                            General numerology
+                            observations remain
+                            available below but
+                            cannot be treated as
+                            direct explanations
+                            of the client's concern.
                           </p>
                         )}
 
-                      {clarificationAnswer && (
-                        <p className="mt-3 text-sm leading-6 text-[#776d61]">
-                          The additional response
-                          should now be considered
-                          when discussing practical
-                          guidance. The underlying
-                          verified numerology remains
-                          unchanged.
-                        </p>
-                      )}
+                      </div>
+
+                      {/* PRACTITIONER GUIDANCE */}
+
+                      <div className="rounded-2xl border border-[#e6ddd1] p-5">
+
+                        <h3 className="font-serif text-lg font-semibold text-[#24354c]">
+                          Practitioner Guidance
+                        </h3>
+
+                        {consultationOutcome.strengths.length > 0 && (
+                          <div className="mt-4">
+
+                            <h4 className="text-sm font-semibold text-[#24354c]">
+                              Numerological Strengths
+                            </h4>
+
+                            {consultationOutcome.strengths.map(
+                              (finding) => (
+                                <div
+                                  key={finding.id}
+                                  className="mt-3 rounded-xl bg-[#f8f4ed] p-4"
+                                >
+
+                                  <p className="text-sm font-semibold text-[#24354c]">
+                                    {finding.title}
+                                  </p>
+
+                                  <p className="mt-2 text-sm leading-6 text-[#776d61]">
+                                    {finding.statement}
+                                  </p>
+
+                                </div>
+                              )
+                            )}
+
+                          </div>
+                        )}
+
+                        {consultationOutcome.developmentAreas.length > 0 && (
+                          <div className="mt-5">
+
+                            <h4 className="text-sm font-semibold text-[#24354c]">
+                              Development Considerations
+                            </h4>
+
+                            {consultationOutcome.developmentAreas.map(
+                              (finding) => (
+                                <div
+                                  key={finding.id}
+                                  className="mt-3 rounded-xl bg-[#fbf6ec] p-4"
+                                >
+
+                                  <p className="text-sm font-semibold text-[#24354c]">
+                                    {finding.title}
+                                  </p>
+
+                                  <p className="mt-2 text-sm leading-6 text-[#776d61]">
+                                    {finding.statement}
+                                  </p>
+
+                                </div>
+                              )
+                            )}
+
+                          </div>
+                        )}
+
+                        <div className="mt-5">
+
+                          <h4 className="text-sm font-semibold text-[#24354c]">
+                            Practitioner Discussion Guidance
+                          </h4>
+
+                          {consultationOutcome.practitionerGuidance.map(
+                            (guidance, index) => (
+                              <p
+                                key={index}
+                                className="mt-3 text-sm leading-6 text-[#776d61]"
+                              >
+                                {guidance}
+                              </p>
+                            )
+                          )}
+
+                        </div>
+
+                        <div className="mt-5 rounded-xl border border-[#dfd3c1] bg-[#fbf6ec] p-4">
+
+                          <p className="text-xs font-semibold uppercase tracking-wide text-[#ad7b40]">
+                            Suggested Next Question
+                          </p>
+
+                          <p className="mt-2 text-sm font-medium leading-6 text-[#24354c]">
+                            {consultationOutcome.nextQuestion}
+                          </p>
+
+                        </div>
+
+                      </div>
 
                     </div>
-
-                  </div>
-                )}
+                  )}
 
               </>
             )}
@@ -948,11 +1077,13 @@ export function ConsultationAssistant({
                 <div className="grid gap-4 sm:grid-cols-2">
 
                   <div>
+
                     <p className="mb-2 text-xs font-semibold">
                       Standard Lo Shu
                     </p>
 
                     <div className="grid max-w-[230px] grid-cols-3">
+
                       {grid.map(
                         (number) => (
                           <GridCell
@@ -961,15 +1092,19 @@ export function ConsultationAssistant({
                           />
                         )
                       )}
+
                     </div>
+
                   </div>
 
                   <div>
+
                     <p className="mb-2 text-xs font-semibold">
                       Personal Lo Shu
                     </p>
 
                     <div className="grid max-w-[230px] grid-cols-3">
+
                       {grid.map(
                         (number) => (
                           <GridCell
@@ -981,7 +1116,9 @@ export function ConsultationAssistant({
                           />
                         )
                       )}
+
                     </div>
+
                   </div>
 
                 </div>
@@ -1079,6 +1216,7 @@ export function ConsultationAssistant({
 
             {!loading && !error && data && (
               <>
+
                 <Title
                   small="Supporting Numerological Evidence"
                   big={
@@ -1097,12 +1235,14 @@ export function ConsultationAssistant({
                   />
                 ) : (
                   <div className="rounded-xl border border-[#eadfce] bg-[#f8f4ed] p-4">
+
                     <p className="text-sm leading-6 text-[#776d61]">
                       No eligible verified V3
                       findings are currently
                       available for this
                       consultation.
                     </p>
+
                   </div>
                 )}
 
@@ -1124,36 +1264,42 @@ export function ConsultationAssistant({
                     >
                       {warning}
                     </p>
-                  ))}
+                  )
+                )}
 
               </>
             )}
 
             {/* SECTION 5: COMPLETE INTELLIGENCE */}
 
-            {!loading && !error && data?.intelligence && (
-              <>
-                <Title
-                  small="Deep Analysis"
-                  big="Complete Numerology Intelligence"
-                />
+            {!loading &&
+              !error &&
+              data?.intelligence && (
+                <>
 
-                <ConsultationCompleteIntelligence
-                  conclusions={
-                    data.intelligence.conclusions.conclusions
-                  }
-                  developmentAssessments={
-                    data.intelligence.conclusions
-                      .developmentAssessments
-                  }
-                  crossQualityResolutions={
-                    data.intelligence.crossQuality.resolutions
-                  }
-                />
-              </>
-            )}
+                  <Title
+                    small="Deep Analysis"
+                    big="Complete Numerology Intelligence"
+                  />
+
+                  <ConsultationCompleteIntelligence
+                    conclusions={
+                      data.intelligence.conclusions.conclusions
+                    }
+                    developmentAssessments={
+                      data.intelligence.conclusions
+                        .developmentAssessments
+                    }
+                    crossQualityResolutions={
+                      data.intelligence.crossQuality.resolutions
+                    }
+                  />
+
+                </>
+              )}
 
           </main>
+
         </div>
       </div>
     </div>
@@ -1209,7 +1355,9 @@ function formatRepeated(
     : 'None'
 }
 
-function statusLabel(status: string) {
+function statusLabel(
+  status: string
+) {
   if (status === 'complete') {
     return 'Complete'
   }
