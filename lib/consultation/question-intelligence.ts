@@ -1,6 +1,34 @@
+/**
+ * TSIA QUESTION INTELLIGENCE
+ *
+ * Version 1.2
+ *
+ * Development Rule 001:
+ * SIMPLE • FAST • SAFE • RELIABLE
+ *
+ * This module:
+ *
+ * 1. Handles first-consultation orientation.
+ * 2. Understands the client's concern.
+ * 3. Supports practitioner-controlled clarification.
+ * 4. Preserves the selected consultation topics.
+ * 5. Keeps client answers separate from V3 evidence.
+ *
+ * This module does not modify:
+ *
+ * - V2 calculations
+ * - V3 conclusions
+ * - Numerological evidence
+ * - Approved numerology methodology
+ */
+
+export const QUESTION_INTELLIGENCE_VERSION =
+  'TSIA_QUESTION_INTELLIGENCE_1.2' as const
+
 export type QuestionStage =
   | 'NUMEROLOGY_FAMILIARITY'
   | 'CONCERN_EXPLORATION'
+  | 'CONCERN_CLARIFICATION'
   | 'READY_FOR_V3'
 
 export type QuestionSource =
@@ -21,69 +49,47 @@ export type QuestionIntelligenceInput = {
 
   purpose: string
 
-  /*
-   * Keep topics in their original selected order.
-   * topics[0] is the Primary Topic.
-   */
   topics: readonly string[]
 
-  /*
-   * Free-text note entered while starting
-   * today's consultation.
-   */
   todayNote: string
 
-  /*
-   * Questions already answered during the
-   * current consultation.
-   */
   currentAnswers:
     readonly ConsultationAnswerForIntelligence[]
+
+  /**
+   * Optional for backward compatibility.
+   *
+   * true:
+   * Practitioner requests one clarification.
+   *
+   * false or undefined:
+   * Proceed without additional clarification.
+   */
+  clarificationNeeded?: boolean
 }
 
 export type QuestionIntelligenceDecision = {
   stage: QuestionStage
+
   source: QuestionSource
 
   questionKey: string | null
+
   questionText: string | null
 
   primaryTopic: string | null
+
   secondaryTopics: readonly string[]
 
   reason: string
 
-  /*
-   * false means the orientation/concern
-   * discovery layer has enough information
-   * and the consultation may move to V3.
-   */
   shouldAskQuestion: boolean
 }
 
-/*
- * Question Asking Intelligence
- *
- * Responsibilities:
- *
- * 1. First consultation:
- *    establish previous numerology exposure.
- *
- * 2. Use the client's selected concern as
- *    the normal consultation direction.
- *
- * 3. If today's note gives a more specific
- *    or different reason, allow that context
- *    to direct the conversation.
- *
- * 4. Do NOT modify the client's selected
- *    primary topic.
- *
- * 5. Do NOT create or modify V3 findings.
- *
- * 6. Do NOT treat client statements as
- *    numerological evidence.
+/**
+ * MAIN QUESTION DECISION ENGINE
  */
+
 export function decideNextQuestion(
   input: QuestionIntelligenceInput
 ): QuestionIntelligenceDecision {
@@ -93,15 +99,11 @@ export function decideNextQuestion(
   const secondaryTopics =
     input.topics.slice(1)
 
-  /*
-   * FIRST CONSULTATION
-   *
-   * We only establish the client's previous
-   * exposure to numerology.
-   *
-   * These questions are NOT used to decide
-   * the client's consultation concern.
+  /**
+   * STEP 1:
+   * FIRST CONSULTATION ORIENTATION
    */
+
   if (input.consultationNumber <= 1) {
     const familiarityAnswer =
       findAnswer(
@@ -111,68 +113,60 @@ export function decideNextQuestion(
 
     if (!familiarityAnswer) {
       return {
-        stage:
-          'NUMEROLOGY_FAMILIARITY',
+        stage: 'NUMEROLOGY_FAMILIARITY',
 
-        source:
-          'FIRST_TIME_ORIENTATION',
+        source: 'FIRST_TIME_ORIENTATION',
 
-        questionKey:
-          'NUMEROLOGY_FAMILIARITY',
+        questionKey: 'NUMEROLOGY_FAMILIARITY',
 
         questionText:
           'Have you come across numerology before, or is this your first experience with it?',
 
         primaryTopic,
+
         secondaryTopics,
 
         reason:
-          'This is the first TSIA consultation. Establish the client’s familiarity with numerology before beginning personalized discussion.',
+          'Establish the client’s familiarity with numerology before beginning personalized discussion.',
 
         shouldAskQuestion: true,
       }
     }
 
-    /*
-     * If the first answer indicates previous
-     * numerology exposure, establish whether
-     * the client has actually consulted a
-     * numerologist before.
-     *
-     * We intentionally do not ask this when
-     * the client clearly says this is their
-     * first experience.
+    /**
+     * Ask about previous consultation
+     * only when familiarity does not
+     * establish previous experience.
      */
+
     if (
-      indicatesPreviousExposure(
+      shouldAskPreviousNumerologist(
         familiarityAnswer.clientAnswer
       )
     ) {
-      const previousConsultationAnswer =
+      const previousAnswer =
         findAnswer(
           input.currentAnswers,
           'PREVIOUS_NUMEROLOGIST'
         )
 
-      if (!previousConsultationAnswer) {
+      if (!previousAnswer) {
         return {
-          stage:
-            'NUMEROLOGY_FAMILIARITY',
+          stage: 'NUMEROLOGY_FAMILIARITY',
 
-          source:
-            'FIRST_TIME_ORIENTATION',
+          source: 'FIRST_TIME_ORIENTATION',
 
-          questionKey:
-            'PREVIOUS_NUMEROLOGIST',
+          questionKey: 'PREVIOUS_NUMEROLOGIST',
 
           questionText:
             'Have you consulted a numerologist before?',
 
           primaryTopic,
+
           secondaryTopics,
 
           reason:
-            'The client has previous exposure to numerology. Establish whether that exposure included an earlier numerology consultation.',
+            'Clarify whether the client has previously consulted a numerologist.',
 
           shouldAskQuestion: true,
         }
@@ -180,21 +174,15 @@ export function decideNextQuestion(
     }
   }
 
-  /*
-   * CONCERN EXPLORATION
-   *
-   * Today's note is valuable because the
-   * employee/client may have entered a more
-   * specific reason than the broad selected
-   * topic.
-   *
-   * The note does NOT overwrite the stored
-   * primary topic.
+  /**
+   * STEP 2:
+   * INITIAL CONCERN EXPLORATION
    */
+
   const todayNote =
     input.todayNote.trim()
 
-  const concernQuestionAlreadyAsked =
+  const concernAnswered =
     hasAnsweredAny(
       input.currentAnswers,
       [
@@ -203,83 +191,144 @@ export function decideNextQuestion(
       ]
     )
 
-  if (!concernQuestionAlreadyAsked) {
+  if (!concernAnswered) {
+    /**
+     * Today's note can guide the
+     * opening question without
+     * changing the primary topic.
+     */
+
     if (todayNote) {
       return {
-        stage:
-          'CONCERN_EXPLORATION',
+        stage: 'CONCERN_EXPLORATION',
 
-        source:
-          primaryTopic
-            ? 'CONCERN_AND_NOTE'
-            : 'TODAY_NOTE',
+        source: primaryTopic
+          ? 'CONCERN_AND_NOTE'
+          : 'TODAY_NOTE',
 
-        questionKey:
-          'TODAY_NOTE_EXPLORATION',
+        questionKey: 'TODAY_NOTE_EXPLORATION',
 
-        /*
-         * We deliberately do not insert the
-         * note verbatim into the question.
-         *
-         * The note may contain sensitive,
-         * awkward or employee-written text.
-         * A later controlled question
-         * generator can use its meaning.
-         */
         questionText:
           'Tell me a little more about what you would most like clarity on today.',
 
         primaryTopic,
+
         secondaryTopics,
 
         reason:
-          primaryTopic
-            ? `The client selected ${primaryTopic} as the primary topic and also provided a specific note for today. Explore the stated situation before selecting relevant V3 intelligence.`
-            : 'The client provided a specific note for today. Understand that situation before selecting relevant V3 intelligence.',
+          'Understand the client’s current situation before preparing discussion-specific numerology guidance.',
 
         shouldAskQuestion: true,
       }
     }
 
+    /**
+     * No note:
+     * use the selected primary topic.
+     */
+
     if (primaryTopic) {
       return {
-        stage:
-          'CONCERN_EXPLORATION',
+        stage: 'CONCERN_EXPLORATION',
 
-        source:
-          'SELECTED_CONCERN',
+        source: 'SELECTED_CONCERN',
 
         questionKey:
           'PRIMARY_CONCERN_EXPLORATION',
 
         questionText:
-          concernOpeningQuestion(
-            primaryTopic
-          ),
+          concernOpeningQuestion(primaryTopic),
 
         primaryTopic,
+
         secondaryTopics,
 
         reason:
-          `The client selected ${primaryTopic} as the primary consultation topic. Begin with that concern before selecting relevant V3 intelligence.`,
+          'Understand the client’s selected concern before preparing the numerology outcome.',
+
+        shouldAskQuestion: true,
+      }
+    }
+
+    /**
+     * No topic or note:
+     * ask a general opening question.
+     */
+
+    return {
+      stage: 'CONCERN_EXPLORATION',
+
+      source: 'CLIENT_RESPONSE',
+
+      questionKey:
+        'PRIMARY_CONCERN_EXPLORATION',
+
+      questionText:
+        'What would you most like clarity about today?',
+
+      primaryTopic,
+
+      secondaryTopics,
+
+      reason:
+        'Establish the client’s main concern before continuing.',
+
+      shouldAskQuestion: true,
+    }
+  }
+
+  /**
+   * STEP 3:
+   * OPTIONAL CLARIFICATION
+   *
+   * This is practitioner-controlled.
+   *
+   * No keyword-based assumptions
+   * are made about client responses.
+   */
+
+  if (input.clarificationNeeded === true) {
+    const clarificationAnswer =
+      findAnswer(
+        input.currentAnswers,
+        'CONCERN_CLARIFICATION'
+      )
+
+    if (!clarificationAnswer) {
+      return {
+        stage: 'CONCERN_CLARIFICATION',
+
+        source: 'CLIENT_RESPONSE',
+
+        questionKey:
+          'CONCERN_CLARIFICATION',
+
+        questionText:
+          clarificationQuestion(primaryTopic),
+
+        primaryTopic,
+
+        secondaryTopics,
+
+        reason:
+          'The practitioner requested additional context before refining the discussion-specific numerology outcome.',
 
         shouldAskQuestion: true,
       }
     }
   }
 
-  /*
-   * At this point:
+  /**
+   * STEP 4:
+   * READY FOR VERIFIED V3
    *
-   * - first-time numerology orientation has
-   *   been completed where required; and
+   * Client statements remain
+   * consultation context only.
    *
-   * - the client's current concern has been
-   *   explored.
-   *
-   * The next layer may now select relevant
-   * verified V3 intelligence.
+   * They never become
+   * numerological evidence.
    */
+
   return {
     stage: 'READY_FOR_V3',
 
@@ -287,59 +336,63 @@ export function decideNextQuestion(
       latestMeaningfulSource(input),
 
     questionKey: null,
+
     questionText: null,
 
     primaryTopic,
+
     secondaryTopics,
 
     reason:
-      'Sufficient opening context has been collected. Continue with relevant verified V3 intelligence while preserving the client’s selected concern and stated context.',
+      'Opening context is available. Continue with discussion-specific guidance using verified V3 findings.',
 
     shouldAskQuestion: false,
   }
 }
 
+/**
+ * FIND ANSWER
+ */
+
 function findAnswer(
   answers:
     readonly ConsultationAnswerForIntelligence[],
   questionKey: string
-) {
+): ConsultationAnswerForIntelligence | null {
   return (
     answers.find(
       (answer) =>
-        answer.questionKey ===
-        questionKey
+        answer.questionKey === questionKey &&
+        answer.clientAnswer.trim().length > 0
     ) || null
   )
 }
+
+/**
+ * CHECK EXISTING ANSWERS
+ */
 
 function hasAnsweredAny(
   answers:
     readonly ConsultationAnswerForIntelligence[],
   questionKeys: readonly string[]
-) {
-  return answers.some((answer) =>
-    questionKeys.includes(
-      answer.questionKey
-    )
+): boolean {
+  return answers.some(
+    (answer) =>
+      questionKeys.includes(
+        answer.questionKey
+      ) &&
+      answer.clientAnswer.trim().length > 0
   )
 }
 
-/*
- * This is intentionally conservative.
- *
- * The UI currently contains structured
- * familiarity options. We only need to
- * distinguish an explicit "first time"
- * response from previous exposure.
- *
- * Later we should pass the structured option
- * key directly rather than interpreting
- * display text.
+/**
+ * PREVIOUS NUMEROLOGIST QUESTION
  */
-function indicatesPreviousExposure(
+
+function shouldAskPreviousNumerologist(
   answer: string
-) {
+): boolean {
   const normalized =
     answer.trim().toLowerCase()
 
@@ -347,24 +400,37 @@ function indicatesPreviousExposure(
     return false
   }
 
-  return ![
-    'first time',
-    'first-time',
-    'never',
-    'no',
-  ].includes(normalized)
+  if (
+    normalized.startsWith('first time')
+  ) {
+    return false
+  }
+
+  if (
+    normalized.startsWith(
+      'consultation before'
+    )
+  ) {
+    return false
+  }
+
+  if (
+    normalized.startsWith('know a little') ||
+    normalized.startsWith('know it quite well')
+  ) {
+    return true
+  }
+
+  return false
 }
 
-/*
- * Approved concern-opening questions.
- *
- * These are intentionally neutral.
- * They do not tell the client what
- * numerology supposedly says about them.
+/**
+ * INITIAL TOPIC QUESTIONS
  */
+
 function concernOpeningQuestion(
   topic: string
-) {
+): string {
   switch (
     topic.trim().toLowerCase()
   ) {
@@ -374,6 +440,7 @@ function concernOpeningQuestion(
     case 'career':
       return 'What is the main career situation you would like clarity about today?'
 
+    case 'money':
     case 'money & wealth':
     case 'money and wealth':
       return 'What would you most like to understand about your current money or financial direction?'
@@ -388,17 +455,81 @@ function concernOpeningQuestion(
     case 'marriage':
       return 'What would you most like to understand about your marriage or marriage direction?'
 
+    case 'personal_direction':
     case 'personal direction':
       return 'What area of your personal direction feels most important for you to understand today?'
+
+    case 'other':
+      return 'What would you most like clarity about today?'
 
     default:
       return `What would you most like to understand about ${topic} today?`
   }
 }
 
+/**
+ * TOPIC-SPECIFIC CLARIFICATION
+ *
+ * Questions are neutral.
+ *
+ * They do not assume that
+ * numerology has established
+ * the cause of a problem.
+ */
+
+function clarificationQuestion(
+  topic: string | null
+): string {
+  switch (
+    topic?.trim().toLowerCase()
+  ) {
+    case 'career':
+      return 'Could you explain whether your concern relates mainly to your current job, income, career opportunities, or professional direction?'
+
+    case 'business':
+      return 'Is your main concern related to business income, customers, payments, growth, or a particular business decision?'
+
+    case 'money':
+    case 'money & wealth':
+    case 'money and wealth':
+      return 'Is your main financial concern related to income, expenses, delayed payments, savings, or financial commitments?'
+
+    case 'family':
+      return 'Is your concern mainly about communication, responsibilities, relationships, or a particular family situation?'
+
+    case 'relationship':
+    case 'relationships':
+      return 'Is your concern mainly about communication, emotional understanding, trust, or the future direction of the relationship?'
+
+    case 'marriage':
+      return 'Is your concern about finding a suitable partner, an existing marriage, family expectations, or another marriage-related situation?'
+
+    case 'personal_direction':
+    case 'personal direction':
+      return 'Is your main concern related to an important decision, confidence, responsibilities, or uncertainty about your next steps?'
+
+    default:
+      return 'Could you explain which part of this situation is most important for us to understand?'
+  }
+}
+
+/**
+ * CONSULTATION CONTEXT SOURCE
+ */
+
 function latestMeaningfulSource(
   input: QuestionIntelligenceInput
 ): QuestionSource {
+  const clarification =
+    findAnswer(
+      input.currentAnswers,
+      'CONCERN_CLARIFICATION'
+    )
+
+  if (clarification) {
+    return 'CLIENT_RESPONSE'
+  }
+
   if (input.todayNote.trim()) {
     return input.topics.length > 0
       ? 'CONCERN_AND_NOTE'
