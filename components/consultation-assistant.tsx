@@ -1146,6 +1146,712 @@ export function ConsultationAssistant({
     }
   }
 
+  return (
+    <div className="min-h-full bg-[#f7f3ed] p-4">
+      <div className="mx-auto max-w-3xl">
+        <button
+          type="button"
+          onClick={onBack}
+          disabled={saving}
+          className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#24354c] disabled:opacity-50"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Consultation Workspace
+        </button>
+
+        <div className="overflow-hidden rounded-3xl border border-[#e6ddd1] bg-[#fffdf9] shadow-sm">
+          <header className="bg-[#24354c] p-5 text-white">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#e2c18c]">
+              Jeevan Sutra
+            </p>
+
+            <h1 className="mt-2 font-serif text-2xl font-semibold">
+              Live Consultation
+            </h1>
+
+            <p className="mt-1 text-xs text-[#e2c18c]">
+              By Shekhar Sales Corporation
+            </p>
+
+            <div className="mt-5 rounded-2xl bg-white/10 p-4">
+              <p className="text-lg font-semibold">
+                {client.name}
+              </p>
+
+              <p className="mt-1 text-xs text-white/80">
+                Consultation #{consultationNumber}
+              </p>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                <span className="rounded-full bg-white/15 px-3 py-1 text-xs">
+                  {topicName(String(purpose))}
+                </span>
+
+                <span className="rounded-full bg-white/15 px-3 py-1 text-xs">
+                  {String(mode).replace(/_/g, ' ')}
+                </span>
+
+                {topics.map((topic) => (
+                  <span
+                    key={String(topic)}
+                    className="rounded-full bg-white/15 px-3 py-1 text-xs"
+                  >
+                    {topicName(String(topic))}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </header>
+
+          <main className="p-4 sm:p-6">
+            {saveError && (
+              <div
+                role="alert"
+                className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+              >
+                {saveError}
+              </div>
+            )}
+
+            {restoring && (
+              <div className="flex items-center gap-3 rounded-xl bg-[#f8f4ed] p-4 text-sm text-[#24354c]">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Restoring saved consultation history...
+              </div>
+            )}
+
+            {!restoring && restoreError && (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-4">
+                <p className="text-sm font-semibold text-red-700">
+                  Consultation history could not be loaded.
+                </p>
+
+                <p className="mt-2 text-sm text-red-700">
+                  {restoreError}
+                </p>
+
+                <p className="mt-2 text-xs text-red-700">
+                  New answers are disabled to prevent
+                  duplicate or inconsistent records.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setRestoreAttempt((previous) => previous + 1)
+                  }
+                  className="mt-4 rounded-xl bg-[#24354c] px-4 py-3 text-sm font-semibold text-white"
+                >
+                  Retry Loading History
+                </button>
+              </div>
+            )}
+
+            {!restoring && !restoreError && (
+              <>
+                {!introductionComplete && currentIntro && (
+                  <>
+                    <SectionHeading
+                      small={`Introduction ${introStep + 1} of ${introduction.length}`}
+                      big="Understanding Our Indian Traditions"
+                    />
+
+                    <Panel title={currentIntro.title}>
+                      <p className="text-base font-semibold leading-7 text-[#24354c]">
+                        {currentIntro.question}
+                      </p>
+
+                      {!introRevealed && (
+                        <div className="mt-5 space-y-4">
+                          <div>
+                            <label className="mb-2 block text-xs font-semibold text-[#24354c]">
+                              Client Response (Optional)
+                            </label>
+
+                            <textarea
+                              value={introAnswer}
+                              onChange={(event) =>
+                                setIntroAnswer(event.target.value)
+                              }
+                              disabled={saving}
+                              rows={3}
+                              placeholder="Enter what the client says..."
+                              className="w-full rounded-xl border border-[#e6ddd1] bg-[#fffdf9] p-3 text-sm text-[#24354c] outline-none focus:border-[#ad7b40]"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="mb-2 block text-xs font-semibold text-[#24354c]">
+                              Practitioner Observation (Optional)
+                            </label>
+
+                            <textarea
+                              value={introObservation}
+                              onChange={(event) =>
+                                setIntroObservation(
+                                  event.target.value
+                                )
+                              }
+                              disabled={saving}
+                              rows={3}
+                              placeholder="Record your observation..."
+                              className="w-full rounded-xl border border-[#e6ddd1] bg-[#fffdf9] p-3 text-sm text-[#24354c] outline-none focus:border-[#ad7b40]"
+                            />
+                          </div>
+
+                          <label className="flex items-center gap-3 rounded-xl bg-[#f8f4ed] p-3 text-sm font-medium text-[#24354c]">
+                            <input
+                              type="checkbox"
+                              checked={introImportant}
+                              onChange={(event) =>
+                                setIntroImportant(
+                                  event.target.checked
+                                )
+                              }
+                              disabled={saving}
+                              className="h-4 w-4 accent-[#24354c]"
+                            />
+                            Important for Next Consultation
+                          </label>
+                        </div>
+                      )}
+
+                      {introRevealed && (
+                        <div className="mt-5 rounded-xl border border-[#e6ddd1] bg-[#f8f4ed] p-4">
+                          <p className="text-xs font-semibold uppercase text-[#ad7b40]">
+                            Practitioner Explanation
+                          </p>
+
+                          <p className="mt-3 leading-7 text-[#24354c]">
+                            {currentIntro.explanation}
+                          </p>
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void continueIntroduction()
+                        }}
+                        disabled={saving}
+                        className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#24354c] px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+                      >
+                        {saving ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : introRevealed ? (
+                          <>
+                            {introStep === introduction.length - 1
+                              ? 'Continue to Consultation'
+                              : 'Next Introduction Question'}
+                            <ChevronRight className="h-4 w-4" />
+                          </>
+                        ) : (
+                          <>
+                            Save & Show Explanation
+                            <ChevronRight className="h-4 w-4" />
+                          </>
+                        )}
+                      </button>
+                    </Panel>
+                  </>
+                )}
+
+                {introductionComplete && isFirstConsultation && (
+                  <Panel title="Introduction Completed">
+                    <div className="flex items-center gap-2 text-[#24354c]">
+                      <Check className="h-5 w-5 text-green-700" />
+                      <p>
+                        The three introductory questions have
+                        been completed.
+                      </p>
+                    </div>
+
+                    <p className="mt-2">
+                      Continue with the client's personal
+                      numerology and consultation concerns.
+                    </p>
+                  </Panel>
+                )}
+
+                {note.trim() && (
+                  <Panel title="Today's Consultation Note">
+                    <p className="whitespace-pre-wrap">
+                      {note}
+                    </p>
+                  </Panel>
+                )}
+
+                <SectionHeading
+                  small="Numerology Foundation"
+                  big="Personal Numerology"
+                />
+
+                {loading && (
+                  <Panel title="Loading Calculations">
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Loading numerology and intelligence...
+                    </div>
+                  </Panel>
+                )}
+
+                {!loading && error && (
+                  <div
+                    role="alert"
+                    className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+                  >
+                    {error}
+                  </div>
+                )}
+
+                {!loading && data && (
+                  <Panel title="Verified Numerology Calculation">
+                    <CalculationDisplay
+                      calculation={data.calculation}
+                    />
+                  </Panel>
+                )}
+
+                {introResponses.length > 0 && (
+                  <details className="mt-5 rounded-2xl border border-[#e6ddd1] bg-white p-4">
+                    <summary className="cursor-pointer font-semibold text-[#24354c]">
+                      Saved Introduction Responses (
+                      {introResponses.length})
+                    </summary>
+
+                    <div className="mt-4 space-y-3">
+                      {introResponses.map((item, index) => (
+                        <div
+                          key={`${item.question}-${index}`}
+                          className="rounded-xl bg-[#f8f4ed] p-3 text-sm"
+                        >
+                          <p className="font-semibold text-[#24354c]">
+                            {item.question}
+                          </p>
+
+                          <p className="mt-2 text-[#776d61]">
+                            <b>Client:</b>{' '}
+                            {item.clientAnswer ||
+                              'No response recorded'}
+                          </p>
+
+                          {item.practitionerObservation && (
+                            <p className="mt-2 text-[#776d61]">
+                              <b>Practitioner:</b>{' '}
+                              {item.practitionerObservation}
+                            </p>
+                          )}
+
+                          {item.important && (
+                            <p className="mt-2 text-xs font-semibold text-[#ad7b40]">
+                              Important for Next Consultation
+                            </p>
+                          )}
+
+                          {item.savedId && (
+                            <p className="mt-2 flex items-center gap-1 text-xs text-green-700">
+                              <Check className="h-3 w-3" />
+                              Saved
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                )}
+
+                {introductionComplete && (
+                  <>
+                    <SectionHeading
+                      small="Practitioner Conversation"
+                      big="Client Discussion"
+                    />
+
+                    {answers.length > 0 && (
+                      <div className="space-y-3">
+                        {answers.map((item, index) => (
+                          <div
+                            key={item.savedId || index}
+                            className="rounded-2xl border border-[#e6ddd1] bg-white p-4"
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <p className="font-semibold text-[#24354c]">
+                                {index + 1}. {item.questionText}
+                              </p>
+
+                              <Check className="h-4 w-4 shrink-0 text-green-700" />
+                            </div>
+
+                            <p className="mt-3 whitespace-pre-wrap text-sm text-[#776d61]">
+                              <b>Client Answer:</b>{' '}
+                              {item.clientAnswer}
+                            </p>
+
+                            {item.observation && (
+                              <p className="mt-3 whitespace-pre-wrap text-sm text-[#776d61]">
+                                <b>Practitioner Observation:</b>{' '}
+                                {item.observation}
+                              </p>
+                            )}
+
+                            {item.important && (
+                              <p className="mt-3 text-xs font-semibold text-[#ad7b40]">
+                                Important for Next Consultation
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {unmappedAnswers.length > 0 && (
+                      <details className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                        <summary className="cursor-pointer text-sm font-semibold text-[#24354c]">
+                          Additional Saved History (
+                          {unmappedAnswers.length})
+                        </summary>
+
+                        <p className="mt-3 text-xs text-[#776d61]">
+                          These responses were recovered from
+                          the database, but their question
+                          identifiers could not be verified.
+                          They have not been used to infer the
+                          client's concern.
+                        </p>
+
+                        <div className="mt-3 space-y-3">
+                          {unmappedAnswers.map((item) => (
+                            <div
+                              key={item.id}
+                              className="rounded-xl bg-white p-3 text-sm"
+                            >
+                              <p className="font-semibold text-[#24354c]">
+                                {item.questionText}
+                              </p>
+
+                              <p className="mt-2 whitespace-pre-wrap">
+                                <b>Client:</b>{' '}
+                                {item.clientAnswer ||
+                                  'No response'}
+                              </p>
+
+                              {item.employeeObservation && (
+                                <p className="mt-2 whitespace-pre-wrap">
+                                  <b>Practitioner:</b>{' '}
+                                  {item.employeeObservation}
+                                </p>
+                              )}
+
+                              {item.importantForNextConsultation && (
+                                <p className="mt-2 text-xs font-semibold text-[#ad7b40]">
+                                  Important for Next Consultation
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    )}
+
+                    {showQuestion && (
+                      <Panel
+                        title={
+                          clarificationPending
+                            ? 'Clarify the Client Concern'
+                            : 'Next Consultation Question'
+                        }
+                      >
+                        <p className="text-base font-semibold leading-7 text-[#24354c]">
+                          {currentQuestionText}
+                        </p>
+
+                        {familiarity &&
+                          !clarificationPending && (
+                            <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                              {familiarityOptions.map(
+                                (option) => (
+                                  <button
+                                    key={option}
+                                    type="button"
+                                    onClick={() =>
+                                      setChoice(option)
+                                    }
+                                    disabled={saving}
+                                    className={`rounded-xl border p-3 text-left text-sm font-semibold ${
+                                      choice === option
+                                        ? 'border-[#ad7b40] bg-[#f5ead8] text-[#24354c]'
+                                        : 'border-[#e6ddd1] bg-white text-[#776d61]'
+                                    }`}
+                                  >
+                                    {option}
+                                  </button>
+                                )
+                              )}
+                            </div>
+                          )}
+
+                        <div className="mt-4">
+                          <label className="mb-2 block text-xs font-semibold text-[#24354c]">
+                            {familiarity &&
+                            !clarificationPending
+                              ? 'Additional Client Response (Optional)'
+                              : 'Client Answer'}
+                          </label>
+
+                          <textarea
+                            value={answer}
+                            onChange={(event) =>
+                              setAnswer(event.target.value)
+                            }
+                            disabled={saving}
+                            rows={4}
+                            placeholder="Record the client's answer..."
+                            className="w-full rounded-xl border border-[#e6ddd1] bg-[#fffdf9] p-3 text-sm text-[#24354c] outline-none focus:border-[#ad7b40]"
+                          />
+                        </div>
+
+                        <div className="mt-4">
+                          <label className="mb-2 block text-xs font-semibold text-[#24354c]">
+                            Practitioner Observation (Optional)
+                          </label>
+
+                          <textarea
+                            value={observation}
+                            onChange={(event) =>
+                              setObservation(
+                                event.target.value
+                              )
+                            }
+                            disabled={saving}
+                            rows={3}
+                            placeholder="Your interpretation, observations, or follow-up notes..."
+                            className="w-full rounded-xl border border-[#e6ddd1] bg-[#fffdf9] p-3 text-sm text-[#24354c] outline-none focus:border-[#ad7b40]"
+                          />
+                        </div>
+
+                        <label className="mt-4 flex items-center gap-3 rounded-xl bg-[#f8f4ed] p-3 text-sm font-medium text-[#24354c]">
+                          <input
+                            type="checkbox"
+                            checked={importantForNext}
+                            onChange={(event) =>
+                              setImportantForNext(
+                                event.target.checked
+                              )
+                            }
+                            disabled={saving}
+                            className="h-4 w-4 accent-[#24354c]"
+                          />
+                          Important for Next Consultation
+                        </label>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            void continueQuestion()
+                          }}
+                          disabled={!canContinue}
+                          className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#24354c] px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {saving ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Saving...
+                            </>
+                          ) : (
+                            <>
+                              Save & Continue
+                              <ChevronRight className="h-4 w-4" />
+                            </>
+                          )}
+                        </button>
+                      </Panel>
+                    )}
+
+                    {!showQuestion &&
+                      !clarificationReviewed &&
+                      !clarificationPending &&
+                      (hasConcernAnswer || ready) && (
+                        <Panel title="Confirm Client Concern">
+                          <p>
+                            Before presenting the guidance,
+                            confirm whether the client has
+                            explained the concern sufficiently.
+                          </p>
+
+                          {actualConcern && (
+                            <div className="mt-3 rounded-xl bg-[#f8f4ed] p-3">
+                              <p className="text-xs font-semibold text-[#ad7b40]">
+                                Current Understanding
+                              </p>
+
+                              <p className="mt-2 whitespace-pre-wrap text-[#24354c]">
+                                {actualConcern}
+                              </p>
+                            </div>
+                          )}
+
+                          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                reviewClarification(true)
+                              }
+                              className="rounded-xl border border-[#24354c] px-4 py-3 text-sm font-semibold text-[#24354c]"
+                            >
+                              Ask Clarification
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                reviewClarification(false)
+                              }
+                              className="rounded-xl bg-[#24354c] px-4 py-3 text-sm font-semibold text-white"
+                            >
+                              Continue Without Clarification
+                            </button>
+                          </div>
+                        </Panel>
+                      )}
+
+                    {showOutcome && (
+                      <>
+                        <SectionHeading
+                          small="Client-Specific Guidance"
+                          big="Consultation Intelligence"
+                        />
+
+                        {actualConcern && (
+                          <Panel title="Client's Main Concern">
+                            <p className="whitespace-pre-wrap">
+                              {actualConcern}
+                            </p>
+
+                            {clarification && (
+                              <div className="mt-3 border-t border-[#e6ddd1] pt-3">
+                                <p className="font-semibold text-[#24354c]">
+                                  Additional Clarification
+                                </p>
+
+                                <p className="mt-2 whitespace-pre-wrap">
+                                  {clarification}
+                                </p>
+                              </div>
+                            )}
+                          </Panel>
+                        )}
+
+                        {universal && (
+                          <LiveGuidance result={universal} />
+                        )}
+
+                        {data && selection && (
+                          <details className="mt-4 rounded-2xl border border-[#e6ddd1] bg-white p-4">
+                            <summary className="cursor-pointer font-semibold text-[#24354c]">
+                              Supporting V3 Consultation Evidence
+                            </summary>
+
+                            <div className="mt-4">
+                              <ConsultationV3Insights
+                                insights={selection.insights}
+                              />
+                            </div>
+                          </details>
+                        )}
+
+                        {data && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setShowDeepAnalysis(
+                                  (previous) => !previous
+                                )
+                              }
+                              className="mt-5 w-full rounded-xl border border-[#24354c] px-4 py-3 text-sm font-semibold text-[#24354c]"
+                            >
+                              {showDeepAnalysis
+                                ? 'Hide Complete Intelligence'
+                                : 'Show Complete Intelligence'}
+                            </button>
+
+                            {showDeepAnalysis && (
+                              <div className="mt-4">
+                                <ConsultationCompleteIntelligence
+                                  intelligence={data.intelligence}
+                                />
+                              </div>
+                            )}
+                          </>
+                        )}
+
+                        {data &&
+                          data.consultationInsightPool.warnings.length >
+                            0 && (
+                            <details className="mt-4 rounded-xl border border-[#e6ddd1] bg-white p-4">
+                              <summary className="cursor-pointer text-sm font-semibold text-[#24354c]">
+                                Intelligence Notes
+                              </summary>
+
+                              <div className="mt-3 space-y-2">
+                                {data.consultationInsightPool.warnings.map(
+                                  (warning, index) => (
+                                    <p
+                                      key={index}
+                                      className="text-xs leading-5 text-[#776d61]"
+                                    >
+                                      {warning}
+                                    </p>
+                                  )
+                                )}
+                              </div>
+                            </details>
+                          )}
+                      </>
+                    )}
+
+                    {ready &&
+                      !actualConcern &&
+                      !showQuestion && (
+                        <Panel title="Consultation Status">
+                          <p>
+                            The guided questions are complete.
+                            Record the client's main concern
+                            before generating personalized
+                            concern-specific guidance.
+                          </p>
+                        </Panel>
+                      )}
+                  </>
+                )}
+
+                <div className="mt-8 border-t border-[#e6ddd1] pt-4">
+                  <p className="text-xs leading-5 text-[#776d61]">
+                    Jeevan Sutra provides traditional
+                    numerology-based consultation guidance.
+                    Interpretations should be discussed with
+                    the client and should not be presented as
+                    guaranteed outcomes.
+                  </p>
+
+                  <p className="mt-3 text-xs text-[#776d61]">
+                    Client responses and practitioner
+                    observations are saved to the consultation
+                    record. Marked responses are identified for
+                    future consultation review.
+                  </p>
+                </div>
+              </>
+            )}
+          </main>
+        </div>
+      </div>
+    </div>
+  )
+}
   function reviewClarification(needed: boolean) {
     setClarificationNeeded(needed)
     setClarificationReviewed(!needed)
@@ -1156,10 +1862,6 @@ export function ConsultationAssistant({
     setSaveError('')
   }
 
-  const currentIntro =
-    introductionComplete
-      ? null
-      : introduction[introStep]
   const currentIntro =
     introductionComplete
       ? null
