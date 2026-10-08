@@ -53,10 +53,6 @@ import type {
 } from '@/lib/numerology-intelligence/employeeoutput'
 
 import type {
-  EmployeeInterpretation,
-} from '@/lib/numerology-intelligence/employeeinterpretation'
-
-import type {
   ConsultationClient,
   ConsultationMode,
   ConsultationPurpose,
@@ -82,18 +78,7 @@ type EmployeeOutputData = {
 
 type Result = {
   calculation: NumerologyCalculationResult
-
   intelligence: NumerologyV3Result
-
-  employeeOutput: EmployeeOutputData
-
-  employeeInterpretation: {
-    version: string
-    interpretations:
-      readonly EmployeeInterpretation[]
-    warnings: readonly string[]
-  }
-
   consultationInsightPool: EmployeeOutputData
 }
 
@@ -131,7 +116,6 @@ export function ConsultationAssistant({
   purpose,
   topics,
   note,
-  consultationId,
   consultationNumber,
   onBack,
 }: Props) {
@@ -157,15 +141,10 @@ export function ConsultationAssistant({
   /*
    * LOAD VERIFIED NUMEROLOGY
    *
-   * One server action.
+   * V2 is calculated on the server.
+   * V3 reuses the same calculation.
    *
-   * V2 calculation is performed
-   * once on the server.
-   *
-   * V3 reuses that calculation.
-   *
-   * Consultation selection
-   * happens locally.
+   * Topic selection happens locally.
    */
   useEffect(() => {
     let active = true
@@ -203,12 +182,6 @@ export function ConsultationAssistant({
           intelligence:
             response.result.intelligence,
 
-          employeeOutput:
-            response.result.employeeOutput,
-
-          employeeInterpretation:
-            response.result.employeeInterpretation,
-
           consultationInsightPool:
             response.result.consultationInsightPool,
         })
@@ -233,13 +206,10 @@ export function ConsultationAssistant({
   }, [client.id])
 
   /*
-   * EXISTING QUESTION INTELLIGENCE
+   * CONSULTATION QUESTION INTELLIGENCE
    *
-   * Client answers are conversational
-   * context only.
-   *
-   * They never change V2 or V3
-   * numerological evidence.
+   * Client answers provide context.
+   * They do not modify V2/V3 evidence.
    */
   const decision =
     useMemo<QuestionIntelligenceDecision>(
@@ -261,14 +231,10 @@ export function ConsultationAssistant({
     )
 
   /*
-   * TOPIC-BASED V3 SELECTION
+   * TOPIC-BASED INTELLIGENCE
    *
-   * Uses the complete approved
-   * employee insight pool.
-   *
-   * No database request.
-   *
-   * No new V2/V3 calculation.
+   * Selects from the complete
+   * approved employee insight pool.
    */
   const consultationSelection =
     useMemo(() => {
@@ -292,15 +258,11 @@ export function ConsultationAssistant({
     ])
 
   const consultationInsights =
-    useMemo(
-      () =>
-        consultationSelection
-          ? consultationSelection.insights.map(
-              (item) => item.insight
-            )
-          : [],
-      [consultationSelection]
-    )
+    consultationSelection
+      ? consultationSelection.insights.map(
+          (item) => item.insight
+        )
+      : []
 
   const calculation =
     data?.calculation
@@ -329,13 +291,12 @@ export function ConsultationAssistant({
       : Boolean(answer.trim())
 
   /*
-   * RECORD CLIENT ANSWER
+   * RECORD CONSULTATION ANSWER
    *
-   * Current Phase 1 behaviour:
-   * local consultation state.
+   * Phase 1: local React state.
    *
-   * Secure database persistence
-   * will be a separate step.
+   * Database persistence will
+   * be implemented separately.
    */
   function handleContinue() {
     if (
@@ -807,4 +768,270 @@ export function ConsultationAssistant({
                     <br />
 
                     Name Number:{' '}
-                   
+                    <b>
+                      {
+                        calculation.grahas[
+                          calculation.nameNumber.finalNumber
+                        ]
+                      }
+                    </b>
+
+                  </p>
+
+                </div>
+
+              </>
+            )}
+
+            {/* SECTION 3: TOPIC-BASED INTELLIGENCE */}
+
+            {!loading && !error && data && (
+              <>
+                <Title
+                  small="Personalized Consultation Intelligence"
+                  big={
+                    primaryTopic
+                      ? `${
+                          labels[primaryTopic] ||
+                          primaryTopic
+                        } Intelligence`
+                      : 'Numerology Intelligence'
+                  }
+                />
+
+                {consultationInsights.length > 0 ? (
+                  <ConsultationV3Insights
+                    insights={consultationInsights}
+                    evidence={
+                      data.intelligence.evidence
+                    }
+                  />
+                ) : (
+                  <div className="rounded-xl border border-[#eadfce] bg-[#f8f4ed] p-4">
+                    <p className="text-sm leading-6 text-[#776d61]">
+                      No eligible verified V3
+                      findings are currently
+                      available for this
+                      consultation.
+                    </p>
+                  </div>
+                )}
+
+                {consultationSelection &&
+                  consultationSelection.insights.some(
+                    (item) =>
+                      item.relevanceLevel ===
+                      'GENERAL'
+                  ) && (
+                    <p className="mt-3 text-xs leading-5 text-[#8a8177]">
+                      Some findings shown above
+                      are general numerology
+                      observations rather than
+                      direct findings for the
+                      selected consultation topic.
+                    </p>
+                  )}
+
+                {consultationSelection?.warnings.map(
+                  (warning, index) => (
+                    <p
+                      key={index}
+                      className="mt-3 text-xs leading-5 text-[#8a8177]"
+                    >
+                      {warning}
+                    </p>
+                  ))}
+              </>
+            )}
+
+            {/* SECTION 4: COMPLETE INTELLIGENCE */}
+
+            {!loading && !error && data?.intelligence && (
+              <>
+                <Title
+                  small="Deep Analysis"
+                  big="Complete Numerology Intelligence"
+                />
+
+                <ConsultationCompleteIntelligence
+                  conclusions={
+                    data.intelligence.conclusions
+                      .conclusions
+                  }
+                  developmentAssessments={
+                    data.intelligence.conclusions
+                      .developmentAssessments
+                  }
+                  crossQualityResolutions={
+                    data.intelligence.crossQuality
+                      .resolutions
+                  }
+                />
+              </>
+            )}
+
+          </main>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function formatCompound(
+  compound: number,
+  final: number
+) {
+  return compound === final
+    ? String(final)
+    : `${compound}/${final}`
+}
+
+function repeatNumber(
+  number: number,
+  count: number
+) {
+  if (!count) {
+    return ''
+  }
+
+  return String(number).repeat(count)
+}
+
+function joinNumbers(
+  numbers: readonly NumerologyDigit[]
+) {
+  return numbers.length
+    ? numbers.join(', ')
+    : 'None'
+}
+
+function formatRepeated(
+  repeated: Partial<
+    Record<NumerologyDigit, number>
+  >
+) {
+  const items =
+    Object.entries(repeated)
+      .filter(
+        ([, count]) =>
+          Number(count) > 1
+      )
+      .map(
+        ([number, count]) =>
+          `${number} × ${count}`
+      )
+
+  return items.length
+    ? items.join(', ')
+    : 'None'
+}
+
+function statusLabel(
+  status: string
+) {
+  if (status === 'complete') {
+    return 'Complete'
+  }
+
+  if (status === 'partial') {
+    return 'Partial'
+  }
+
+  return 'Absent'
+}
+
+function Tag({
+  text,
+}: {
+  text: string
+}) {
+  return (
+    <span className="rounded-full bg-white/10 px-3 py-1 text-[10px]">
+      {text}
+    </span>
+  )
+}
+
+function Title({
+  small,
+  big,
+}: {
+  small: string
+  big: string
+}) {
+  return (
+    <div className="mb-4 mt-7 border-t pt-5">
+
+      <p className="text-[10px] uppercase text-[#ad7b40]">
+        {small}
+      </p>
+
+      <h2 className="mt-1 font-serif text-xl font-semibold text-[#24354c]">
+        {big}
+      </h2>
+
+    </div>
+  )
+}
+
+function NumberBox({
+  title,
+  value,
+  graha,
+}: {
+  title: string
+  value: string
+  graha: string
+}) {
+  return (
+    <div className="rounded-xl bg-[#f8f4ed] p-3">
+
+      <p className="text-[9px] uppercase text-[#8c8175]">
+        {title}
+      </p>
+
+      <p className="mt-2 font-serif text-xl text-[#24354c]">
+        {value}
+      </p>
+
+      <p className="mt-1 text-[10px] text-[#ad7b40]">
+        {graha}
+      </p>
+
+    </div>
+  )
+}
+
+function GridCell({
+  text,
+}: {
+  text: string
+}) {
+  return (
+    <div className="flex h-14 items-center justify-center border text-sm font-semibold text-[#24354c]">
+      {text || ' '}
+    </div>
+  )
+}
+
+function MiniBox({
+  title,
+  text,
+}: {
+  title: string
+  text: string
+}) {
+  return (
+    <div className="rounded-xl border p-3">
+
+      <p className="text-[10px] font-semibold text-[#24354c]">
+        {title}
+      </p>
+
+      <p className="mt-1 text-xs text-[#776d61]">
+        {text}
+      </p>
+
+    </div>
+  )
+}
