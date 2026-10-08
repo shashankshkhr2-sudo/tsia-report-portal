@@ -92,8 +92,7 @@ type Result = {
 const labels: Record<string, string> = {
   numerology_report: 'Report Discussion',
   follow_up: 'Follow-up Consultation',
-  general_consultation:
-    'General Consultation',
+  general_consultation: 'General Consultation',
 
   business: 'Business',
   career: 'Career',
@@ -101,8 +100,7 @@ const labels: Record<string, string> = {
   family: 'Family',
   relationship: 'Relationship',
   marriage: 'Marriage',
-  personal_direction:
-    'Personal Direction',
+  personal_direction: 'Personal Direction',
   other: 'Other',
 }
 
@@ -129,11 +127,8 @@ export function ConsultationAssistant({
   consultationNumber,
   onBack,
 }: Props) {
-  const [choice, setChoice] =
-    useState('')
-
-  const [answer, setAnswer] =
-    useState('')
+  const [choice, setChoice] = useState('')
+  const [answer, setAnswer] = useState('')
 
   const [
     currentAnswers,
@@ -160,9 +155,7 @@ export function ConsultationAssistant({
 
       try {
         const response =
-          await generateNumerologyV2(
-            client.id
-          )
+          await generateNumerologyV2(client.id)
 
         if (!active) {
           return
@@ -176,8 +169,6 @@ export function ConsultationAssistant({
             response.error ||
               'Unable to load numerology.'
           )
-
-          setLoading(false)
           return
         }
 
@@ -192,8 +183,7 @@ export function ConsultationAssistant({
             response.result.employeeOutput,
 
           employeeInterpretation:
-            response.result
-              .employeeInterpretation,
+            response.result.employeeInterpretation,
         })
       } catch {
         if (active) {
@@ -234,8 +224,7 @@ export function ConsultationAssistant({
       ]
     )
 
-  const calculation =
-    data?.calculation
+  const calculation = data?.calculation
 
   const modeLabel =
     mode === 'in_person'
@@ -252,8 +241,7 @@ export function ConsultationAssistant({
     'NUMEROLOGY_FAMILIARITY'
 
   const isReadyForV3 =
-    decision.stage ===
-      'READY_FOR_V3' ||
+    decision.stage === 'READY_FOR_V3' ||
     !decision.shouldAskQuestion
 
   const canContinue =
@@ -318,9 +306,10 @@ export function ConsultationAssistant({
 
         <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
 
-          {/* SECTION 1 — CLIENT HEADER */}
+          {/* CLIENT HEADER */}
 
           <header className="bg-[#24354c] p-5 text-white">
+
             <p className="text-[10px] uppercase tracking-widest text-[#d6b47b]">
               TSIA Live Consultation
             </p>
@@ -333,11 +322,11 @@ export function ConsultationAssistant({
               {client.clientNumber ||
                 'TSIA Client'}
               {' · '}
-              Consultation #
-              {consultationNumber}
+              Consultation #{consultationNumber}
             </p>
 
             <div className="mt-4 flex flex-wrap gap-2">
+
               <Tag text={modeLabel} />
 
               <Tag
@@ -355,22 +344,25 @@ export function ConsultationAssistant({
                   }
                 />
               )}
+
             </div>
           </header>
 
           <main className="p-5">
 
-            {/* SECTION 2 — CLIENT CONVERSATION */}
+            {/* SECTION 1: CLIENT CONVERSATION */}
 
             {note.trim() && (
               <div className="rounded-xl bg-[#fbf6ec] p-4">
+
                 <p className="text-[10px] font-semibold uppercase text-[#ad7b40]">
-                  Today&apos;s Note
+                  Today's Note
                 </p>
 
                 <p className="mt-2 text-sm leading-6 text-[#24354c]">
                   {note}
                 </p>
+
               </div>
             )}
 
@@ -379,9 +371,47 @@ export function ConsultationAssistant({
               big="Client Conversation"
             />
 
+            {currentAnswers.length > 0 && (
+              <div className="mb-4 space-y-3">
+
+                {currentAnswers.map(
+                  (item, index) => (
+                    <div
+                      key={`${item.questionKey}-${index}`}
+                      className="rounded-2xl border border-[#e6ddd1] bg-[#fbf8f3] p-4"
+                    >
+
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
+                        TSIA Question {index + 1}
+                      </p>
+
+                      <p className="mt-2 text-sm font-semibold leading-6 text-[#24354c]">
+                        {item.questionText}
+                      </p>
+
+                      <div className="mt-3 rounded-xl bg-white p-3">
+
+                        <p className="text-[10px] font-semibold uppercase text-[#ad7b40]">
+                          Client Says
+                        </p>
+
+                        <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[#776d61]">
+                          {item.clientAnswer}
+                        </p>
+
+                      </div>
+                    </div>
+                  )
+                )}
+
+              </div>
+            )}
+
             {!isReadyForV3 && (
               <>
-                <div className="rounded-2xl border p-4">
+
+                <div className="rounded-2xl border border-[#e6ddd1] p-4">
+
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
                     {decision.stage ===
                     'NUMEROLOGY_FAMILIARITY'
@@ -395,6 +425,7 @@ export function ConsultationAssistant({
 
                   {isFamiliarityQuestion && (
                     <div className="mt-4 grid gap-2">
+
                       {familiarityOptions.map(
                         (item) => (
                           <button
@@ -409,19 +440,24 @@ export function ConsultationAssistant({
                                 : 'border-[#e6ddd1]'
                             }`}
                           >
+
                             {item}
 
                             {choice === item && (
                               <Check className="size-4 text-[#ad7b40]" />
                             )}
+
                           </button>
                         )
                       )}
+
                     </div>
                   )}
+
                 </div>
 
-                <div className="mt-4 rounded-2xl border p-4">
+                <div className="mt-4 rounded-2xl border border-[#e6ddd1] p-4">
+
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
                     Client Says
                   </p>
@@ -446,6 +482,7 @@ export function ConsultationAssistant({
                     <Mic className="size-4" />
                     Voice input - future
                   </p>
+
                 </div>
 
                 <button
@@ -454,64 +491,38 @@ export function ConsultationAssistant({
                   onClick={handleContinue}
                   className="mt-4 flex h-12 w-full items-center justify-center rounded-xl bg-[#24354c] text-sm font-semibold text-white disabled:opacity-40"
                 >
+
                   Continue Consultation
 
                   <ChevronRight className="ml-2 size-4" />
+
                 </button>
+
               </>
             )}
 
             {isReadyForV3 && (
               <div className="rounded-2xl border border-[#dfd3c1] bg-[#fbf6ec] p-5">
+
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
                   Opening Context Complete
                 </p>
 
                 <h3 className="mt-2 font-serif text-lg font-semibold text-[#24354c]">
-                  Ready for Personalized
-                  Discussion
+                  Ready for Personalized Discussion
                 </h3>
 
                 <p className="mt-2 text-sm leading-6 text-[#776d61]">
-                  The client&apos;s
-                  orientation and current
-                  concern have been
-                  established. Relevant
-                  verified TSIA V3
-                  intelligence can now be
-                  used for the consultation.
+                  The client's orientation and
+                  current concern have been
+                  established. Verified TSIA V3
+                  intelligence is available below.
                 </p>
+
               </div>
             )}
 
-            {currentAnswers.length > 0 && (
-              <div className="mt-4 rounded-2xl bg-[#f8f4ed] p-4">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
-                  Conversation Context
-                </p>
-
-                <div className="mt-3 space-y-3">
-                  {currentAnswers.map(
-                    (item, index) => (
-                      <div
-                        key={`${item.questionKey}-${index}`}
-                        className="border-b border-[#e8dfd3] pb-3 last:border-b-0 last:pb-0"
-                      >
-                        <p className="text-xs font-semibold leading-5 text-[#24354c]">
-                          {item.questionText}
-                        </p>
-
-                        <p className="mt-1 text-xs leading-5 text-[#776d61]">
-                          {item.clientAnswer}
-                        </p>
-                      </div>
-                    )
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* SECTION 3 — CLIENT AT A GLANCE */}
+            {/* SECTION 2: CLIENT AT A GLANCE */}
 
             <Title
               small="Numerology Reference"
@@ -520,9 +531,11 @@ export function ConsultationAssistant({
 
             {loading && (
               <div className="flex items-center gap-2 rounded-xl bg-[#f8f4ed] p-4 text-xs text-[#776d61]">
+
                 <Loader2 className="size-4 animate-spin" />
-                Loading verified TSIA
-                numerology...
+
+                Loading verified TSIA numerology...
+
               </div>
             )}
 
@@ -534,7 +547,9 @@ export function ConsultationAssistant({
 
             {calculation && (
               <>
+
                 <div className="grid grid-cols-3 gap-2">
+
                   <NumberBox
                     title="Mulank"
                     value={formatCompound(
@@ -573,6 +588,7 @@ export function ConsultationAssistant({
                       ]
                     }
                   />
+
                 </div>
 
                 <Title
@@ -581,41 +597,56 @@ export function ConsultationAssistant({
                 />
 
                 <div className="grid gap-4 sm:grid-cols-2">
+
                   <div>
+
                     <p className="mb-2 text-xs font-semibold">
                       Standard Lo Shu
                     </p>
 
                     <div className="grid max-w-[230px] grid-cols-3">
-                      {grid.map((number) => (
-                        <GridCell
-                          key={number}
-                          text={String(number)}
-                        />
-                      ))}
+
+                      {grid.map(
+                        (number) => (
+                          <GridCell
+                            key={number}
+                            text={String(number)}
+                          />
+                        )
+                      )}
+
                     </div>
                   </div>
 
                   <div>
+
                     <p className="mb-2 text-xs font-semibold">
                       Personal Lo Shu
                     </p>
 
                     <div className="grid max-w-[230px] grid-cols-3">
-                      {grid.map((number) => (
-                        <GridCell
-                          key={number}
-                          text={repeatNumber(
-                            number,
-                            calculation.loShu.counts[number]
-                          )}
-                        />
-                      ))}
+
+                      {grid.map(
+                        (number) => (
+                          <GridCell
+                            key={number}
+                            text={repeatNumber(
+                              number,
+                              calculation.loShu.counts[
+                                number
+                              ]
+                            )}
+                          />
+                        )
+                      )}
+
                     </div>
                   </div>
+
                 </div>
 
                 <div className="mt-4 rounded-xl bg-[#f8f4ed] p-4 text-sm leading-6 text-[#776d61]">
+
                   <p>
                     <b>Present:</b>{' '}
                     {joinNumbers(
@@ -624,10 +655,302 @@ export function ConsultationAssistant({
                   </p>
 
                   <p>
-                                        <b>Missing:</b>{' '}
+                    <b>Missing:</b>{' '}
                     {joinNumbers(
                       calculation.loShu.missingNumbers
                     )}
+                  </p>
+
+                  <p>
+                    <b>Repeated:</b>{' '}
+                    {formatRepeated(
+                      calculation.loShu.repeatedNumbers
+                    )}
+                  </p>
+
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-2">
+
+                  <MiniBox
+                    title="Golden Rajyog"
+                    text={`4-5-6 · ${statusLabel(
+                      calculation.rajyog.golden.status
+                    )}`}
+                  />
+
+                  <MiniBox
+                    title="Silver Rajyog"
+                    text={`2-5-8 · ${statusLabel(
+                      calculation.rajyog.silver.status
+                    )}`}
+                  />
+
+                </div>
+
+                <div className="mt-3 rounded-xl border p-4">
+
+                  <p className="text-sm font-semibold text-[#24354c]">
+                    Core Graha Influence
+                  </p>
+
+                  <p className="mt-2 text-sm leading-6 text-[#776d61]">
+
+                    Mulank:{' '}
+                    <b>
+                      {
+                        calculation.grahas[
+                          calculation.mulank.final
+                        ]
+                      }
+                    </b>
+
+                    <br />
+
+                    Bhagyank:{' '}
+                    <b>
+                      {
+                        calculation.grahas[
+                          calculation.bhagyank.final
+                        ]
+                      }
+                    </b>
+
+                    <br />
+
+                    Name Number:{' '}
+                    <b>
+                      {
+                        calculation.grahas[
+                          calculation.nameNumber.finalNumber
+                        ]
+                      }
+                    </b>
+
+                  </p>
+
+                </div>
+
+              </>
+            )}
+
+            {/* SECTION 3: NUMEROLOGY INTELLIGENCE */}
+
+            {!loading &&
+              !error &&
+              data?.employeeOutput &&
+              data.employeeOutput.insights.length > 0 && (
+                <>
+
+                  <Title
+                    small="Personalized Intelligence"
+                    big="Numerology Intelligence"
+                  />
+
+                  <ConsultationV3Insights
+                    insights={
+                      data.employeeOutput.insights
+                    }
+                    interpretations={
+                      data.employeeInterpretation
+                        .interpretations
+                    }
+                    evidence={
+                      data.intelligence.evidence
+                    }
+                  />
+
+                </>
+              )}
+
+            {!loading &&
+              !error &&
+              data?.employeeOutput &&
+              data.employeeOutput.insights.length === 0 && (
+                <div className="mt-6 rounded-xl bg-[#f8f4ed] p-4">
+
+                  <p className="text-xs leading-5 text-[#776d61]">
+                    No approved V3 employee insights
+                    are available for this client yet.
+                  </p>
+
+                </div>
+              )}
+
+            {/* SECTION 4: COMPLETE INTELLIGENCE */}
+
+            {!loading &&
+              !error &&
+              data?.intelligence && (
+                <>
+
+                  <Title
+                    small="Deep Analysis"
+                    big="Complete Numerology Intelligence"
+                  />
+
+                  <ConsultationCompleteIntelligence
+                    conclusions={
+                      data.intelligence.conclusions
+                        .conclusions
+                    }
+                    developmentAssessments={
+                      data.intelligence.conclusions
+                        .developmentAssessments
+                    }
+                    crossQualityResolutions={
+                      data.intelligence.crossQuality
+                        .resolutions
+                    }
+                  />
+
+                </>
+              )}
+
+          </main>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function formatCompound(
+  compound: number,
+  final: number
+) {
+  return compound === final
+    ? String(final)
+    : `${compound}/${final}`
+}
+
+function repeatNumber(
+  number: number,
+  count: number
+) {
+  if (!count) {
+    return ''
+  }
+
+  return String(number).repeat(count)
+}
+
+function joinNumbers(
+  numbers: readonly NumerologyDigit[]
+) {
+  return numbers.length
+    ? numbers.join(', ')
+    : 'None'
+}
+
+function formatRepeated(
+  repeated: Partial<
+    Record<NumerologyDigit, number>
+  >
+) {
+  const items =
+    Object.entries(repeated)
+      .filter(
+        ([, count]) =>
+          Number(count) > 1
+      )
+      .map(
+        ([number, count]) =>
+          `${number} × ${count}`
+      )
+
+  return items.length
+    ? items.join(', ')
+    : 'None'
+}
+
+function statusLabel(
+  status: string
+) {
+  if (status === 'complete') {
+    return 'Complete'
+  }
+
+  if (status === 'partial') {
+    return 'Partial'
+  }
+
+  return 'Absent'
+}
+
+function Tag({
+  text,
+}: {
+  text: string
+}) {
+  return (
+    <span className="rounded-full bg-white/10 px-3 py-1 text-[10px]">
+      {text}
+    </span>
+  )
+}
+
+function Title({
+  small,
+  big,
+}: {
+  small: string
+  big: string
+}) {
+  return (
+    <div className="mb-4 mt-7 border-t pt-5">
+
+      <p className="text-[10px] uppercase text-[#ad7b40]">
+        {small}
+      </p>
+
+      <h2 className="mt-1 font-serif text-xl font-semibold text-[#24354c]">
+        {big}
+      </h2>
+
+    </div>
+  )
+}
+
+function NumberBox({
+  title,
+  value,
+  graha,
+}: {
+  title: string
+  value: string
+  graha: string
+}) {
+  return (
+    <div className="rounded-xl bg-[#f8f4ed] p-3">
+
+      <p className="text-[9px] uppercase text-[#8c8175]">
+        {title}
+      </p>
+
+      <p className="mt-2 font-serif text-xl text-[#24354c]">
+        {value}
+      </p>
+
+      <p className="mt-1 text-[10px] text-[#ad7b40]">
+        {graha}
+      </p>
+
+    </div>
+  )
+}
+
+function GridCell({
+  text,
+}: {
+  text: string
+}) {
+  return (
+    <div className="flex h-14 items-center justify-center border text-sm font-semibold text-[#24354c]">
+      {text || ' '}
+    </div>
+  )
+}
+
 function MiniBox({
   title,
   text,
@@ -637,6 +960,7 @@ function MiniBox({
 }) {
   return (
     <div className="rounded-xl border p-3">
+
       <p className="text-[10px] font-semibold text-[#24354c]">
         {title}
       </p>
@@ -644,6 +968,7 @@ function MiniBox({
       <p className="mt-1 text-xs text-[#776d61]">
         {text}
       </p>
+
     </div>
   )
 }
