@@ -30,6 +30,10 @@ import {
   decideNextQuestion,
 } from '@/lib/consultation/question-intelligence'
 
+import {
+  selectConsultationIntelligence,
+} from '@/lib/consultation/consultation-intelligence-selector'
+
 import type {
   ConsultationAnswerForIntelligence,
   QuestionIntelligenceDecision,
@@ -70,16 +74,18 @@ type Props = {
   onBack: () => void
 }
 
+type EmployeeOutputData = {
+  version: string
+  insights: readonly EmployeeInsight[]
+  warnings: readonly string[]
+}
+
 type Result = {
   calculation: NumerologyCalculationResult
 
   intelligence: NumerologyV3Result
 
-  employeeOutput: {
-    version: string
-    insights: readonly EmployeeInsight[]
-    warnings: readonly string[]
-  }
+  employeeOutput: EmployeeOutputData
 
   employeeInterpretation: {
     version: string
@@ -87,6 +93,8 @@ type Result = {
       readonly EmployeeInterpretation[]
     warnings: readonly string[]
   }
+
+  consultationInsightPool: EmployeeOutputData
 }
 
 const labels: Record<string, string> = {
@@ -146,16 +154,32 @@ export function ConsultationAssistant({
   const [error, setError] =
     useState('')
 
+  /*
+   * LOAD VERIFIED NUMEROLOGY
+   *
+   * One server action.
+   *
+   * V2 calculation is performed
+   * once on the server.
+   *
+   * V3 reuses that calculation.
+   *
+   * Consultation selection
+   * happens locally.
+   */
   useEffect(() => {
     let active = true
 
     async function load() {
       setLoading(true)
       setError('')
+      setData(null)
 
       try {
         const response =
-          await generateNumerologyV2(client.id)
+          await generateNumerologyV2(
+            client.id
+          )
 
         if (!active) {
           return
@@ -184,6 +208,9 @@ export function ConsultationAssistant({
 
           employeeInterpretation:
             response.result.employeeInterpretation,
+
+          consultationInsightPool:
+            response.result.consultationInsightPool,
         })
       } catch {
         if (active) {
@@ -205,6 +232,15 @@ export function ConsultationAssistant({
     }
   }, [client.id])
 
+  /*
+   * EXISTING QUESTION INTELLIGENCE
+   *
+   * Client answers are conversational
+   * context only.
+   *
+   * They never change V2 or V3
+   * numerological evidence.
+   */
   const decision =
     useMemo<QuestionIntelligenceDecision>(
       () =>
@@ -224,7 +260,50 @@ export function ConsultationAssistant({
       ]
     )
 
-  const calculation = data?.calculation
+  /*
+   * TOPIC-BASED V3 SELECTION
+   *
+   * Uses the complete approved
+   * employee insight pool.
+   *
+   * No database request.
+   *
+   * No new V2/V3 calculation.
+   */
+  const consultationSelection =
+    useMemo(() => {
+      if (!data) {
+        return null
+      }
+
+      return selectConsultationIntelligence({
+        purpose,
+        topics,
+        insights:
+          data.consultationInsightPool.insights,
+        conclusions:
+          data.intelligence.conclusions,
+        limit: 5,
+      })
+    }, [
+      data,
+      purpose,
+      topics,
+    ])
+
+  const consultationInsights =
+    useMemo(
+      () =>
+        consultationSelection
+          ? consultationSelection.insights.map(
+              (item) => item.insight
+            )
+          : [],
+      [consultationSelection]
+    )
+
+  const calculation =
+    data?.calculation
 
   const modeLabel =
     mode === 'in_person'
@@ -249,6 +328,15 @@ export function ConsultationAssistant({
       ? Boolean(choice)
       : Boolean(answer.trim())
 
+  /*
+   * RECORD CLIENT ANSWER
+   *
+   * Current Phase 1 behaviour:
+   * local consultation state.
+   *
+   * Secure database persistence
+   * will be a separate step.
+   */
   function handleContinue() {
     if (
       !decision.shouldAskQuestion ||
@@ -359,7 +447,7 @@ export function ConsultationAssistant({
                   Today's Note
                 </p>
 
-                <p className="mt-2 text-sm leading-6 text-[#24354c]">
+                <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[#24354c]">
                   {note}
                 </p>
 
@@ -719,256 +807,4 @@ export function ConsultationAssistant({
                     <br />
 
                     Name Number:{' '}
-                    <b>
-                      {
-                        calculation.grahas[
-                          calculation.nameNumber.finalNumber
-                        ]
-                      }
-                    </b>
-
-                  </p>
-
-                </div>
-
-              </>
-            )}
-
-            {/* SECTION 3: NUMEROLOGY INTELLIGENCE */}
-
-            {!loading &&
-              !error &&
-              data?.employeeOutput &&
-              data.employeeOutput.insights.length > 0 && (
-                <>
-
-                  <Title
-                    small="Personalized Intelligence"
-                    big="Numerology Intelligence"
-                  />
-
-                  <ConsultationV3Insights
-                    insights={
-                      data.employeeOutput.insights
-                    }
-                    interpretations={
-                      data.employeeInterpretation
-                        .interpretations
-                    }
-                    evidence={
-                      data.intelligence.evidence
-                    }
-                  />
-
-                </>
-              )}
-
-            {!loading &&
-              !error &&
-              data?.employeeOutput &&
-              data.employeeOutput.insights.length === 0 && (
-                <div className="mt-6 rounded-xl bg-[#f8f4ed] p-4">
-
-                  <p className="text-xs leading-5 text-[#776d61]">
-                    No approved V3 employee insights
-                    are available for this client yet.
-                  </p>
-
-                </div>
-              )}
-
-            {/* SECTION 4: COMPLETE INTELLIGENCE */}
-
-            {!loading &&
-              !error &&
-              data?.intelligence && (
-                <>
-
-                  <Title
-                    small="Deep Analysis"
-                    big="Complete Numerology Intelligence"
-                  />
-
-                  <ConsultationCompleteIntelligence
-                    conclusions={
-                      data.intelligence.conclusions
-                        .conclusions
-                    }
-                    developmentAssessments={
-                      data.intelligence.conclusions
-                        .developmentAssessments
-                    }
-                    crossQualityResolutions={
-                      data.intelligence.crossQuality
-                        .resolutions
-                    }
-                  />
-
-                </>
-              )}
-
-          </main>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function formatCompound(
-  compound: number,
-  final: number
-) {
-  return compound === final
-    ? String(final)
-    : `${compound}/${final}`
-}
-
-function repeatNumber(
-  number: number,
-  count: number
-) {
-  if (!count) {
-    return ''
-  }
-
-  return String(number).repeat(count)
-}
-
-function joinNumbers(
-  numbers: readonly NumerologyDigit[]
-) {
-  return numbers.length
-    ? numbers.join(', ')
-    : 'None'
-}
-
-function formatRepeated(
-  repeated: Partial<
-    Record<NumerologyDigit, number>
-  >
-) {
-  const items =
-    Object.entries(repeated)
-      .filter(
-        ([, count]) =>
-          Number(count) > 1
-      )
-      .map(
-        ([number, count]) =>
-          `${number} × ${count}`
-      )
-
-  return items.length
-    ? items.join(', ')
-    : 'None'
-}
-
-function statusLabel(
-  status: string
-) {
-  if (status === 'complete') {
-    return 'Complete'
-  }
-
-  if (status === 'partial') {
-    return 'Partial'
-  }
-
-  return 'Absent'
-}
-
-function Tag({
-  text,
-}: {
-  text: string
-}) {
-  return (
-    <span className="rounded-full bg-white/10 px-3 py-1 text-[10px]">
-      {text}
-    </span>
-  )
-}
-
-function Title({
-  small,
-  big,
-}: {
-  small: string
-  big: string
-}) {
-  return (
-    <div className="mb-4 mt-7 border-t pt-5">
-
-      <p className="text-[10px] uppercase text-[#ad7b40]">
-        {small}
-      </p>
-
-      <h2 className="mt-1 font-serif text-xl font-semibold text-[#24354c]">
-        {big}
-      </h2>
-
-    </div>
-  )
-}
-
-function NumberBox({
-  title,
-  value,
-  graha,
-}: {
-  title: string
-  value: string
-  graha: string
-}) {
-  return (
-    <div className="rounded-xl bg-[#f8f4ed] p-3">
-
-      <p className="text-[9px] uppercase text-[#8c8175]">
-        {title}
-      </p>
-
-      <p className="mt-2 font-serif text-xl text-[#24354c]">
-        {value}
-      </p>
-
-      <p className="mt-1 text-[10px] text-[#ad7b40]">
-        {graha}
-      </p>
-
-    </div>
-  )
-}
-
-function GridCell({
-  text,
-}: {
-  text: string
-}) {
-  return (
-    <div className="flex h-14 items-center justify-center border text-sm font-semibold text-[#24354c]">
-      {text || ' '}
-    </div>
-  )
-}
-
-function MiniBox({
-  title,
-  text,
-}: {
-  title: string
-  text: string
-}) {
-  return (
-    <div className="rounded-xl border p-3">
-
-      <p className="text-[10px] font-semibold text-[#24354c]">
-        {title}
-      </p>
-
-      <p className="mt-1 text-xs text-[#776d61]">
-        {text}
-      </p>
-
-    </div>
-  )
-}
+                   
