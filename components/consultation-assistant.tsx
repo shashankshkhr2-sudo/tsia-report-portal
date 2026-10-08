@@ -1,42 +1,19 @@
 'use client'
 
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from 'react'
-
+import { useEffect, useMemo, useState } from 'react'
 import {
   ArrowLeft,
   Check,
   ChevronRight,
   Loader2,
-  Mic,
 } from 'lucide-react'
 
-import {
-  generateNumerologyV2,
-} from '@/app/actions/numerology'
-
-import {
-  ConsultationV3Insights,
-} from '@/components/consultation-v3-insights'
-
-import {
-  ConsultationCompleteIntelligence,
-} from '@/components/consultation-complete-intelligence'
-
-import {
-  decideNextQuestion,
-} from '@/lib/consultation/question-intelligence'
-
-import {
-  selectConsultationIntelligence,
-} from '@/lib/consultation/consultation-intelligence-selector'
-
-import {
-  buildUniversalNumerologyIntelligence,
-} from '@/lib/consultation/universal-numerology-intelligence'
+import { generateNumerologyV2 } from '@/app/actions/numerology'
+import { ConsultationV3Insights } from '@/components/consultation-v3-insights'
+import { ConsultationCompleteIntelligence } from '@/components/consultation-complete-intelligence'
+import { decideNextQuestion } from '@/lib/consultation/question-intelligence'
+import { selectConsultationIntelligence } from '@/lib/consultation/consultation-intelligence-selector'
+import { buildUniversalNumerologyIntelligence } from '@/lib/consultation/universal-numerology-intelligence'
 
 import type {
   UniversalConsultationTopic,
@@ -45,12 +22,7 @@ import type {
 
 import type {
   ConsultationAnswerForIntelligence,
-  QuestionIntelligenceDecision,
 } from '@/lib/consultation/question-intelligence'
-
-import type {
-  ConsultationSelectionResult,
-} from '@/lib/consultation/consultation-intelligence-selector'
 
 import type {
   NumerologyCalculationResult,
@@ -83,25 +55,22 @@ type Props = {
   onBack: () => void
 }
 
-type EmployeeOutputData = {
-  version: string
-  insights: readonly EmployeeInsight[]
-  warnings: readonly string[]
-}
-
-type Result = {
+type Data = {
   calculation: NumerologyCalculationResult
   intelligence: NumerologyV3Result
-  consultationInsightPool: EmployeeOutputData
+  consultationInsightPool: {
+    version: string
+    insights: readonly EmployeeInsight[]
+    warnings: readonly string[]
+  }
 }
 
 const labels: Record<string, string> = {
   numerology_report: 'Report Discussion',
   follow_up: 'Follow-up Consultation',
   general_consultation: 'General Consultation',
-
-  business: 'Business',
   career: 'Career',
+  business: 'Business',
   money: 'Money & Wealth',
   family: 'Family',
   relationship: 'Relationship',
@@ -115,7 +84,7 @@ const familiarityOptions = [
   'Know a little',
   'Consultation before',
   'Know it quite well',
-] as const
+]
 
 const grid: NumerologyDigit[] = [
   4, 9, 2,
@@ -123,47 +92,16 @@ const grid: NumerologyDigit[] = [
   8, 1, 6,
 ]
 
-function getConcernAnswer(
-  answers: readonly ConsultationAnswerForIntelligence[]
-): string {
-  const concern = [...answers]
-    .reverse()
-    .find(
-      (item) =>
-        item.questionKey === 'TODAY_NOTE_EXPLORATION' ||
-        item.questionKey === 'PRIMARY_CONCERN_EXPLORATION'
-    )
-
-  return concern?.clientAnswer.trim() || ''
-}
-
-function getClarificationAnswer(
-  answers: readonly ConsultationAnswerForIntelligence[]
-): string {
-  const clarification = [...answers]
-    .reverse()
-    .find(
-      (item) =>
-        item.questionKey === 'CONCERN_CLARIFICATION'
-    )
-
-  return clarification?.clientAnswer.trim() || ''
-}
-
-function readableTopic(
-  topic: string | null
-): string {
-  if (!topic) {
-    return 'General Consultation'
-  }
-
-  return labels[topic] || topic.replace(/_/g, ' ')
+function topicName(value: string | null) {
+  return value
+    ? labels[value] || value.replace(/_/g, ' ')
+    : 'General Consultation'
 }
 
 function normalizeTopic(
-  topic: string | null
+  value: string | null
 ): UniversalConsultationTopic {
-  switch (topic) {
+  switch (value) {
     case 'career':
     case 'business':
     case 'money':
@@ -171,29 +109,388 @@ function normalizeTopic(
     case 'relationship':
     case 'marriage':
     case 'personal_direction':
-      return topic
-
+      return value
     default:
       return 'other'
   }
 }
 
-function scopeLabel(
-  category: string
-): string {
-  switch (category) {
-    case 'NUMEROLOGY_GUIDANCE':
-      return 'Numerology Guidance'
+function lastAnswer(
+  answers: readonly ConsultationAnswerForIntelligence[],
+  keys: string[]
+) {
+  return (
+    [...answers]
+      .reverse()
+      .find((item) => keys.includes(item.questionKey))
+      ?.clientAnswer.trim() || ''
+  )
+}
 
-    case 'NUMEROLOGY_AND_LIFE_PATH':
-      return 'Numerology + Life Path Guidance'
+function Title({
+  small,
+  big,
+}: {
+  small: string
+  big: string
+}) {
+  return (
+    <div className="mb-4 mt-7 border-t pt-5">
+      <p className="text-[10px] uppercase tracking-wide text-[#ad7b40]">
+        {small}
+      </p>
+      <h2 className="mt-1 font-serif text-xl font-semibold text-[#24354c]">
+        {big}
+      </h2>
+    </div>
+  )
+}
 
-    case 'LIFE_PATH_REQUIRED':
-      return 'Life Path Guidance Required'
+function Panel({
+  title,
+  children,
+}: {
+  title: string
+  children: React.ReactNode
+}) {
+  return (
+    <section className="mt-4 rounded-2xl border border-[#e6ddd1] bg-white p-4">
+      <h3 className="font-serif text-lg font-semibold text-[#24354c]">
+        {title}
+      </h3>
+      <div className="mt-3 text-sm leading-6 text-[#776d61]">
+        {children}
+      </div>
+    </section>
+  )
+}
 
-    default:
-      return 'Consultation Guidance'
-  }
+function Info({
+  title,
+  value,
+}: {
+  title: string
+  value: string
+}) {
+  return (
+    <div className="rounded-xl bg-[#f8f4ed] p-3">
+      <p className="text-[10px] font-semibold uppercase text-[#ad7b40]">
+        {title}
+      </p>
+      <p className="mt-2 break-words text-sm font-semibold text-[#24354c]">
+        {value}
+      </p>
+    </div>
+  )
+}
+
+function Guidance({
+  result,
+}: {
+  result: UniversalNumerologyResult
+}) {
+  const lifePathOnly =
+    result.scope.category === 'LIFE_PATH_REQUIRED'
+
+  return (
+    <div className="mt-4">
+      <Panel title="Consultation Scope">
+        <p>{result.scope.employeeExplanation}</p>
+      </Panel>
+
+      <Panel title={result.concernInterpretation.title}>
+        <div className="space-y-4">
+          <div>
+            <p className="font-semibold text-[#ad7b40]">
+              Profession & Suitability Discussion
+            </p>
+            <p className="mt-1">
+              {result.concernInterpretation.suitabilityDiscussion}
+            </p>
+          </div>
+
+          <div>
+            <p className="font-semibold text-[#ad7b40]">
+              Personality Connection
+            </p>
+            <p className="mt-1">
+              {result.concernInterpretation.personalityConnection}
+            </p>
+          </div>
+
+          <div>
+            <p className="font-semibold text-[#ad7b40]">
+              What the Client Can Improve
+            </p>
+            <p className="mt-1">
+              {result.concernInterpretation.improvementDirection}
+            </p>
+          </div>
+
+          <p className="border-t pt-3 text-xs">
+            {result.concernInterpretation.limitation}
+          </p>
+        </div>
+      </Panel>
+
+      {!lifePathOnly && (
+        <>
+          <Panel title="Numerological Foundation">
+            <div className="grid grid-cols-3 gap-2">
+              <Info
+                title="Mulank"
+                value={String(result.coreNumbers.mulank)}
+              />
+              <Info
+                title="Bhagyank"
+                value={String(result.coreNumbers.bhagyank)}
+              />
+              <Info
+                title="Name"
+                value={String(result.coreNumbers.nameNumber)}
+              />
+            </div>
+          </Panel>
+
+          <Panel title="Personality & Relevant Qualities">
+            {result.relevantQualities.length === 0 ? (
+              <p>No eligible qualities were identified.</p>
+            ) : (
+              <div className="space-y-3">
+                {result.relevantQualities.map((quality) => (
+                  <div
+                    key={quality.qualityId}
+                    className="rounded-xl bg-[#f8f4ed] p-3"
+                  >
+                    <p className="font-semibold text-[#24354c]">
+                      {quality.title}
+                    </p>
+
+                    <p className="mt-2">
+                      {quality.interpretation}
+                    </p>
+
+                    <p className="mt-2 text-xs font-semibold text-[#ad7b40]">
+                      {quality.verificationStatus === 'V3_SUPPORTED'
+                        ? 'Approved topic-relevant V3 finding'
+                        : 'Traditional association — confirm with client'}
+                    </p>
+
+                    <div className="mt-2 space-y-1 text-xs">
+                      {quality.evidence.map((evidence, index) => (
+                        <p key={index}>
+                          {evidence.description}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Panel>
+
+          <Panel title="Behavioural Development Guidance">
+            <p className="mb-3 text-xs">
+              These are possibilities to explore, not confirmed
+              weaknesses.
+            </p>
+
+            <div className="space-y-3">
+              {result.behaviouralDevelopment.map((item) => (
+                <div
+                  key={item.id}
+                  className="rounded-xl bg-[#f8f4ed] p-3"
+                >
+                  <p className="font-semibold text-[#24354c]">
+                    {item.title}
+                  </p>
+                  <p className="mt-2">
+                    {item.possiblePattern}
+                  </p>
+                  <p className="mt-2 font-semibold text-[#ad7b40]">
+                    Practical Improvement
+                  </p>
+                  <p>{item.practicalImprovement}</p>
+                </div>
+              ))}
+            </div>
+          </Panel>
+        </>
+      )}
+
+      <Panel title="Suggested Follow-up Questions">
+        {result.suggestedQuestions.length ? (
+          <div className="space-y-3">
+            {result.suggestedQuestions.map((question, index) => (
+              <p key={index}>
+                <b>{index + 1}.</b> {question}
+              </p>
+            ))}
+          </div>
+        ) : (
+          <p>No additional question suggested.</p>
+        )}
+      </Panel>
+
+      {result.scope.requiresLifePathGuidance && (
+        <Panel title="TSIA Life Path Guidance Report">
+          <p>{result.scope.suggestedResponse}</p>
+        </Panel>
+      )}
+
+      {result.warnings.length > 0 && (
+        <Panel title="Practitioner Notes">
+          {result.warnings.map((warning, index) => (
+            <p key={index} className="mb-2 text-xs">
+              {warning}
+            </p>
+          ))}
+        </Panel>
+      )}
+
+      <p className="mt-4 text-xs leading-5 text-[#8a8177]">
+        Traditional numerology is interpretive and is not a
+        scientifically validated personality or career assessment.
+        No professional or life outcome is guaranteed.
+      </p>
+    </div>
+  )
+}
+
+function CalculationDisplay({
+  calculation,
+}: {
+  calculation: NumerologyCalculationResult
+}) {
+  const numberText = (compound: number, final: number) =>
+    compound === final
+      ? String(final)
+      : `${compound}/${final}`
+
+  const repeats = Object.entries(
+    calculation.loShu.repeatedNumbers
+  )
+    .filter(([, count]) => Number(count) > 1)
+    .map(([number, count]) => `${number} × ${count}`)
+    .join(', ')
+
+  return (
+    <>
+      <div className="grid grid-cols-3 gap-2">
+        <Info
+          title="Mulank"
+          value={`${numberText(
+            calculation.mulank.compound,
+            calculation.mulank.final
+          )} · ${calculation.grahas[calculation.mulank.final]}`}
+        />
+
+        <Info
+          title="Bhagyank"
+          value={`${numberText(
+            calculation.bhagyank.compound,
+            calculation.bhagyank.final
+          )} · ${calculation.grahas[calculation.bhagyank.final]}`}
+        />
+
+        <Info
+          title="Name Number"
+          value={`${numberText(
+            calculation.nameNumber.compoundTotal,
+            calculation.nameNumber.finalNumber
+          )} · ${
+            calculation.grahas[
+              calculation.nameNumber.finalNumber
+            ]
+          }`}
+        />
+      </div>
+
+      <Title small="Lo Shu" big="Numerology Structure" />
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <p className="mb-2 text-xs font-semibold">
+            Standard Lo Shu
+          </p>
+
+          <div className="grid grid-cols-3">
+            {grid.map((number) => (
+              <div
+                key={number}
+                className="flex h-12 items-center justify-center border text-sm font-semibold"
+              >
+                {number}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <p className="mb-2 text-xs font-semibold">
+            Personal Lo Shu
+          </p>
+
+          <div className="grid grid-cols-3">
+            {grid.map((number) => (
+              <div
+                key={number}
+                className="flex h-12 items-center justify-center border text-sm font-semibold"
+              >
+                {String(number).repeat(
+                  calculation.loShu.counts[number] || 0
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <Panel title="Lo Shu Details">
+        <p>
+          <b>Present:</b>{' '}
+          {calculation.loShu.presentNumbers.join(', ') || 'None'}
+        </p>
+
+        <p>
+          <b>Missing:</b>{' '}
+          {calculation.loShu.missingNumbers.join(', ') || 'None'}
+        </p>
+
+        <p>
+          <b>Repeated:</b> {repeats || 'None'}
+        </p>
+      </Panel>
+
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <Info
+          title="Golden Rajyog"
+          value={`4-5-6 · ${calculation.rajyog.golden.status}`}
+        />
+        <Info
+          title="Silver Rajyog"
+          value={`2-5-8 · ${calculation.rajyog.silver.status}`}
+        />
+      </div>
+
+      <Panel title="Core Graha Influence">
+        <p>
+          <b>Mulank:</b>{' '}
+          {calculation.grahas[calculation.mulank.final]}
+        </p>
+        <p>
+          <b>Bhagyank:</b>{' '}
+          {calculation.grahas[calculation.bhagyank.final]}
+        </p>
+        <p>
+          <b>Name Number:</b>{' '}
+          {calculation.grahas[
+            calculation.nameNumber.finalNumber
+          ]}
+        </p>
+      </Panel>
+    </>
+  )
 }
 
 export function ConsultationAssistant({
@@ -208,34 +505,19 @@ export function ConsultationAssistant({
   const [choice, setChoice] = useState('')
   const [answer, setAnswer] = useState('')
 
-  const [
-    currentAnswers,
-    setCurrentAnswers,
-  ] = useState<ConsultationAnswerForIntelligence[]>([])
+  const [answers, setAnswers] =
+    useState<ConsultationAnswerForIntelligence[]>([])
 
-  const [
-    clarificationNeeded,
-    setClarificationNeeded,
-  ] = useState(false)
+  const [clarificationNeeded, setClarificationNeeded] =
+    useState(false)
 
-  const [
-    clarificationReviewed,
-    setClarificationReviewed,
-  ] = useState(false)
+  const [clarificationReviewed, setClarificationReviewed] =
+    useState(false)
 
-  const [data, setData] = useState<Result | null>(null)
+  const [data, setData] = useState<Data | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  /*
-   * LOAD VERIFIED NUMEROLOGY
-   *
-   * The server remains the authority
-   * for V2 and V3 calculations.
-   *
-   * Client answers never modify
-   * verified numerological evidence.
-   */
   useEffect(() => {
     let active = true
 
@@ -248,14 +530,11 @@ export function ConsultationAssistant({
         const response =
           await generateNumerologyV2(client.id)
 
-        if (!active) {
-          return
-        }
+        if (!active) return
 
         if (response.error || !response.result) {
           setError(
-            response.error ||
-            'Unable to load numerology.'
+            response.error || 'Unable to load numerology.'
           )
           return
         }
@@ -270,9 +549,7 @@ export function ConsultationAssistant({
             result.consultationInsightPool.insights
           )
         ) {
-          setError(
-            'Consultation intelligence is incomplete. Please verify the numerology server action.'
-          )
+          setError('Incomplete consultation intelligence.')
           return
         }
 
@@ -287,187 +564,101 @@ export function ConsultationAssistant({
           setError('Unable to load numerology.')
         }
       } finally {
-        if (active) {
-          setLoading(false)
-        }
+        if (active) setLoading(false)
       }
     }
 
-    load()
+    void load()
 
     return () => {
       active = false
     }
   }, [client.id])
 
-  /*
-   * QUESTION INTELLIGENCE
-   */
-  const decision =
-    useMemo<QuestionIntelligenceDecision>(
-      () =>
-        decideNextQuestion({
-          consultationNumber,
-          purpose,
-          topics,
-          todayNote: note,
-          currentAnswers,
-          clarificationNeeded,
-        }),
-      [
+  const decision = useMemo(
+    () =>
+      decideNextQuestion({
         consultationNumber,
         purpose,
         topics,
-        note,
-        currentAnswers,
+        todayNote: note,
+        currentAnswers: answers,
         clarificationNeeded,
-      ]
-    )
+      }),
+    [
+      consultationNumber,
+      purpose,
+      topics,
+      note,
+      answers,
+      clarificationNeeded,
+    ]
+  )
 
-  /*
-   * EXISTING VERIFIED V3 SELECTOR
-   *
-   * Keep this as the authority for
-   * topic-specific V3 matching.
-   */
-  const consultationSelection =
-    useMemo<ConsultationSelectionResult | null>(
-      () => {
-        if (!data) {
-          return null
-        }
-
-        return selectConsultationIntelligence({
-          purpose,
-          topics,
-          insights:
-            data.consultationInsightPool.insights,
-          conclusions:
-            data.intelligence.conclusions,
-          limit: 5,
-        })
-      },
-      [data, purpose, topics]
-    )
-
-  const consultationInsights =
-    consultationSelection
-      ? consultationSelection.insights.map(
-          (item) => item.insight
-        )
-      : []
-
-  const generalInsights =
-    consultationSelection?.insights.filter(
-      (item) =>
-        item.relevanceLevel === 'GENERAL'
-    ) || []
-
-  const calculation = data?.calculation
-
-  const modeLabel =
-    mode === 'in_person'
-      ? 'In-Person'
-      : mode === 'phone'
-        ? 'Phone'
-        : 'Consultation'
+  const selection = useMemo(
+    () =>
+      data
+        ? selectConsultationIntelligence({
+            purpose,
+            topics,
+            insights:
+              data.consultationInsightPool.insights,
+            conclusions:
+              data.intelligence.conclusions,
+            limit: 5,
+          })
+        : null,
+    [data, purpose, topics]
+  )
 
   const primaryTopic = topics[0] || null
 
-  const concernAnswer =
-    getConcernAnswer(currentAnswers)
+  const concern = lastAnswer(answers, [
+    'TODAY_NOTE_EXPLORATION',
+    'PRIMARY_CONCERN_EXPLORATION',
+  ])
 
-  const clarificationAnswer =
-    getClarificationAnswer(currentAnswers)
+  const clarification = lastAnswer(answers, [
+    'CONCERN_CLARIFICATION',
+  ])
 
-  const actualConcern =
-    concernAnswer || note.trim()
+  const actualConcern = concern || note.trim()
 
-  const hasConcern =
-    Boolean(actualConcern)
+  const universal = useMemo(
+    () =>
+      data && actualConcern
+        ? buildUniversalNumerologyIntelligence({
+            topic: normalizeTopic(primaryTopic),
+            clientConcern: actualConcern,
+            clarification,
+            calculation: data.calculation,
+            conclusions:
+              data.intelligence.conclusions,
+          })
+        : null,
+    [data, primaryTopic, actualConcern, clarification]
+  )
 
-  const isFamiliarityQuestion =
-    decision.questionKey ===
-    'NUMEROLOGY_FAMILIARITY'
+  const familiarity =
+    decision.questionKey === 'NUMEROLOGY_FAMILIARITY'
 
-  const isReadyForV3 =
+  const ready =
     decision.stage === 'READY_FOR_V3' ||
     !decision.shouldAskQuestion
 
-  const canContinue =
-    isFamiliarityQuestion
-      ? Boolean(choice)
-      : Boolean(answer.trim())
+  const canContinue = familiarity
+    ? Boolean(choice)
+    : Boolean(answer.trim())
 
-  const showInitialOutcome =
-    hasConcern &&
-    currentAnswers.some(
+  const showOutcome =
+    Boolean(actualConcern) &&
+    answers.some(
       (item) =>
-        item.questionKey ===
-          'TODAY_NOTE_EXPLORATION' ||
-        item.questionKey ===
-          'PRIMARY_CONCERN_EXPLORATION'
+        item.questionKey === 'TODAY_NOTE_EXPLORATION' ||
+        item.questionKey === 'PRIMARY_CONCERN_EXPLORATION'
     )
 
-  const outcomeStatus =
-    clarificationAnswer
-      ? 'Refined Discussion Context'
-      : 'Initial Discussion Context'
-
-  /*
-   * UNIVERSAL NUMEROLOGY INTELLIGENCE
-   *
-   * Uses:
-   * - Verified V2 calculations
-   * - Approved V3 conclusions
-   * - Client's selected concern
-   * - Consultation scope
-   *
-   * The client concern is context,
-   * never numerological evidence.
-   */
-  const universalIntelligence =
-    useMemo<UniversalNumerologyResult | null>(
-      () => {
-        if (
-          !data ||
-          !actualConcern
-        ) {
-          return null
-        }
-
-        return buildUniversalNumerologyIntelligence({
-          topic:
-            normalizeTopic(primaryTopic),
-
-          clientConcern:
-            actualConcern,
-
-          clarification:
-            clarificationAnswer,
-
-          calculation:
-            data.calculation,
-
-          conclusions:
-            data.intelligence.conclusions,
-        })
-      },
-      [
-        data,
-        primaryTopic,
-        actualConcern,
-        clarificationAnswer,
-      ]
-    )
-
-  /*
-   * RECORD CONSULTATION ANSWER
-   *
-   * Phase 1: local React state.
-   * Database persistence is separate.
-   */
-  function handleContinue() {
+  function continueQuestion() {
     if (
       !decision.shouldAskQuestion ||
       !decision.questionKey ||
@@ -476,49 +667,23 @@ export function ConsultationAssistant({
       return
     }
 
-    const clientAnswer =
-      isFamiliarityQuestion
-        ? answer.trim()
-          ? `${choice}. ${answer.trim()}`
-          : choice
-        : answer.trim()
+    const response = familiarity
+      ? answer.trim()
+        ? `${choice}. ${answer.trim()}`
+        : choice
+      : answer.trim()
 
-    if (!clientAnswer) {
-      return
-    }
+    if (!response) return
 
-    const recordedAnswer:
-      ConsultationAnswerForIntelligence = {
-        questionKey: decision.questionKey,
-        questionText: decision.questionText,
-        clientAnswer,
-      }
+    setAnswers((previous) => [
+      ...previous,
+      {
+        questionKey: decision.questionKey!,
+        questionText: decision.questionText!,
+        clientAnswer: response,
+      },
+    ])
 
-    setCurrentAnswers(
-      (previous) => [
-        ...previous,
-        recordedAnswer,
-      ]
-    )
-
-    setChoice('')
-    setAnswer('')
-  }
-
-  function requestClarification() {
-    if (clarificationReviewed) {
-      return
-    }
-
-    setClarificationNeeded(true)
-    setClarificationReviewed(true)
-    setChoice('')
-    setAnswer('')
-  }
-
-  function continueWithoutClarification() {
-    setClarificationNeeded(false)
-    setClarificationReviewed(true)
     setChoice('')
     setAnswer('')
   }
@@ -526,7 +691,6 @@ export function ConsultationAssistant({
   return (
     <div className="min-h-full bg-[#f7f3ed] p-4">
       <div className="mx-auto max-w-3xl">
-
         <button
           type="button"
           onClick={onBack}
@@ -537,11 +701,7 @@ export function ConsultationAssistant({
         </button>
 
         <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
-
-          {/* CLIENT HEADER */}
-
           <header className="bg-[#24354c] p-5 text-white">
-
             <p className="text-[10px] uppercase tracking-widest text-[#d6b47b]">
               TSIA Live Consultation
             </p>
@@ -557,40 +717,30 @@ export function ConsultationAssistant({
             </p>
 
             <div className="mt-4 flex flex-wrap gap-2">
-              <Tag text={modeLabel} />
-
-              <Tag
-                text={
-                  labels[purpose] ||
-                  'Consultation'
-                }
-              />
-
-              {primaryTopic && (
-                <Tag
-                  text={readableTopic(primaryTopic)}
-                />
-              )}
+              {[
+                mode === 'in_person'
+                  ? 'In-Person'
+                  : mode === 'phone'
+                    ? 'Phone'
+                    : 'Consultation',
+                topicName(purpose),
+                topicName(primaryTopic),
+              ].map((item, index) => (
+                <span
+                  key={index}
+                  className="rounded-full bg-white/10 px-3 py-1 text-[10px]"
+                >
+                  {item}
+                </span>
+              ))}
             </div>
-
           </header>
 
           <main className="p-5">
-
-            {/* SECTION 1: CLIENT CONVERSATION */}
-
             {note.trim() && (
-              <div className="rounded-xl bg-[#fbf6ec] p-4">
-
-                <p className="text-[10px] font-semibold uppercase text-[#ad7b40]">
-                  Today's Note
-                </p>
-
-                <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[#24354c]">
-                  {note}
-                </p>
-
-              </div>
+              <Panel title="Today's Note">
+                <p className="whitespace-pre-wrap">{note}</p>
+              </Panel>
             )}
 
             <Title
@@ -598,270 +748,179 @@ export function ConsultationAssistant({
               big="Client Conversation"
             />
 
-            {currentAnswers.length > 0 && (
-              <div className="mb-4 space-y-3">
+            <div className="space-y-3">
+              {answers.map((item, index) => (
+                <div
+                  key={`${item.questionKey}-${index}`}
+                  className="rounded-xl bg-[#fbf8f3] p-4"
+                >
+                  <p className="text-xs font-semibold text-[#ad7b40]">
+                    TSIA Question {index + 1}
+                  </p>
 
-                {currentAnswers.map(
-                  (item, index) => (
-                    <div
-                      key={`${item.questionKey}-${index}`}
-                      className="rounded-2xl border border-[#e6ddd1] bg-[#fbf8f3] p-4"
-                    >
+                  <p className="mt-2 text-sm font-semibold text-[#24354c]">
+                    {item.questionText}
+                  </p>
 
-                      <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
-                        TSIA Question {index + 1}
-                      </p>
+                  <p className="mt-3 whitespace-pre-wrap text-sm text-[#776d61]">
+                    {item.clientAnswer}
+                  </p>
+                </div>
+              ))}
+            </div>
 
-                      <p className="mt-2 text-sm font-semibold leading-6 text-[#24354c]">
-                        {item.questionText}
-                      </p>
+            {!ready && (
+              <Panel title="Current Question">
+                <p className="font-semibold text-[#24354c]">
+                  {decision.questionText}
+                </p>
 
-                      <div className="mt-3 rounded-xl bg-white p-3">
+                {familiarity && (
+                  <div className="mt-4 grid gap-2">
+                    {familiarityOptions.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => setChoice(option)}
+                        className={`flex justify-between rounded-xl border p-3 text-left ${
+                          choice === option
+                            ? 'border-[#b89556] bg-[#fbf5e9]'
+                            : 'border-[#e6ddd1]'
+                        }`}
+                      >
+                        {option}
 
-                        <p className="text-[10px] font-semibold uppercase text-[#ad7b40]">
-                          Client Says
-                        </p>
-
-                        <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[#776d61]">
-                          {item.clientAnswer}
-                        </p>
-
-                      </div>
-                    </div>
-                  )
+                        {choice === option && (
+                          <Check className="size-4" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 )}
 
-              </div>
-            )}
-
-            {!isReadyForV3 && (
-              <>
-
-                <div className="rounded-2xl border border-[#e6ddd1] p-4">
-
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
-                    {decision.stage ===
-                    'NUMEROLOGY_FAMILIARITY'
-                      ? 'Opening Question'
-                      : decision.stage ===
-                          'CONCERN_CLARIFICATION'
-                        ? 'Clarification Question'
-                        : 'Current Question'}
-                  </p>
-
-                  <p className="mt-2 text-base font-semibold leading-6 text-[#24354c]">
-                    {decision.questionText}
-                  </p>
-
-                  {isFamiliarityQuestion && (
-                    <div className="mt-4 grid gap-2">
-
-                      {familiarityOptions.map(
-                        (item) => (
-                          <button
-                            key={item}
-                            type="button"
-                            onClick={() =>
-                              setChoice(item)
-                            }
-                            className={`flex justify-between rounded-xl border p-3 text-left text-sm ${
-                              choice === item
-                                ? 'border-[#b89556] bg-[#fbf5e9]'
-                                : 'border-[#e6ddd1]'
-                            }`}
-                          >
-                            {item}
-
-                            {choice === item && (
-                              <Check className="size-4 text-[#ad7b40]" />
-                            )}
-                          </button>
-                        )
-                      )}
-
-                    </div>
-                  )}
-
-                </div>
-
-                <div className="mt-4 rounded-2xl border border-[#e6ddd1] p-4">
-
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
-                    Client Says
-                  </p>
-
-                  <textarea
-                    value={answer}
-                    onChange={(event) =>
-                      setAnswer(event.target.value)
-                    }
-                    rows={3}
-                    placeholder={
-                      isFamiliarityQuestion
-                        ? "Optional: add the client's own words..."
-                        : "Type the client's response..."
-                    }
-                    className="mt-3 w-full rounded-xl border p-3 text-sm"
-                  />
-
-                  <p className="mt-2 flex items-center gap-2 text-xs text-[#9a7b4f]">
-                    <Mic className="size-4" />
-                    Voice input - future
-                  </p>
-
-                </div>
+                <textarea
+                  value={answer}
+                  onChange={(event) =>
+                    setAnswer(event.target.value)
+                  }
+                  rows={3}
+                  placeholder={
+                    familiarity
+                      ? 'Optional client comments...'
+                      : "Type the client's response..."
+                  }
+                  className="mt-4 w-full rounded-xl border p-3 text-sm"
+                />
 
                 <button
                   type="button"
                   disabled={!canContinue}
-                  onClick={handleContinue}
-                  className="mt-4 flex h-12 w-full items-center justify-center rounded-xl bg-[#24354c] text-sm font-semibold text-white disabled:opacity-40"
+                  onClick={continueQuestion}
+                  className="mt-3 flex w-full items-center justify-center rounded-xl bg-[#24354c] p-3 font-semibold text-white disabled:opacity-40"
                 >
                   Continue Consultation
                   <ChevronRight className="ml-2 size-4" />
                 </button>
-
-              </>
+              </Panel>
             )}
 
-            {/* PRACTITIONER CLARIFICATION */}
+            {ready && showOutcome && !clarificationReviewed && (
+              <Panel title="Is further clarification needed?">
+                <p>
+                  Review the client's concern before finalizing
+                  the personalized discussion.
+                </p>
 
-            {isReadyForV3 &&
-              showInitialOutcome &&
-              !clarificationReviewed && (
-                <div className="mt-4 rounded-2xl border border-[#dfd3c1] bg-[#fbf6ec] p-5">
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setClarificationNeeded(true)
+                      setClarificationReviewed(true)
+                      setAnswer('')
+                      setChoice('')
+                    }}
+                    className="rounded-xl bg-[#24354c] p-3 font-semibold text-white"
+                  >
+                    Ask Clarification
+                  </button>
 
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
-                    Practitioner Decision
-                  </p>
-
-                  <h3 className="mt-2 font-serif text-lg font-semibold text-[#24354c]">
-                    Is further clarification needed?
-                  </h3>
-
-                  <p className="mt-2 text-sm leading-6 text-[#776d61]">
-                    Review the client's concern.
-                    If more information is needed,
-                    ask one additional question
-                    before finalizing the discussion.
-                  </p>
-
-                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
-
-                    <button
-                      type="button"
-                      onClick={requestClarification}
-                      className="rounded-xl bg-[#24354c] px-4 py-3 text-sm font-semibold text-white"
-                    >
-                      Ask Clarification
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={continueWithoutClarification}
-                      className="rounded-xl border border-[#cdbb9d] bg-white px-4 py-3 text-sm font-semibold text-[#24354c]"
-                    >
-                      Continue Without Clarification
-                    </button>
-
-                  </div>
-
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setClarificationNeeded(false)
+                      setClarificationReviewed(true)
+                      setAnswer('')
+                      setChoice('')
+                    }}
+                    className="rounded-xl border p-3 font-semibold text-[#24354c]"
+                  >
+                    Continue Without Clarification
+                  </button>
                 </div>
-              )}
-
-            {isReadyForV3 && (
-              <div className="mt-4 rounded-2xl border border-[#dfd3c1] bg-[#fbf6ec] p-5">
-
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
-                  Opening Context
-                </p>
-
-                <h3 className="mt-2 font-serif text-lg font-semibold text-[#24354c]">
-                  {clarificationReviewed
-                    ? 'Ready for Personalized Discussion'
-                    : 'Initial Context Available'}
-                </h3>
-
-                <p className="mt-2 text-sm leading-6 text-[#776d61]">
-                  The client's concern is recorded.
-                  Numerological guidance below
-                  uses verified calculations.
-                  Client statements remain
-                  separate from numerological
-                  evidence.
-                </p>
-
-              </div>
+              </Panel>
             )}
 
-            {/* SECTION 2: PERSONALIZED CONSULTATION */}
+            {ready && (
+              <Panel title="Opening Context">
+                <p>
+                  {clarificationReviewed
+                    ? 'Ready for personalized discussion.'
+                    : 'Initial context available.'}
+                  {' '}
+                  Client statements remain separate from
+                  verified numerological evidence.
+                </p>
+              </Panel>
+            )}
 
-            {showInitialOutcome && (
+            {showOutcome && (
               <>
                 <Title
                   small="TSIA Consultation Outcome"
-                  big={`${readableTopic(primaryTopic)} — Numerology Guidance`}
+                  big={`${topicName(primaryTopic)} — Numerology Guidance`}
                 />
 
-                <div className="rounded-2xl border border-[#dfd3c1] bg-[#fffdf9] p-5">
-
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
-                    {outcomeStatus}
-                  </p>
-
-                  <h3 className="mt-2 font-serif text-lg font-semibold text-[#24354c]">
-                    Client's Discussion
-                  </h3>
-
-                  <p className="mt-3 text-xs font-semibold uppercase text-[#ad7b40]">
+                <Panel title="Client's Discussion">
+                  <p className="font-semibold text-[#ad7b40]">
                     Selected Topic
                   </p>
 
-                  <p className="mt-1 text-sm text-[#24354c]">
-                    {readableTopic(primaryTopic)}
-                  </p>
+                  <p>{topicName(primaryTopic)}</p>
 
-                  <p className="mt-4 text-xs font-semibold uppercase text-[#ad7b40]">
+                  <p className="mt-3 font-semibold text-[#ad7b40]">
                     Client's Main Concern
                   </p>
 
-                  <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-[#776d61]">
+                  <p className="whitespace-pre-wrap">
                     {actualConcern}
                   </p>
 
-                  {clarificationAnswer && (
+                  {clarification && (
                     <>
-                      <p className="mt-4 text-xs font-semibold uppercase text-[#ad7b40]">
+                      <p className="mt-3 font-semibold text-[#ad7b40]">
                         Additional Clarification
                       </p>
 
-                      <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-[#776d61]">
-                        {clarificationAnswer}
+                      <p className="whitespace-pre-wrap">
+                        {clarification}
                       </p>
                     </>
                   )}
-
-                </div>
+                </Panel>
 
                 {loading && (
-                  <div className="mt-4 flex items-center gap-2 rounded-xl bg-[#f8f4ed] p-4 text-xs text-[#776d61]">
+                  <p className="mt-4 flex items-center gap-2 text-sm">
                     <Loader2 className="size-4 animate-spin" />
                     Preparing personalized numerology...
-                  </div>
+                  </p>
                 )}
 
-                {!loading &&
-                  !error &&
-                  universalIntelligence && (
-                    <PersonalizedGuidance
-                      result={universalIntelligence}
-                    />
-                  )}
-
+                {!loading && !error && universal && (
+                  <Guidance result={universal} />
+                )}
               </>
             )}
-
-            {/* SECTION 3: CLIENT AT A GLANCE */}
 
             <Title
               small="Numerology Reference"
@@ -869,258 +928,55 @@ export function ConsultationAssistant({
             />
 
             {loading && (
-              <div className="flex items-center gap-2 rounded-xl bg-[#f8f4ed] p-4 text-xs text-[#776d61]">
+              <p className="flex items-center gap-2 text-sm">
                 <Loader2 className="size-4 animate-spin" />
                 Loading verified TSIA numerology...
-              </div>
+              </p>
             )}
 
             {error && (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-xs text-red-700">
+              <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                 {error}
               </div>
             )}
 
-            {calculation && (
-              <>
-
-                <div className="grid grid-cols-3 gap-2">
-
-                  <NumberBox
-                    title="Mulank"
-                    value={formatCompound(
-                      calculation.mulank.compound,
-                      calculation.mulank.final
-                    )}
-                    graha={
-                      calculation.grahas[
-                        calculation.mulank.final
-                      ]
-                    }
-                  />
-
-                  <NumberBox
-                    title="Bhagyank"
-                    value={formatCompound(
-                      calculation.bhagyank.compound,
-                      calculation.bhagyank.final
-                    )}
-                    graha={
-                      calculation.grahas[
-                        calculation.bhagyank.final
-                      ]
-                    }
-                  />
-
-                  <NumberBox
-                    title="Name Number"
-                    value={formatCompound(
-                      calculation.nameNumber.compoundTotal,
-                      calculation.nameNumber.finalNumber
-                    )}
-                    graha={
-                      calculation.grahas[
-                        calculation.nameNumber.finalNumber
-                      ]
-                    }
-                  />
-
-                </div>
-
-                <Title
-                  small="Lo Shu"
-                  big="Numerology Structure"
-                />
-
-                <div className="grid gap-4 sm:grid-cols-2">
-
-                  <div>
-                    <p className="mb-2 text-xs font-semibold">
-                      Standard Lo Shu
-                    </p>
-
-                    <div className="grid max-w-[230px] grid-cols-3">
-                      {grid.map(
-                        (number) => (
-                          <GridCell
-                            key={number}
-                            text={String(number)}
-                          />
-                        )
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="mb-2 text-xs font-semibold">
-                      Personal Lo Shu
-                    </p>
-
-                    <div className="grid max-w-[230px] grid-cols-3">
-                      {grid.map(
-                        (number) => (
-                          <GridCell
-                            key={number}
-                            text={repeatNumber(
-                              number,
-                              calculation.loShu.counts[number]
-                            )}
-                          />
-                        )
-                      )}
-                    </div>
-                  </div>
-
-                </div>
-
-                <div className="mt-4 rounded-xl bg-[#f8f4ed] p-4 text-sm leading-6 text-[#776d61]">
-
-                  <p>
-                    <b>Present:</b>{' '}
-                    {joinNumbers(
-                      calculation.loShu.presentNumbers
-                    )}
-                  </p>
-
-                  <p>
-                    <b>Missing:</b>{' '}
-                    {joinNumbers(
-                      calculation.loShu.missingNumbers
-                    )}
-                  </p>
-
-                  <p>
-                    <b>Repeated:</b>{' '}
-                    {formatRepeated(
-                      calculation.loShu.repeatedNumbers
-                    )}
-                  </p>
-
-                </div>
-
-                <div className="mt-4 grid grid-cols-2 gap-2">
-
-                  <MiniBox
-                    title="Golden Rajyog"
-                    text={`4-5-6 · ${statusLabel(
-                      calculation.rajyog.golden.status
-                    )}`}
-                  />
-
-                  <MiniBox
-                    title="Silver Rajyog"
-                    text={`2-5-8 · ${statusLabel(
-                      calculation.rajyog.silver.status
-                    )}`}
-                  />
-
-                </div>
-
-                <div className="mt-3 rounded-xl border p-4">
-
-                  <p className="text-sm font-semibold text-[#24354c]">
-                    Core Graha Influence
-                  </p>
-
-                  <p className="mt-2 text-sm leading-6 text-[#776d61]">
-
-                    Mulank:{' '}
-                    <b>
-                      {
-                        calculation.grahas[
-                          calculation.mulank.final
-                        ]
-                      }
-                    </b>
-
-                    <br />
-
-                    Bhagyank:{' '}
-                    <b>
-                      {
-                        calculation.grahas[
-                          calculation.bhagyank.final
-                        ]
-                      }
-                    </b>
-
-                    <br />
-
-                    Name Number:{' '}
-                    <b>
-                      {
-                        calculation.grahas[
-                          calculation.nameNumber.finalNumber
-                        ]
-                      }
-                    </b>
-
-                  </p>
-
-                </div>
-
-              </>
+            {data && (
+              <CalculationDisplay
+                calculation={data.calculation}
+              />
             )}
-
-            {/* SECTION 4: VERIFIED V3 INTELLIGENCE */}
 
             {!loading && !error && data && (
               <>
                 <Title
                   small="Supporting Numerological Evidence"
-                  big={
-                    primaryTopic
-                      ? `${readableTopic(primaryTopic)} Intelligence`
-                      : 'Numerology Intelligence'
-                  }
+                  big={`${topicName(primaryTopic)} Intelligence`}
                 />
 
-                {consultationInsights.length > 0 ? (
+                {selection && selection.insights.length > 0 ? (
                   <ConsultationV3Insights
-                    insights={consultationInsights}
-                    evidence={
-                      data.intelligence.evidence
-                    }
+                    insights={selection.insights.map(
+                      (item) => item.insight
+                    )}
+                    evidence={data.intelligence.evidence}
                   />
                 ) : (
-                  <div className="rounded-xl border border-[#eadfce] bg-[#f8f4ed] p-4">
-                    <p className="text-sm leading-6 text-[#776d61]">
-                      No eligible topic-specific
-                      V3 findings are currently
-                      available. Traditional
-                      numerological associations,
-                      where present, are shown
-                      separately above.
-                    </p>
-                  </div>
+                  <Panel title="V3 Evidence Availability">
+                    No eligible topic-specific V3 findings
+                    are currently available. Traditional
+                    associations are shown separately above.
+                  </Panel>
                 )}
 
-                {generalInsights.length > 0 && (
-                  <p className="mt-3 text-xs leading-5 text-[#8a8177]">
-                    Some findings are general
-                    numerological observations
-                    rather than direct conclusions
-                    for the selected topic.
+                {selection?.warnings.map((warning, index) => (
+                  <p
+                    key={index}
+                    className="mt-3 text-xs text-[#8a8177]"
+                  >
+                    {warning}
                   </p>
-                )}
+                ))}
 
-                {consultationSelection?.warnings.map(
-                  (warning, index) => (
-                    <p
-                      key={index}
-                      className="mt-3 text-xs leading-5 text-[#8a8177]"
-                    >
-                      {warning}
-                    </p>
-                  ))}
-
-              </>
-            )}
-
-            {/* SECTION 5: COMPLETE INTELLIGENCE */}
-
-            {!loading && !error && data?.intelligence && (
-              <>
                 <Title
                   small="Deep Analysis"
                   big="Complete Numerology Intelligence"
@@ -1140,478 +996,9 @@ export function ConsultationAssistant({
                 />
               </>
             )}
-
           </main>
         </div>
       </div>
-    </div>
-  )
-}
-
-/*
- * PERSONALIZED GUIDANCE DISPLAY
- *
- * Keep traditional associations distinct
- * from approved V3 conclusions.
- */
-
-function PersonalizedGuidance({
-  result,
-}: {
-  result: UniversalNumerologyResult
-}) {
-  const isLifePathOnly =
-    result.scope.category ===
-    'LIFE_PATH_REQUIRED'
-
-  return (
-    <div className="mt-4 space-y-4">
-
-      {/* CONSULTATION SCOPE */}
-
-      <section className="rounded-2xl border border-[#dfd3c1] bg-[#fbf6ec] p-5">
-
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
-          Consultation Scope
-        </p>
-
-        <h3 className="mt-2 font-serif text-lg font-semibold text-[#24354c]">
-          {scopeLabel(result.scope.category)}
-        </h3>
-
-        <p className="mt-3 text-sm leading-6 text-[#776d61]">
-          {result.scope.employeeExplanation}
-        </p>
-
-      </section>
-
-      {/* VERIFIED CORE NUMBERS */}
-
-      {!isLifePathOnly && (
-        <section className="rounded-2xl border border-[#e6ddd1] p-5">
-
-          <h3 className="font-serif text-lg font-semibold text-[#24354c]">
-            Numerological Foundation
-          </h3>
-
-          <p className="mt-3 text-sm leading-6 text-[#776d61]">
-            This discussion uses the client's
-            verified core numerological numbers.
-          </p>
-
-          <div className="mt-4 grid grid-cols-3 gap-2">
-
-            <MiniBox
-              title="Mulank"
-              text={String(
-                result.coreNumbers.mulank
-              )}
-            />
-
-            <MiniBox
-              title="Bhagyank"
-              text={String(
-                result.coreNumbers.bhagyank
-              )}
-            />
-
-            <MiniBox
-              title="Name Number"
-              text={String(
-                result.coreNumbers.nameNumber
-              )}
-            />
-
-          </div>
-
-        </section>
-      )}
-
-      {/* PERSONALITY AND RELEVANT QUALITIES */}
-
-      {!isLifePathOnly && (
-        <section className="rounded-2xl border border-[#e6ddd1] p-5">
-
-          <h3 className="font-serif text-lg font-semibold text-[#24354c]">
-            Personality & Relevant Qualities
-          </h3>
-
-          {result.relevantQualities.length > 0 ? (
-            <div className="mt-4 space-y-3">
-
-              {result.relevantQualities.map(
-                (quality) => (
-                  <div
-                    key={quality.qualityId}
-                    className="rounded-xl bg-[#f8f4ed] p-4"
-                  >
-
-                    <p className="text-sm font-semibold text-[#24354c]">
-                      {quality.title}
-                    </p>
-
-                    <p className="mt-2 text-sm leading-6 text-[#776d61]">
-                      {quality.interpretation}
-                    </p>
-
-                    <p className="mt-3 text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
-                      {quality.verificationStatus ===
-                      'V3_SUPPORTED'
-                        ? 'Approved V3 Conclusion'
-                        : 'Traditional Number Association'}
-                    </p>
-
-                    {quality.evidence.length > 0 && (
-                      <div className="mt-3 rounded-lg bg-white p-3">
-
-                        <p className="text-[10px] font-semibold uppercase text-[#ad7b40]">
-                          Numerological Basis
-                        </p>
-
-                        {quality.evidence.map(
-                          (evidence, index) => (
-                            <p
-                              key={`${evidence.source}-${index}`}
-                              className="mt-2 text-xs leading-5 text-[#776d61]"
-                            >
-                              {evidence.description}
-                            </p>
-                          )
-                        )}
-
-                      </div>
-                    )}
-
-                  </div>
-                )
-              )}
-
-            </div>
-          ) : (
-            <p className="mt-3 text-sm leading-6 text-[#776d61]">
-              No eligible numerological
-              qualities were found for
-              this concern.
-            </p>
-          )}
-
-        </section>
-      )}
-
-      {/* BEHAVIOURAL IMPROVEMENTS */}
-
-      {!isLifePathOnly &&
-        result.behaviouralDevelopment.length > 0 && (
-          <section className="rounded-2xl border border-[#e6ddd1] p-5">
-
-            <h3 className="font-serif text-lg font-semibold text-[#24354c]">
-              Behavioural Development Guidance
-            </h3>
-
-            <p className="mt-2 text-sm leading-6 text-[#776d61]">
-              These are possible development
-              opportunities, not confirmed
-              weaknesses. The practitioner
-              should first discuss whether
-              each observation matches
-              the client's experience.
-            </p>
-
-            <div className="mt-4 space-y-3">
-
-              {result.behaviouralDevelopment.map(
-                (item) => (
-                  <div
-                    key={item.id}
-                    className="rounded-xl bg-[#f8f4ed] p-4"
-                  >
-
-                    <p className="text-sm font-semibold text-[#24354c]">
-                      {item.title}
-                    </p>
-
-                    <p className="mt-2 text-xs font-semibold uppercase text-[#ad7b40]">
-                      Possible Pattern
-                    </p>
-
-                    <p className="mt-1 text-sm leading-6 text-[#776d61]">
-                      {item.possiblePattern}
-                    </p>
-
-                    <p className="mt-3 text-xs font-semibold uppercase text-[#ad7b40]">
-                      Practical Improvement
-                    </p>
-
-                    <p className="mt-1 text-sm leading-6 text-[#776d61]">
-                      {item.practicalImprovement}
-                    </p>
-
-                  </div>
-                )
-              )}
-
-            </div>
-
-          </section>
-        )}
-
-      {/* PRACTITIONER DISCUSSION */}
-
-      {!isLifePathOnly && (
-        <section className="rounded-2xl border border-[#e6ddd1] p-5">
-
-          <h3 className="font-serif text-lg font-semibold text-[#24354c]">
-            Practitioner Discussion Guidance
-          </h3>
-
-          <p className="mt-3 text-sm leading-6 text-[#776d61]">
-            {result.practitionerSummary}
-          </p>
-
-        </section>
-      )}
-
-      {/* QUESTIONS */}
-
-      {result.suggestedQuestions.length > 0 && (
-        <section className="rounded-2xl border border-[#e6ddd1] p-5">
-
-          <h3 className="font-serif text-lg font-semibold text-[#24354c]">
-            Suggested Follow-up Questions
-          </h3>
-
-          <div className="mt-4 space-y-3">
-
-            {result.suggestedQuestions.map(
-              (question, index) => (
-                <div
-                  key={index}
-                  className="rounded-xl bg-[#f8f4ed] p-4"
-                >
-                  <p className="text-sm leading-6 text-[#24354c]">
-                    <span className="mr-2 font-semibold text-[#ad7b40]">
-                      {index + 1}.
-                    </span>
-                    {question}
-                  </p>
-                </div>
-              )
-            )}
-
-          </div>
-
-        </section>
-      )}
-
-      {/* LIFE PATH GUIDANCE */}
-
-      {result.scope.requiresLifePathGuidance && (
-        <section className="rounded-2xl border border-[#d8c49e] bg-[#fff9eb] p-5">
-
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
-            TSIA Product Guidance
-          </p>
-
-          <h3 className="mt-2 font-serif text-lg font-semibold text-[#24354c]">
-            TSIA Life Path Guidance Report
-          </h3>
-
-          <p className="mt-3 text-sm leading-6 text-[#776d61]">
-            {result.scope.suggestedResponse}
-          </p>
-
-        </section>
-      )}
-
-      {/* QUALITY CONTROL */}
-
-      {result.warnings.length > 0 && (
-        <section className="rounded-2xl border border-[#eadfce] bg-[#fbf8f3] p-4">
-
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
-            Practitioner Notes
-          </p>
-
-          {result.warnings.map(
-            (warning, index) => (
-              <p
-                key={index}
-                className="mt-2 text-xs leading-5 text-[#776d61]"
-              >
-                {warning}
-              </p>
-            )
-          )}
-
-        </section>
-      )}
-
-      <p className="text-xs leading-5 text-[#8a8177]">
-        TSIA numerological interpretations
-        are traditional guidance, not
-        scientifically established personality
-        assessments or guaranteed predictions.
-      </p>
-
-    </div>
-  )
-}
-
-function formatCompound(
-  compound: number,
-  final: number
-) {
-  return compound === final
-    ? String(final)
-    : `${compound}/${final}`
-}
-
-function repeatNumber(
-  number: number,
-  count: number
-) {
-  if (!count) {
-    return ''
-  }
-
-  return String(number).repeat(count)
-}
-
-function joinNumbers(
-  numbers: readonly NumerologyDigit[]
-) {
-  return numbers.length
-    ? numbers.join(', ')
-    : 'None'
-}
-
-function formatRepeated(
-  repeated: Partial<
-    Record<NumerologyDigit, number>
-  >
-) {
-  const items =
-    Object.entries(repeated)
-      .filter(
-        ([, count]) =>
-          Number(count) > 1
-      )
-      .map(
-        ([number, count]) =>
-          `${number} × ${count}`
-      )
-
-  return items.length
-    ? items.join(', ')
-    : 'None'
-}
-
-function statusLabel(
-  status: string
-) {
-  if (status === 'complete') {
-    return 'Complete'
-  }
-
-  if (status === 'partial') {
-    return 'Partial'
-  }
-
-  return 'Absent'
-}
-
-function Tag({
-  text,
-}: {
-  text: string
-}) {
-  return (
-    <span className="rounded-full bg-white/10 px-3 py-1 text-[10px]">
-      {text}
-    </span>
-  )
-}
-
-function Title({
-  small,
-  big,
-}: {
-  small: string
-  big: string
-}) {
-  return (
-    <div className="mb-4 mt-7 border-t pt-5">
-
-      <p className="text-[10px] uppercase text-[#ad7b40]">
-        {small}
-      </p>
-
-      <h2 className="mt-1 font-serif text-xl font-semibold text-[#24354c]">
-        {big}
-      </h2>
-
-    </div>
-  )
-}
-
-function NumberBox({
-  title,
-  value,
-  graha,
-}: {
-  title: string
-  value: string
-  graha: string
-}) {
-  return (
-    <div className="rounded-xl bg-[#f8f4ed] p-3">
-
-      <p className="text-[9px] uppercase text-[#8c8175]">
-        {title}
-      </p>
-
-      <p className="mt-2 font-serif text-xl text-[#24354c]">
-        {value}
-      </p>
-
-      <p className="mt-1 text-[10px] text-[#ad7b40]">
-        {graha}
-      </p>
-
-    </div>
-  )
-}
-
-function GridCell({
-  text,
-}: {
-  text: string
-}) {
-  return (
-    <div className="flex h-14 items-center justify-center border text-sm font-semibold text-[#24354c]">
-      {text || ' '}
-    </div>
-  )
-}
-
-function MiniBox({
-  title,
-  text,
-}: {
-  title: string
-  text: string
-}) {
-  return (
-    <div className="rounded-xl border p-3">
-
-      <p className="text-[10px] font-semibold text-[#24354c]">
-        {title}
-      </p>
-
-      <p className="mt-1 text-xs text-[#776d61]">
-        {text}
-      </p>
-
     </div>
   )
 }
