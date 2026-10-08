@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import type { ReactNode } from 'react'
 import {
   ArrowLeft,
   Check,
@@ -65,6 +66,16 @@ type Data = {
   }
 }
 
+type RecordedAnswer = ConsultationAnswerForIntelligence & {
+  observation: string
+}
+
+type IntroductionResponse = {
+  question: string
+  clientAnswer: string
+  practitionerObservation: string
+}
+
 const labels: Record<string, string> = {
   numerology_report: 'Report Discussion',
   follow_up: 'Follow-up Consultation',
@@ -91,6 +102,42 @@ const grid: NumerologyDigit[] = [
   3, 5, 7,
   8, 1, 6,
 ]
+
+const grahaNames: Record<number, string> = {
+  1: 'Surya',
+  2: 'Chandra',
+  3: 'Guru',
+  4: 'Rahu',
+  5: 'Budh',
+  6: 'Shukra',
+  7: 'Ketu',
+  8: 'Shani',
+  9: 'Mangal',
+}
+
+const introduction = [
+  {
+    title: 'Seven Days and the Grahas',
+    question:
+      'Have you ever thought about why we have seven days in a week?',
+    explanation:
+      'In Bharatiya Jyotish, the seven weekdays are traditionally associated with seven Grahas: Surya, Chandra, Mangal, Budh, Guru, Shukra and Shani. We know them through Ravivar, Somvar, Mangalvar, Budhvar, Guruvar, Shukravar and Shanivar. Rahu and Ketu are also part of the Navagraha system, but they are lunar nodes and do not have separate weekdays.',
+  },
+  {
+    title: 'Nine Numbers and Navagraha',
+    question:
+      'Have you ever wondered why Indian numerology uses nine basic numbers?',
+    explanation:
+      'Indian Ank Shastra traditionally associates the numbers 1 to 9 with the Navagrahas. Number 1 represents Surya, 2 Chandra, 3 Guru, 4 Rahu, 5 Budh, 6 Shukra, 7 Ketu, 8 Shani and 9 Mangal. This is the traditional connection between Ank Shastra, Navagraha and Jyotish Shastra.',
+  },
+  {
+    title: 'Time and the Sun',
+    question:
+      'What time is showing on your watch right now? Is it the same time everywhere in the world?',
+    explanation:
+      'The Earth rotates, and different parts of the world experience daylight at different times. India, Canada, the United States and Europe follow different time zones. Days and years are connected with celestial cycles. In Bharatiya Jyotish, celestial movements are traditionally considered when interpreting phases of human life.',
+  },
+] as const
 
 function topicName(value: string | null) {
   return value
@@ -127,31 +174,12 @@ function lastAnswer(
   )
 }
 
-function Title({
-  small,
-  big,
-}: {
-  small: string
-  big: string
-}) {
-  return (
-    <div className="mb-4 mt-7 border-t pt-5">
-      <p className="text-[10px] uppercase tracking-wide text-[#ad7b40]">
-        {small}
-      </p>
-      <h2 className="mt-1 font-serif text-xl font-semibold text-[#24354c]">
-        {big}
-      </h2>
-    </div>
-  )
-}
-
 function Panel({
   title,
   children,
 }: {
   title: string
-  children: React.ReactNode
+  children: ReactNode
 }) {
   return (
     <section className="mt-4 rounded-2xl border border-[#e6ddd1] bg-white p-4">
@@ -184,175 +212,21 @@ function Info({
   )
 }
 
-function Guidance({
-  result,
+function SectionHeading({
+  small,
+  big,
 }: {
-  result: UniversalNumerologyResult
+  small: string
+  big: string
 }) {
-  const lifePathOnly =
-    result.scope.category === 'LIFE_PATH_REQUIRED'
-
   return (
-    <div className="mt-4">
-      <Panel title="Consultation Scope">
-        <p>{result.scope.employeeExplanation}</p>
-      </Panel>
-
-      <Panel title={result.concernInterpretation.title}>
-        <div className="space-y-4">
-          <div>
-            <p className="font-semibold text-[#ad7b40]">
-              Profession & Suitability Discussion
-            </p>
-            <p className="mt-1">
-              {result.concernInterpretation.suitabilityDiscussion}
-            </p>
-          </div>
-
-          <div>
-            <p className="font-semibold text-[#ad7b40]">
-              Personality Connection
-            </p>
-            <p className="mt-1">
-              {result.concernInterpretation.personalityConnection}
-            </p>
-          </div>
-
-          <div>
-            <p className="font-semibold text-[#ad7b40]">
-              What the Client Can Improve
-            </p>
-            <p className="mt-1">
-              {result.concernInterpretation.improvementDirection}
-            </p>
-          </div>
-
-          <p className="border-t pt-3 text-xs">
-            {result.concernInterpretation.limitation}
-          </p>
-        </div>
-      </Panel>
-
-      {!lifePathOnly && (
-        <>
-          <Panel title="Numerological Foundation">
-            <div className="grid grid-cols-3 gap-2">
-              <Info
-                title="Mulank"
-                value={String(result.coreNumbers.mulank)}
-              />
-              <Info
-                title="Bhagyank"
-                value={String(result.coreNumbers.bhagyank)}
-              />
-              <Info
-                title="Name"
-                value={String(result.coreNumbers.nameNumber)}
-              />
-            </div>
-          </Panel>
-
-          <Panel title="Personality & Relevant Qualities">
-            {result.relevantQualities.length === 0 ? (
-              <p>No eligible qualities were identified.</p>
-            ) : (
-              <div className="space-y-3">
-                {result.relevantQualities.map((quality) => (
-                  <div
-                    key={quality.qualityId}
-                    className="rounded-xl bg-[#f8f4ed] p-3"
-                  >
-                    <p className="font-semibold text-[#24354c]">
-                      {quality.title}
-                    </p>
-
-                    <p className="mt-2">
-                      {quality.interpretation}
-                    </p>
-
-                    <p className="mt-2 text-xs font-semibold text-[#ad7b40]">
-                      {quality.verificationStatus === 'V3_SUPPORTED'
-                        ? 'Approved topic-relevant V3 finding'
-                        : 'Traditional association — confirm with client'}
-                    </p>
-
-                    <div className="mt-2 space-y-1 text-xs">
-                      {quality.evidence.map((evidence, index) => (
-                        <p key={index}>
-                          {evidence.description}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Panel>
-
-          <Panel title="Behavioural Development Guidance">
-            <p className="mb-3 text-xs">
-              These are possibilities to explore, not confirmed
-              weaknesses.
-            </p>
-
-            <div className="space-y-3">
-              {result.behaviouralDevelopment.map((item) => (
-                <div
-                  key={item.id}
-                  className="rounded-xl bg-[#f8f4ed] p-3"
-                >
-                  <p className="font-semibold text-[#24354c]">
-                    {item.title}
-                  </p>
-                  <p className="mt-2">
-                    {item.possiblePattern}
-                  </p>
-                  <p className="mt-2 font-semibold text-[#ad7b40]">
-                    Practical Improvement
-                  </p>
-                  <p>{item.practicalImprovement}</p>
-                </div>
-              ))}
-            </div>
-          </Panel>
-        </>
-      )}
-
-      <Panel title="Suggested Follow-up Questions">
-        {result.suggestedQuestions.length ? (
-          <div className="space-y-3">
-            {result.suggestedQuestions.map((question, index) => (
-              <p key={index}>
-                <b>{index + 1}.</b> {question}
-              </p>
-            ))}
-          </div>
-        ) : (
-          <p>No additional question suggested.</p>
-        )}
-      </Panel>
-
-      {result.scope.requiresLifePathGuidance && (
-        <Panel title="TSIA Life Path Guidance Report">
-          <p>{result.scope.suggestedResponse}</p>
-        </Panel>
-      )}
-
-      {result.warnings.length > 0 && (
-        <Panel title="Practitioner Notes">
-          {result.warnings.map((warning, index) => (
-            <p key={index} className="mb-2 text-xs">
-              {warning}
-            </p>
-          ))}
-        </Panel>
-      )}
-
-      <p className="mt-4 text-xs leading-5 text-[#8a8177]">
-        Traditional numerology is interpretive and is not a
-        scientifically validated personality or career assessment.
-        No professional or life outcome is guaranteed.
+    <div className="mb-4 mt-7 border-t border-[#e6ddd1] pt-5">
+      <p className="text-[10px] uppercase tracking-wide text-[#ad7b40]">
+        {small}
       </p>
+      <h2 className="mt-1 font-serif text-xl font-semibold text-[#24354c]">
+        {big}
+      </h2>
     </div>
   )
 }
@@ -382,7 +256,7 @@ function CalculationDisplay({
           value={`${numberText(
             calculation.mulank.compound,
             calculation.mulank.final
-          )} · ${calculation.grahas[calculation.mulank.final]}`}
+          )} · ${grahaNames[calculation.mulank.final] || ''}`}
         />
 
         <Info
@@ -390,7 +264,7 @@ function CalculationDisplay({
           value={`${numberText(
             calculation.bhagyank.compound,
             calculation.bhagyank.final
-          )} · ${calculation.grahas[calculation.bhagyank.final]}`}
+          )} · ${grahaNames[calculation.bhagyank.final] || ''}`}
         />
 
         <Info
@@ -399,26 +273,22 @@ function CalculationDisplay({
             calculation.nameNumber.compoundTotal,
             calculation.nameNumber.finalNumber
           )} · ${
-            calculation.grahas[
-              calculation.nameNumber.finalNumber
-            ]
+            grahaNames[calculation.nameNumber.finalNumber] || ''
           }`}
         />
       </div>
 
-      <Title small="Lo Shu" big="Numerology Structure" />
-
-      <div className="grid grid-cols-2 gap-4">
+      <div className="mt-6 grid grid-cols-2 gap-3">
         <div>
-          <p className="mb-2 text-xs font-semibold">
+          <p className="mb-2 text-center text-xs font-semibold text-[#24354c]">
             Standard Lo Shu
           </p>
 
-          <div className="grid grid-cols-3">
+          <div className="grid grid-cols-3 gap-[2px]">
             {grid.map((number) => (
               <div
                 key={number}
-                className="flex h-12 items-center justify-center border text-sm font-semibold"
+                className="flex aspect-square items-center justify-center border border-[#d8c7ae] bg-[#fbf8f3] text-sm font-bold text-[#24354c] sm:text-lg"
               >
                 {number}
               </div>
@@ -427,15 +297,15 @@ function CalculationDisplay({
         </div>
 
         <div>
-          <p className="mb-2 text-xs font-semibold">
+          <p className="mb-2 text-center text-xs font-semibold text-[#24354c]">
             Personal Lo Shu
           </p>
 
-          <div className="grid grid-cols-3">
+          <div className="grid grid-cols-3 gap-[2px]">
             {grid.map((number) => (
               <div
                 key={number}
-                className="flex h-12 items-center justify-center border text-sm font-semibold"
+                className="flex aspect-square min-w-0 items-center justify-center overflow-hidden border border-[#d8c7ae] bg-[#fbf8f3] px-0.5 text-center text-xs font-bold text-[#24354c] sm:text-lg"
               >
                 {String(number).repeat(
                   calculation.loShu.counts[number] || 0
@@ -446,50 +316,240 @@ function CalculationDisplay({
         </div>
       </div>
 
-      <Panel title="Lo Shu Details">
-        <p>
-          <b>Present:</b>{' '}
-          {calculation.loShu.presentNumbers.join(', ') || 'None'}
-        </p>
-
-        <p>
-          <b>Missing:</b>{' '}
-          {calculation.loShu.missingNumbers.join(', ') || 'None'}
-        </p>
-
-        <p>
-          <b>Repeated:</b> {repeats || 'None'}
-        </p>
-      </Panel>
-
       <div className="mt-4 grid grid-cols-2 gap-2">
         <Info
           title="Golden Rajyog"
           value={`4-5-6 · ${calculation.rajyog.golden.status}`}
         />
+
         <Info
           title="Silver Rajyog"
           value={`2-5-8 · ${calculation.rajyog.silver.status}`}
         />
       </div>
 
-      <Panel title="Core Graha Influence">
-        <p>
-          <b>Mulank:</b>{' '}
-          {calculation.grahas[calculation.mulank.final]}
-        </p>
-        <p>
-          <b>Bhagyank:</b>{' '}
-          {calculation.grahas[calculation.bhagyank.final]}
-        </p>
-        <p>
-          <b>Name Number:</b>{' '}
-          {calculation.grahas[
-            calculation.nameNumber.finalNumber
-          ]}
-        </p>
-      </Panel>
+      <details className="mt-4 rounded-xl border border-[#e6ddd1] p-3">
+        <summary className="cursor-pointer font-semibold text-[#24354c]">
+          Complete Lo Shu Details
+        </summary>
+
+        <div className="mt-3 space-y-2 text-sm text-[#776d61]">
+          <p>
+            <b>Present:</b>{' '}
+            {calculation.loShu.presentNumbers.join(', ') || 'None'}
+          </p>
+
+          <p>
+            <b>Missing:</b>{' '}
+            {calculation.loShu.missingNumbers.join(', ') || 'None'}
+          </p>
+
+          <p>
+            <b>Repeated:</b> {repeats || 'None'}
+          </p>
+
+          <p>
+            <b>Mental row:</b> 4-9-2
+          </p>
+
+          <p>
+            <b>Emotional/Will row:</b> 3-5-7
+          </p>
+
+          <p>
+            <b>Practical/Material row:</b> 8-1-6
+          </p>
+
+          <p>
+            <b>Columns:</b> 4-3-8, 9-5-1, 2-7-6
+          </p>
+        </div>
+      </details>
     </>
+  )
+}
+
+function LiveGuidance({
+  result,
+}: {
+  result: UniversalNumerologyResult
+}) {
+  const lifePathOnly =
+    result.scope.category === 'LIFE_PATH_REQUIRED'
+
+  const insights = result.relevantQualities.slice(0, 3)
+  const actions = result.behaviouralDevelopment.slice(0, 3)
+
+  return (
+    <div className="mt-4">
+      <Panel title="Consultation Scope">
+        <p>{result.scope.employeeExplanation}</p>
+      </Panel>
+
+      <Panel title="Three Relevant Personality Insights">
+        {lifePathOnly ? (
+          <p>{result.scope.suggestedResponse}</p>
+        ) : insights.length ? (
+          <div className="space-y-3">
+            {insights.map((item, index) => (
+              <div
+                key={item.qualityId}
+                className="rounded-xl bg-[#f8f4ed] p-3"
+              >
+                <p className="font-semibold text-[#24354c]">
+                  {index + 1}. {item.title}
+                </p>
+
+                <p className="mt-2">
+                  {item.interpretation}
+                </p>
+
+                <p className="mt-2 text-xs text-[#ad7b40]">
+                  {item.verificationStatus === 'V3_SUPPORTED'
+                    ? 'Approved V3 finding'
+                    : 'Traditional association — confirm with client'}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p>No eligible personality insight is available.</p>
+        )}
+      </Panel>
+
+      {!lifePathOnly && (
+        <Panel title="Three Practical Improvement Actions">
+          {actions.length ? (
+            <div className="space-y-3">
+              {actions.map((item, index) => (
+                <div
+                  key={item.id}
+                  className="rounded-xl bg-[#f8f4ed] p-3"
+                >
+                  <p className="font-semibold text-[#24354c]">
+                    {index + 1}. {item.title}
+                  </p>
+
+                  <p className="mt-2">
+                    {item.practicalImprovement}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p>No approved development action is available.</p>
+          )}
+        </Panel>
+      )}
+
+      <Panel title="Suggested Next Question">
+        <p>
+          {result.suggestedQuestions[0] ||
+            'Which part of this guidance best matches your experience?'}
+        </p>
+
+        {result.suggestedQuestions.length > 1 && (
+          <details className="mt-3">
+            <summary className="cursor-pointer font-semibold text-[#24354c]">
+              Other Suggested Questions
+            </summary>
+
+            <div className="mt-3 space-y-2">
+              {result.suggestedQuestions
+                .slice(1)
+                .map((question, index) => (
+                  <p key={index}>
+                    {index + 2}. {question}
+                  </p>
+                ))}
+            </div>
+          </details>
+        )}
+      </Panel>
+
+      <details className="mt-4 rounded-2xl border border-[#e6ddd1] bg-white p-4">
+        <summary className="cursor-pointer font-serif text-lg font-semibold text-[#24354c]">
+          Full Consultation Interpretation
+        </summary>
+
+        <div className="mt-4 space-y-4 text-sm leading-6 text-[#776d61]">
+          <div>
+            <p className="font-semibold text-[#24354c]">
+              {result.concernInterpretation.title}
+            </p>
+
+            <p className="mt-2">
+              {result.concernInterpretation.suitabilityDiscussion}
+            </p>
+
+            <p className="mt-2">
+              {result.concernInterpretation.personalityConnection}
+            </p>
+
+            <p className="mt-2">
+              {result.concernInterpretation.improvementDirection}
+            </p>
+
+            <p className="mt-2 text-xs">
+              {result.concernInterpretation.limitation}
+            </p>
+          </div>
+
+          {result.relevantQualities.map((quality) => (
+            <div
+              key={quality.qualityId}
+              className="border-t pt-3"
+            >
+              <p className="font-semibold text-[#24354c]">
+                {quality.title}
+              </p>
+
+              <p className="mt-1">
+                {quality.interpretation}
+              </p>
+
+              {quality.evidence.map((evidence, index) => (
+                <p key={index} className="mt-2 text-xs">
+                  {evidence.description}
+                </p>
+              ))}
+            </div>
+          ))}
+
+          {result.behaviouralDevelopment.map((item) => (
+            <div
+              key={item.id}
+              className="border-t pt-3"
+            >
+              <p className="font-semibold text-[#24354c]">
+                {item.title}
+              </p>
+
+              <p className="mt-1">
+                {item.possiblePattern}
+              </p>
+
+              <p className="mt-2">
+                <b>Improvement:</b>{' '}
+                {item.practicalImprovement}
+              </p>
+            </div>
+          ))}
+
+          {result.warnings.map((warning, index) => (
+            <p key={index} className="border-t pt-2 text-xs">
+              {warning}
+            </p>
+          ))}
+        </div>
+      </details>
+
+      {result.scope.requiresLifePathGuidance && (
+        <Panel title="Jeevan Sutra Premium Life Path Guidance">
+          <p>{result.scope.suggestedResponse}</p>
+        </Panel>
+      )}
+    </div>
   )
 }
 
@@ -502,11 +562,22 @@ export function ConsultationAssistant({
   consultationNumber,
   onBack,
 }: Props) {
+  const isFirstConsultation = consultationNumber === 1
+
+  const [introStep, setIntroStep] = useState(0)
+  const [introRevealed, setIntroRevealed] = useState(false)
+
+  const [introAnswer, setIntroAnswer] = useState('')
+  const [introObservation, setIntroObservation] = useState('')
+
+  const [introResponses, setIntroResponses] =
+    useState<IntroductionResponse[]>([])
+
   const [choice, setChoice] = useState('')
   const [answer, setAnswer] = useState('')
+  const [observation, setObservation] = useState('')
 
-  const [answers, setAnswers] =
-    useState<ConsultationAnswerForIntelligence[]>([])
+  const [answers, setAnswers] = useState<RecordedAnswer[]>([])
 
   const [clarificationNeeded, setClarificationNeeded] =
     useState(false)
@@ -518,6 +589,13 @@ export function ConsultationAssistant({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  const [showDeepAnalysis, setShowDeepAnalysis] =
+    useState(false)
+
+  const introductionComplete =
+    !isFirstConsultation ||
+    introStep >= introduction.length
+
   useEffect(() => {
     let active = true
 
@@ -527,8 +605,7 @@ export function ConsultationAssistant({
       setData(null)
 
       try {
-        const response =
-          await generateNumerologyV2(client.id)
+        const response = await generateNumerologyV2(client.id)
 
         if (!active) return
 
@@ -545,9 +622,7 @@ export function ConsultationAssistant({
           !result.calculation ||
           !result.intelligence ||
           !result.consultationInsightPool ||
-          !Array.isArray(
-            result.consultationInsightPool.insights
-          )
+          !Array.isArray(result.consultationInsightPool.insights)
         ) {
           setError('Incomplete consultation intelligence.')
           return
@@ -642,23 +717,84 @@ export function ConsultationAssistant({
   const familiarity =
     decision.questionKey === 'NUMEROLOGY_FAMILIARITY'
 
+  const clarificationPending =
+    clarificationNeeded && !clarification
+
   const ready =
     decision.stage === 'READY_FOR_V3' ||
     !decision.shouldAskQuestion
 
-  const canContinue = familiarity
-    ? Boolean(choice)
-    : Boolean(answer.trim())
+  const showQuestion =
+    introductionComplete &&
+    (clarificationPending ||
+      (!ready && decision.shouldAskQuestion))
+
+  const canContinue = clarificationPending
+    ? Boolean(answer.trim())
+    : familiarity
+      ? Boolean(choice)
+      : Boolean(answer.trim())
+
+  const hasConcernAnswer = answers.some(
+    (item) =>
+      item.questionKey === 'TODAY_NOTE_EXPLORATION' ||
+      item.questionKey === 'PRIMARY_CONCERN_EXPLORATION'
+  )
 
   const showOutcome =
+    introductionComplete &&
     Boolean(actualConcern) &&
-    answers.some(
-      (item) =>
-        item.questionKey === 'TODAY_NOTE_EXPLORATION' ||
-        item.questionKey === 'PRIMARY_CONCERN_EXPLORATION'
-    )
+    (hasConcernAnswer || ready) &&
+    !clarificationPending
+
+  const currentQuestionText = clarificationPending
+    ? 'Could you explain your concern in more detail? What is happening, and what would you most like to improve?'
+    : decision.questionText
+
+  function continueIntroduction() {
+    if (!introRevealed) {
+      setIntroResponses((previous) => [
+        ...previous,
+        {
+          question: introduction[introStep].question,
+          clientAnswer: introAnswer.trim(),
+          practitionerObservation: introObservation.trim(),
+        },
+      ])
+
+      setIntroRevealed(true)
+      return
+    }
+
+    setIntroStep((previous) => previous + 1)
+    setIntroRevealed(false)
+    setIntroAnswer('')
+    setIntroObservation('')
+  }
 
   function continueQuestion() {
+    if (clarificationPending) {
+      const response = answer.trim()
+
+      if (!response) return
+
+      setAnswers((previous) => [
+        ...previous,
+        {
+          questionKey: 'CONCERN_CLARIFICATION',
+          questionText: currentQuestionText || 'Clarification',
+          clientAnswer: response,
+          observation: observation.trim(),
+        },
+      ])
+
+      setClarificationNeeded(false)
+      setChoice('')
+      setAnswer('')
+      setObservation('')
+      return
+    }
+
     if (
       !decision.shouldAskQuestion ||
       !decision.questionKey ||
@@ -681,12 +817,27 @@ export function ConsultationAssistant({
         questionKey: decision.questionKey!,
         questionText: decision.questionText!,
         clientAnswer: response,
+        observation: observation.trim(),
       },
     ])
 
     setChoice('')
     setAnswer('')
+    setObservation('')
   }
+
+  function reviewClarification(needed: boolean) {
+    setClarificationNeeded(needed)
+    setClarificationReviewed(true)
+    setChoice('')
+    setAnswer('')
+    setObservation('')
+  }
+
+  const currentIntro =
+    introStep < introduction.length
+      ? introduction[introStep]
+      : null
 
   return (
     <div className="min-h-full bg-[#f7f3ed] p-4">
@@ -703,7 +854,7 @@ export function ConsultationAssistant({
         <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
           <header className="bg-[#24354c] p-5 text-white">
             <p className="text-[10px] uppercase tracking-widest text-[#d6b47b]">
-              TSIA Live Consultation
+              Jeevan Sutra · Live Consultation
             </p>
 
             <h1 className="mt-2 font-serif text-2xl font-semibold">
@@ -711,7 +862,7 @@ export function ConsultationAssistant({
             </h1>
 
             <p className="mt-1 text-xs text-gray-300">
-              {client.clientNumber || 'TSIA Client'}
+              {client.clientNumber || 'Jeevan Sutra Client'}
               {' · '}
               Consultation #{consultationNumber}
             </p>
@@ -734,266 +885,475 @@ export function ConsultationAssistant({
                 </span>
               ))}
             </div>
+
+            <p className="mt-4 text-[10px] text-[#d6b47b]">
+              By Shekhar Sales Corporation
+            </p>
           </header>
 
           <main className="p-5">
-            {note.trim() && (
-              <Panel title="Today's Note">
-                <p className="whitespace-pre-wrap">{note}</p>
-              </Panel>
-            )}
-
-            <Title
-              small="Live Consultation"
-              big="Client Conversation"
-            />
-
-            <div className="space-y-3">
-              {answers.map((item, index) => (
-                <div
-                  key={`${item.questionKey}-${index}`}
-                  className="rounded-xl bg-[#fbf8f3] p-4"
-                >
-                  <p className="text-xs font-semibold text-[#ad7b40]">
-                    TSIA Question {index + 1}
-                  </p>
-
-                  <p className="mt-2 text-sm font-semibold text-[#24354c]">
-                    {item.questionText}
-                  </p>
-
-                  <p className="mt-3 whitespace-pre-wrap text-sm text-[#776d61]">
-                    {item.clientAnswer}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {!ready && (
-              <Panel title="Current Question">
-                <p className="font-semibold text-[#24354c]">
-                  {decision.questionText}
-                </p>
-
-                {familiarity && (
-                  <div className="mt-4 grid gap-2">
-                    {familiarityOptions.map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        onClick={() => setChoice(option)}
-                        className={`flex justify-between rounded-xl border p-3 text-left ${
-                          choice === option
-                            ? 'border-[#b89556] bg-[#fbf5e9]'
-                            : 'border-[#e6ddd1]'
-                        }`}
-                      >
-                        {option}
-
-                        {choice === option && (
-                          <Check className="size-4" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                <textarea
-                  value={answer}
-                  onChange={(event) =>
-                    setAnswer(event.target.value)
-                  }
-                  rows={3}
-                  placeholder={
-                    familiarity
-                      ? 'Optional client comments...'
-                      : "Type the client's response..."
-                  }
-                  className="mt-4 w-full rounded-xl border p-3 text-sm"
-                />
-
-                <button
-                  type="button"
-                  disabled={!canContinue}
-                  onClick={continueQuestion}
-                  className="mt-3 flex w-full items-center justify-center rounded-xl bg-[#24354c] p-3 font-semibold text-white disabled:opacity-40"
-                >
-                  Continue Consultation
-                  <ChevronRight className="ml-2 size-4" />
-                </button>
-              </Panel>
-            )}
-
-            {ready && showOutcome && !clarificationReviewed && (
-              <Panel title="Is further clarification needed?">
-                <p>
-                  Review the client's concern before finalizing
-                  the personalized discussion.
-                </p>
-
-                <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setClarificationNeeded(true)
-                      setClarificationReviewed(true)
-                      setAnswer('')
-                      setChoice('')
-                    }}
-                    className="rounded-xl bg-[#24354c] p-3 font-semibold text-white"
-                  >
-                    Ask Clarification
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setClarificationNeeded(false)
-                      setClarificationReviewed(true)
-                      setAnswer('')
-                      setChoice('')
-                    }}
-                    className="rounded-xl border p-3 font-semibold text-[#24354c]"
-                  >
-                    Continue Without Clarification
-                  </button>
-                </div>
-              </Panel>
-            )}
-
-            {ready && (
-              <Panel title="Opening Context">
-                <p>
-                  {clarificationReviewed
-                    ? 'Ready for personalized discussion.'
-                    : 'Initial context available.'}
-                  {' '}
-                  Client statements remain separate from
-                  verified numerological evidence.
-                </p>
-              </Panel>
-            )}
-
-            {showOutcome && (
+            {!introductionComplete && currentIntro && (
               <>
-                <Title
-                  small="TSIA Consultation Outcome"
-                  big={`${topicName(primaryTopic)} — Numerology Guidance`}
+                <SectionHeading
+                  small={`First Consultation · Introduction ${
+                    introStep + 1
+                  } of ${introduction.length}`}
+                  big={currentIntro.title}
                 />
 
-                <Panel title="Client's Discussion">
-                  <p className="font-semibold text-[#ad7b40]">
-                    Selected Topic
+                <Panel title="Ask the Client">
+                  <p className="text-base font-semibold text-[#24354c]">
+                    {currentIntro.question}
                   </p>
 
-                  <p>{topicName(primaryTopic)}</p>
-
-                  <p className="mt-3 font-semibold text-[#ad7b40]">
-                    Client's Main Concern
+                  <p className="mt-2 text-xs text-[#ad7b40]">
+                    Ask naturally and pause for the response.
                   </p>
 
-                  <p className="whitespace-pre-wrap">
-                    {actualConcern}
-                  </p>
-
-                  {clarification && (
+                  {!introRevealed && (
                     <>
-                      <p className="mt-3 font-semibold text-[#ad7b40]">
-                        Additional Clarification
-                      </p>
+                      <label className="mt-4 block text-xs font-semibold text-[#24354c]">
+                        Client's Answer
+                      </label>
 
-                      <p className="whitespace-pre-wrap">
-                        {clarification}
-                      </p>
+                      <textarea
+                        value={introAnswer}
+                        onChange={(event) =>
+                          setIntroAnswer(event.target.value)
+                        }
+                        rows={2}
+                        placeholder="Optional — record the client's answer..."
+                        className="mt-2 w-full rounded-xl border p-3 text-sm"
+                      />
+
+                      <label className="mt-3 block text-xs font-semibold text-[#24354c]">
+                        Practitioner Observation
+                      </label>
+
+                      <textarea
+                        value={introObservation}
+                        onChange={(event) =>
+                          setIntroObservation(event.target.value)
+                        }
+                        rows={2}
+                        placeholder="Optional — your observation..."
+                        className="mt-2 w-full rounded-xl border p-3 text-sm"
+                      />
                     </>
                   )}
                 </Panel>
 
-                {loading && (
-                  <p className="mt-4 flex items-center gap-2 text-sm">
-                    <Loader2 className="size-4 animate-spin" />
-                    Preparing personalized numerology...
-                  </p>
-                )}
-
-                {!loading && !error && universal && (
-                  <Guidance result={universal} />
-                )}
-              </>
-            )}
-
-            <Title
-              small="Numerology Reference"
-              big="Client at a Glance"
-            />
-
-            {loading && (
-              <p className="flex items-center gap-2 text-sm">
-                <Loader2 className="size-4 animate-spin" />
-                Loading verified TSIA numerology...
-              </p>
-            )}
-
-            {error && (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                {error}
-              </div>
-            )}
-
-            {data && (
-              <CalculationDisplay
-                calculation={data.calculation}
-              />
-            )}
-
-            {!loading && !error && data && (
-              <>
-                <Title
-                  small="Supporting Numerological Evidence"
-                  big={`${topicName(primaryTopic)} Intelligence`}
-                />
-
-                {selection && selection.insights.length > 0 ? (
-                  <ConsultationV3Insights
-                    insights={selection.insights.map(
-                      (item) => item.insight
-                    )}
-                    evidence={data.intelligence.evidence}
-                  />
-                ) : (
-                  <Panel title="V3 Evidence Availability">
-                    No eligible topic-specific V3 findings
-                    are currently available. Traditional
-                    associations are shown separately above.
+                {introRevealed && (
+                  <Panel title="Explain the Traditional Connection">
+                    <p>{currentIntro.explanation}</p>
                   </Panel>
                 )}
 
-                {selection?.warnings.map((warning, index) => (
-                  <p
-                    key={index}
-                    className="mt-3 text-xs text-[#8a8177]"
-                  >
-                    {warning}
+                <button
+                  type="button"
+                  onClick={continueIntroduction}
+                  className="mt-4 flex w-full items-center justify-center rounded-xl bg-[#24354c] p-3 font-semibold text-white"
+                >
+                  {introRevealed
+                    ? introStep === introduction.length - 1
+                      ? 'Continue to Personal Numerology'
+                      : 'Next Introduction Question'
+                    : 'Show Explanation'}
+
+                  <ChevronRight className="ml-2 size-4" />
+                </button>
+              </>
+            )}
+
+            {introductionComplete && (
+              <>
+                {isFirstConsultation && (
+                  <Panel title="From Bharatiya Parampara to Personal Guidance">
+                    <p>
+                      In our Indian spiritual traditions,
+                      Grahas are associated with qualities
+                      and phases of human life.
+                    </p>
+
+                    <p className="mt-3">
+                      <b>Numerology — Ank Shastra</b>{' '}
+                      traditionally explores personality,
+                      nature, strengths and development
+                      through birth numbers, name numbers,
+                      Lo Shu and Graha associations.
+                    </p>
+
+                    <p className="mt-3">
+                      <b>Astrology — Jyotish Shastra</b>{' '}
+                      traditionally interprets life periods
+                      and circumstances through birth time,
+                      place, Kundli, Graha placements and Dasha.
+                    </p>
+
+                    <p className="mt-3 font-semibold text-[#24354c]">
+                      Numerology helps us explore who you are.
+                      Astrology helps us interpret the timing
+                      of different phases of your life.
+                    </p>
+
+                    <p className="mt-3 text-[#ad7b40]">
+                      Now let us explore your personal numbers.
+                    </p>
+                  </Panel>
+                )}
+
+                {note.trim() && (
+                  <Panel title="Today's Note">
+                    <p className="whitespace-pre-wrap">
+                      {note}
+                    </p>
+                  </Panel>
+                )}
+
+                <SectionHeading
+                  small="Personal Numerology"
+                  big="Client at a Glance"
+                />
+
+                {loading && (
+                  <p className="flex items-center gap-2 text-sm">
+                    <Loader2 className="size-4 animate-spin" />
+                    Preparing verified numerology...
                   </p>
-                ))}
+                )}
 
-                <Title
-                  small="Deep Analysis"
-                  big="Complete Numerology Intelligence"
+                {error && (
+                  <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                    {error}
+                  </div>
+                )}
+
+                {data && (
+                  <CalculationDisplay
+                    calculation={data.calculation}
+                  />
+                )}
+
+                <SectionHeading
+                  small="Live Consultation"
+                  big="Client Conversation"
                 />
 
-                <ConsultationCompleteIntelligence
-                  conclusions={
-                    data.intelligence.conclusions.conclusions
-                  }
-                  developmentAssessments={
-                    data.intelligence.conclusions
-                      .developmentAssessments
-                  }
-                  crossQualityResolutions={
-                    data.intelligence.crossQuality.resolutions
-                  }
-                />
+                {isFirstConsultation &&
+                  introResponses.length > 0 && (
+                    <details className="mb-4 rounded-xl border border-[#e6ddd1] p-3">
+                      <summary className="cursor-pointer font-semibold text-[#24354c]">
+                        Introduction Responses
+                      </summary>
+
+                      <div className="mt-3 space-y-3">
+                        {introResponses.map((item, index) => (
+                          <div
+                            key={index}
+                            className="rounded-xl bg-[#fbf8f3] p-3 text-sm"
+                          >
+                            <p className="font-semibold text-[#24354c]">
+                              {item.question}
+                            </p>
+
+                            <p className="mt-2">
+                              <b>Client:</b>{' '}
+                              {item.clientAnswer || 'Not recorded'}
+                            </p>
+
+                            <p className="mt-2">
+                              <b>Practitioner:</b>{' '}
+                              {item.practitionerObservation ||
+                                'Not recorded'}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
+
+                <div className="space-y-3">
+                  {answers.map((item, index) => (
+                    <div
+                      key={`${item.questionKey}-${index}`}
+                      className="rounded-xl bg-[#fbf8f3] p-4"
+                    >
+                      <p className="text-xs font-semibold text-[#ad7b40]">
+                        Question {index + 1}
+                      </p>
+
+                      <p className="mt-2 text-sm font-semibold text-[#24354c]">
+                        {item.questionText}
+                      </p>
+
+                      <p className="mt-3 whitespace-pre-wrap text-sm text-[#776d61]">
+                        <b>Client:</b> {item.clientAnswer}
+                      </p>
+
+                      {item.observation && (
+                        <p className="mt-3 whitespace-pre-wrap border-t pt-2 text-xs text-[#776d61]">
+                          <b>Practitioner Observation:</b>{' '}
+                          {item.observation}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {showQuestion && (
+                  <Panel title="Current Question">
+                    <p className="font-semibold text-[#24354c]">
+                      {currentQuestionText}
+                    </p>
+
+                    {familiarity && !clarificationPending && (
+                      <div className="mt-4 grid gap-2">
+                        {familiarityOptions.map((option) => (
+                          <button
+                            key={option}
+                            type="button"
+                            onClick={() => setChoice(option)}
+                            className={`flex justify-between rounded-xl border p-3 text-left ${
+                              choice === option
+                                ? 'border-[#b89556] bg-[#fbf5e9]'
+                                : 'border-[#e6ddd1]'
+                            }`}
+                          >
+                            {option}
+
+                            {choice === option && (
+                              <Check className="size-4" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    <label className="mt-4 block text-xs font-semibold text-[#24354c]">
+                      Client's Answer
+                    </label>
+
+                    <textarea
+                      value={answer}
+                      onChange={(event) =>
+                        setAnswer(event.target.value)
+                      }
+                      rows={3}
+                      placeholder={
+                        familiarity && !clarificationPending
+                          ? 'Optional client comments...'
+                          : "Type the client's response..."
+                      }
+                      className="mt-2 w-full rounded-xl border p-3 text-sm"
+                    />
+
+                    <label className="mt-3 block text-xs font-semibold text-[#24354c]">
+                      Practitioner Observation
+                    </label>
+
+                    <textarea
+                      value={observation}
+                      onChange={(event) =>
+                        setObservation(event.target.value)
+                      }
+                      rows={2}
+                      placeholder="Optional — record your observation separately..."
+                      className="mt-2 w-full rounded-xl border p-3 text-sm"
+                    />
+
+                    <button
+                      type="button"
+                      disabled={!canContinue}
+                      onClick={continueQuestion}
+                      className="mt-3 flex w-full items-center justify-center rounded-xl bg-[#24354c] p-3 font-semibold text-white disabled:opacity-40"
+                    >
+                      Continue Consultation
+                      <ChevronRight className="ml-2 size-4" />
+                    </button>
+                  </Panel>
+                )}
+
+                {ready &&
+                  !clarificationPending &&
+                  !clarificationReviewed &&
+                  Boolean(actualConcern) && (
+                    <Panel title="Is Further Clarification Needed?">
+                      <p>
+                        Review the client's concern before
+                        finalising the personalised discussion.
+                      </p>
+
+                      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            reviewClarification(true)
+                          }
+                          className="rounded-xl bg-[#24354c] p-3 font-semibold text-white"
+                        >
+                          Ask Clarification
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            reviewClarification(false)
+                          }
+                          className="rounded-xl border p-3 font-semibold text-[#24354c]"
+                        >
+                          Continue Without Clarification
+                        </button>
+                      </div>
+                    </Panel>
+                  )}
+
+                {showOutcome && (
+                  <>
+                    <SectionHeading
+                      small="Jeevan Sutra Consultation"
+                      big={`${topicName(primaryTopic)} Guidance`}
+                    />
+
+                    <Panel title="Client's Discussion">
+                      <p className="font-semibold text-[#ad7b40]">
+                        Selected Topic
+                      </p>
+
+                      <p>{topicName(primaryTopic)}</p>
+
+                      <p className="mt-3 font-semibold text-[#ad7b40]">
+                        Main Concern
+                      </p>
+
+                      <p className="whitespace-pre-wrap">
+                        {actualConcern}
+                      </p>
+
+                      {clarification && (
+                        <>
+                          <p className="mt-3 font-semibold text-[#ad7b40]">
+                            Additional Clarification
+                          </p>
+
+                          <p className="whitespace-pre-wrap">
+                            {clarification}
+                          </p>
+                        </>
+                      )}
+                    </Panel>
+
+                    {!loading && !error && universal && (
+                      <LiveGuidance result={universal} />
+                    )}
+                  </>
+                )}
+
+                {!loading && !error && data && (
+                  <>
+                    <SectionHeading
+                      small="Supporting Intelligence"
+                      big="V3 Numerology Evidence"
+                    />
+
+                    <details className="rounded-2xl border border-[#e6ddd1] bg-white p-4">
+                      <summary className="cursor-pointer font-semibold text-[#24354c]">
+                        View Topic-Specific V3 Findings
+                      </summary>
+
+                      <div className="mt-4">
+                        {selection &&
+                        selection.insights.length > 0 ? (
+                          <ConsultationV3Insights
+                            insights={selection.insights.map(
+                              (item) => item.insight
+                            )}
+                            evidence={data.intelligence.evidence}
+                          />
+                        ) : (
+                          <p className="text-sm text-[#776d61]">
+                            No eligible topic-specific V3
+                            findings are currently available.
+                          </p>
+                        )}
+
+                        {selection?.warnings.map(
+                          (warning, index) => (
+                            <p
+                              key={index}
+                              className="mt-3 text-xs text-[#8a8177]"
+                            >
+                              {warning}
+                            </p>
+                          )
+                        )}
+                      </div>
+                    </details>
+
+                    <div className="mt-4">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowDeepAnalysis((previous) => !previous)
+                        }
+                        className="flex w-full items-center justify-between rounded-xl border border-[#e6ddd1] bg-white p-4 text-left font-semibold text-[#24354c]"
+                      >
+                        Complete Numerology Intelligence
+
+                        <span className="text-xs text-[#ad7b40]">
+                          {showDeepAnalysis ? 'Hide' : 'Show'}
+                        </span>
+                      </button>
+
+                      {showDeepAnalysis && (
+                        <div className="mt-4">
+                          <ConsultationCompleteIntelligence
+                            conclusions={
+                              data.intelligence.conclusions.conclusions
+                            }
+                            developmentAssessments={
+                              data.intelligence.conclusions
+                                .developmentAssessments
+                            }
+                            crossQualityResolutions={
+                              data.intelligence.crossQuality.resolutions
+                            }
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {data.consultationInsightPool.warnings.length > 0 && (
+                      <details className="mt-4 rounded-xl border border-[#e6ddd1] p-3">
+                        <summary className="cursor-pointer text-sm font-semibold text-[#24354c]">
+                          Intelligence Notes
+                        </summary>
+
+                        <div className="mt-3 space-y-2 text-xs text-[#776d61]">
+                          {data.consultationInsightPool.warnings.map(
+                            (warning, index) => (
+                              <p key={index}>{warning}</p>
+                            )
+                          )}
+                        </div>
+                      </details>
+                    )}
+                  </>
+                )}
+
+                <p className="mt-6 text-xs leading-5 text-[#8a8177]">
+                  Jeevan Sutra uses traditional Indian numerology
+                  as an interpretive guidance framework.
+                  Practitioner observations and client statements
+                  are distinct from calculated numerology data.
+                  Outcomes are not guaranteed.
+                </p>
+
+                <p className="mt-2 text-xs leading-5 text-[#8a8177]">
+                  Consultation answers and observations are
+                  currently held only in this screen session.
+                  Secure database saving will be added in
+                  the next development stage.
+                </p>
               </>
             )}
           </main>
