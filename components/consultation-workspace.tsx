@@ -69,14 +69,6 @@ export function ConsultationWorkspace({
   const [purpose, setPurpose] =
     useState<ConsultationPurpose>('')
 
-  /*
-   * The first selected topic is treated
-   * as the Primary Topic.
-   *
-   * Any additional selected topics are
-   * stored as additional consultation
-   * topics.
-   */
   const [topics, setTopics] =
     useState<ConsultationTopic[]>([])
 
@@ -110,94 +102,84 @@ export function ConsultationWorkspace({
     setSaving(true)
     setError('')
 
-    const response =
-      await startConsultation({
+    try {
+      const response = await startConsultation({
         clientId: client.id,
         mode,
         purposeCode: purpose,
-
-        /*
-         * Keep the first selected topic
-         * as the primary topic so the
-         * existing consultation structure
-         * remains compatible.
-         */
         topicCode: topics[0],
-
-        /*
-         * Complete selected topic list.
-         */
         topicCodes: topics,
-
         note,
       })
 
-    setSaving(false)
-
-    if (
-      response.error ||
-      !response.result
-    ) {
-      setError(
+      if (
         response.error ||
-          'Unable to start consultation.'
+        !response.result
+      ) {
+        setError(
+          response.error ||
+            'Unable to start consultation.'
+        )
+        return
+      }
+
+      setConsultationId(
+        response.result.id
       )
-      return
+
+      setConsultationNumber(
+        response.result.consultationNumber
+      )
+
+      setStage('context')
+    } catch {
+      setError(
+        'Unable to start consultation. Please try again.'
+      )
+    } finally {
+      setSaving(false)
     }
-
-    setConsultationId(
-      response.result.id
-    )
-
-    setConsultationNumber(
-      response.result.consultationNumber
-    )
-
-    setStage('context')
   }
 
   if (
-  stage === 'assistant' &&
-  consultationNumber
-) {
-  return (
-    <ConsultationAssistant
-      client={client}
-      mode={mode}
-      purpose={purpose}
-      topics={topics}
-      note={note}
-      consultationId={consultationId}
-      consultationNumber={
-        consultationNumber
-      }
-      onBack={() =>
-        setStage('context')
-      }
-    />
-  )
-}
+    stage === 'assistant' &&
+    consultationNumber !== null &&
+    consultationId
+  ) {
+    return (
+      <ConsultationAssistant
+        client={client}
+        mode={mode}
+        purpose={purpose}
+        topics={topics}
+        note={note}
+        consultationId={consultationId}
+        consultationNumber={consultationNumber}
+        onBack={() => setStage('context')}
+      />
+    )
+  }
+
   if (
-  stage === 'context' &&
-  consultationNumber
-) {
-  return (
-    <ConsultationAssistant
-      client={client}
-      mode={mode}
-      purpose={purpose}
-      topics={topics}
-      note={note}
-      consultationId={consultationId}
-      consultationNumber={
-        consultationNumber
-      }
-      onBack={() =>
-        setStage('context')
-      }
-    />
-  )
-}
+    stage === 'context' &&
+    consultationNumber !== null &&
+    consultationId
+  ) {
+    return (
+      <ConsultationContext
+        client={client}
+        mode={mode}
+        purpose={purpose}
+        topics={topics}
+        note={note}
+        consultationId={consultationId}
+        consultationNumber={consultationNumber}
+        onBack={() => setStage('setup')}
+        onContinue={() => setStage('assistant')}
+      />
+    )
+  }
+
   return (
     <ConsultationSetup
       client={client}
