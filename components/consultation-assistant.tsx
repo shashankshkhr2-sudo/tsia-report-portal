@@ -40,6 +40,10 @@ import type {
 } from '@/lib/consultation/question-intelligence'
 
 import type {
+  ConsultationSelectionResult,
+} from '@/lib/consultation/consultation-intelligence-selector'
+
+import type {
   NumerologyCalculationResult,
   NumerologyDigit,
 } from '@/lib/numerology/types'
@@ -110,6 +114,37 @@ const grid: NumerologyDigit[] = [
   8, 1, 6,
 ]
 
+function getConcernAnswer(
+  answers: readonly ConsultationAnswerForIntelligence[]
+): string {
+  const concern = answers.find(
+    (item) =>
+      item.questionKey === 'TODAY_NOTE_EXPLORATION' ||
+      item.questionKey === 'PRIMARY_CONCERN_EXPLORATION'
+  )
+
+  return concern?.clientAnswer.trim() || ''
+}
+
+function getClarificationAnswer(
+  answers: readonly ConsultationAnswerForIntelligence[]
+): string {
+  const clarification = answers.find(
+    (item) =>
+      item.questionKey === 'CONCERN_CLARIFICATION'
+  )
+
+  return clarification?.clientAnswer.trim() || ''
+}
+
+function readableTopic(topic: string | null): string {
+  if (!topic) {
+    return 'General Consultation'
+  }
+
+  return labels[topic] || topic.replace(/_/g, ' ')
+}
+
 export function ConsultationAssistant({
   client,
   mode,
@@ -125,18 +160,21 @@ export function ConsultationAssistant({
   const [
     currentAnswers,
     setCurrentAnswers,
-  ] = useState<
-    ConsultationAnswerForIntelligence[]
-  >([])
+  ] = useState<ConsultationAnswerForIntelligence[]>([])
 
-  const [data, setData] =
-    useState<Result | null>(null)
+  const [
+    clarificationNeeded,
+    setClarificationNeeded,
+  ] = useState(false)
 
-  const [loading, setLoading] =
-    useState(true)
+  const [
+    clarificationReviewed,
+    setClarificationReviewed,
+  ] = useState(false)
 
-  const [error, setError] =
-    useState('')
+  const [data, setData] = useState<Result | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   /*
    * LOAD VERIFIED NUMEROLOGY
@@ -144,7 +182,8 @@ export function ConsultationAssistant({
    * V2 is calculated on the server.
    * V3 reuses the same calculation.
    *
-   * Topic selection happens locally.
+   * Consultation context does not modify
+   * the verified numerology.
    */
   useEffect(() => {
     let active = true
@@ -156,18 +195,13 @@ export function ConsultationAssistant({
 
       try {
         const response =
-          await generateNumerologyV2(
-            client.id
-          )
+          await generateNumerologyV2(client.id)
 
         if (!active) {
           return
         }
 
-        if (
-          response.error ||
-          !response.result
-        ) {
+        if (response.error || !response.result) {
           setError(
             response.error ||
               'Unable to load numerology.'
@@ -175,21 +209,31 @@ export function ConsultationAssistant({
           return
         }
 
+        const result = response.result
+
+        if (
+          !result.calculation ||
+          !result.intelligence ||
+          !result.consultationInsightPool ||
+          !Array.isArray(
+            result.consultationInsightPool.insights
+          )
+        ) {
+          setError(
+            'Consultation intelligence is incomplete. Please verify the numerology server action.'
+          )
+          return
+        }
+
         setData({
-          calculation:
-            response.result.calculation,
-
-          intelligence:
-            response.result.intelligence,
-
+          calculation: result.calculation,
+          intelligence: result.intelligence,
           consultationInsightPool:
-            response.result.consultationInsightPool,
+            result.consultationInsightPool,
         })
       } catch {
         if (active) {
-          setError(
-            'Unable to load numerology.'
-          )
+          setError('Unable to load numerology.')
         }
       } finally {
         if (active) {
@@ -206,10 +250,11 @@ export function ConsultationAssistant({
   }, [client.id])
 
   /*
-   * CONSULTATION QUESTION INTELLIGENCE
+   * QUESTION INTELLIGENCE
    *
-   * Client answers provide context.
-   * They do not modify V2/V3 evidence.
+   * Clarification is requested by
+   * the practitioner, not guessed
+   * from client keywords.
    */
   const decision =
     useMemo<QuestionIntelligenceDecision>(
@@ -220,6 +265,7 @@ export function ConsultationAssistant({
           topics,
           todayNote: note,
           currentAnswers,
+          clarificationNeeded,
         }),
       [
         consultationNumber,
@@ -227,35 +273,45 @@ export function ConsultationAssistant({
         topics,
         note,
         currentAnswers,
+        clarificationNeeded,
       ]
     )
 
   /*
-   * TOPIC-BASED INTELLIGENCE
-   *
-   * Selects from the complete
-   * approved employee insight pool.
+   * VERIFIED TOPIC SELECTION
    */
   const consultationSelection =
-    useMemo(() => {
-      if (!data) {
-        return null
-      }
+    useMemo<ConsultationSelectionResult | null>(
+      () => {
+        if (!data) {
+          return null
+        }
 
-      return selectConsultationIntelligence({
-        purpose,
-        topics,
-        insights:
-          data.consultationInsightPool.insights,
-        conclusions:
-          data.intelligence.conclusions,
-        limit: 5,
-      })
-    }, [
-      data,
-      purpose,
-      topics,
-    ])
+        return selectConsultationIntelligence({
+          purpose,
+          topics,
+          insights:
+            data.consultationInsightPool.insights,
+          conclusions:
+            data.intelligence.conclusions,
+          limit: 5,
+        })
+      },
+      [data, purpose, topics]
+    )
+
+  const directInsights =
+    consultationSelection?.insights.filter(
+      (item) =>
+        item.relevanceLevel === 'PRIMARY' ||
+        item.relevanceLevel === 'SECONDARY'
+    ) || []
+
+  const generalInsights =
+    consultationSelection?.insights.filter(
+      (item) =>
+        item.relevanceLevel === 'GENERAL'
+    ) || []
 
   const consultationInsights =
     consultationSelection
@@ -264,8 +320,7 @@ export function ConsultationAssistant({
         )
       : []
 
-  const calculation =
-    data?.calculation
+  const calculation = data?.calculation
 
   const modeLabel =
     mode === 'in_person'
@@ -274,8 +329,14 @@ export function ConsultationAssistant({
         ? 'Phone'
         : 'Consultation'
 
-  const primaryTopic =
-    topics[0] || null
+  const primaryTopic = topics[0] || null
+
+  const concernAnswer = getConcernAnswer(currentAnswers)
+  const clarificationAnswer =
+    getClarificationAnswer(currentAnswers)
+
+  const hasConcern =
+    Boolean(concernAnswer || note.trim())
 
   const isFamiliarityQuestion =
     decision.questionKey ===
@@ -291,12 +352,37 @@ export function ConsultationAssistant({
       : Boolean(answer.trim())
 
   /*
+   * INITIAL OUTCOME
+   *
+   * Display after the concern is
+   * recorded, even if the practitioner
+   * requests additional clarification.
+   *
+   * The findings remain unchanged
+   * when the client answers questions.
+   */
+  const showInitialOutcome =
+    hasConcern &&
+    currentAnswers.some(
+      (item) =>
+        item.questionKey ===
+          'TODAY_NOTE_EXPLORATION' ||
+        item.questionKey ===
+          'PRIMARY_CONCERN_EXPLORATION'
+    )
+
+  const outcomeStatus =
+    clarificationAnswer
+      ? 'Refined Discussion Context'
+      : 'Initial Discussion Context'
+
+  /*
    * RECORD CONSULTATION ANSWER
    *
    * Phase 1: local React state.
    *
-   * Database persistence will
-   * be implemented separately.
+   * Database persistence will be
+   * implemented separately.
    */
   function handleContinue() {
     if (
@@ -320,12 +406,8 @@ export function ConsultationAssistant({
 
     const recordedAnswer:
       ConsultationAnswerForIntelligence = {
-        questionKey:
-          decision.questionKey,
-
-        questionText:
-          decision.questionText,
-
+        questionKey: decision.questionKey,
+        questionText: decision.questionText,
         clientAnswer,
       }
 
@@ -336,6 +418,30 @@ export function ConsultationAssistant({
       ]
     )
 
+    setChoice('')
+    setAnswer('')
+  }
+
+  /*
+   * PRACTITIONER CLARIFICATION
+   *
+   * One optional clarification per
+   * opening concern.
+   */
+  function requestClarification() {
+    if (clarificationReviewed) {
+      return
+    }
+
+    setClarificationNeeded(true)
+    setClarificationReviewed(true)
+    setChoice('')
+    setAnswer('')
+  }
+
+  function continueWithoutClarification() {
+    setClarificationNeeded(false)
+    setClarificationReviewed(true)
     setChoice('')
     setAnswer('')
   }
@@ -368,14 +474,12 @@ export function ConsultationAssistant({
             </h1>
 
             <p className="mt-1 text-xs text-gray-300">
-              {client.clientNumber ||
-                'TSIA Client'}
+              {client.clientNumber || 'TSIA Client'}
               {' · '}
               Consultation #{consultationNumber}
             </p>
 
             <div className="mt-4 flex flex-wrap gap-2">
-
               <Tag text={modeLabel} />
 
               <Tag
@@ -387,14 +491,11 @@ export function ConsultationAssistant({
 
               {primaryTopic && (
                 <Tag
-                  text={
-                    labels[primaryTopic] ||
-                    primaryTopic
-                  }
+                  text={readableTopic(primaryTopic)}
                 />
               )}
-
             </div>
+
           </header>
 
           <main className="p-5">
@@ -465,7 +566,10 @@ export function ConsultationAssistant({
                     {decision.stage ===
                     'NUMEROLOGY_FAMILIARITY'
                       ? 'Opening Question'
-                      : 'Current Question'}
+                      : decision.stage ===
+                          'CONCERN_CLARIFICATION'
+                        ? 'Clarification Question'
+                        : 'Current Question'}
                   </p>
 
                   <p className="mt-2 text-base font-semibold leading-6 text-[#24354c]">
@@ -489,13 +593,11 @@ export function ConsultationAssistant({
                                 : 'border-[#e6ddd1]'
                             }`}
                           >
-
                             {item}
 
                             {choice === item && (
                               <Check className="size-4 text-[#ad7b40]" />
                             )}
-
                           </button>
                         )
                       )}
@@ -514,9 +616,7 @@ export function ConsultationAssistant({
                   <textarea
                     value={answer}
                     onChange={(event) =>
-                      setAnswer(
-                        event.target.value
-                      )
+                      setAnswer(event.target.value)
                     }
                     rows={3}
                     placeholder={
@@ -540,38 +640,241 @@ export function ConsultationAssistant({
                   onClick={handleContinue}
                   className="mt-4 flex h-12 w-full items-center justify-center rounded-xl bg-[#24354c] text-sm font-semibold text-white disabled:opacity-40"
                 >
-
                   Continue Consultation
-
                   <ChevronRight className="ml-2 size-4" />
-
                 </button>
 
               </>
             )}
 
+            {/* PRACTITIONER CLARIFICATION DECISION */}
+
+            {isReadyForV3 &&
+              showInitialOutcome &&
+              !clarificationReviewed && (
+                <div className="mt-4 rounded-2xl border border-[#dfd3c1] bg-[#fbf6ec] p-5">
+
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
+                    Practitioner Decision
+                  </p>
+
+                  <h3 className="mt-2 font-serif text-lg font-semibold text-[#24354c]">
+                    Is further clarification needed?
+                  </h3>
+
+                  <p className="mt-2 text-sm leading-6 text-[#776d61]">
+                    Review the client's concern.
+                    If more information is needed,
+                    ask one additional question
+                    before finalizing the discussion.
+                  </p>
+
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
+
+                    <button
+                      type="button"
+                      onClick={requestClarification}
+                      className="rounded-xl bg-[#24354c] px-4 py-3 text-sm font-semibold text-white"
+                    >
+                      Ask Clarification
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={continueWithoutClarification}
+                      className="rounded-xl border border-[#cdbb9d] bg-white px-4 py-3 text-sm font-semibold text-[#24354c]"
+                    >
+                      Continue Without Clarification
+                    </button>
+
+                  </div>
+
+                </div>
+              )}
+
             {isReadyForV3 && (
-              <div className="rounded-2xl border border-[#dfd3c1] bg-[#fbf6ec] p-5">
+              <div className="mt-4 rounded-2xl border border-[#dfd3c1] bg-[#fbf6ec] p-5">
 
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
-                  Opening Context Complete
+                  Opening Context
                 </p>
 
                 <h3 className="mt-2 font-serif text-lg font-semibold text-[#24354c]">
-                  Ready for Personalized Discussion
+                  {clarificationReviewed
+                    ? 'Ready for Personalized Discussion'
+                    : 'Initial Context Available'}
                 </h3>
 
                 <p className="mt-2 text-sm leading-6 text-[#776d61]">
-                  The client's orientation and
-                  current concern have been
-                  established. Verified TSIA V3
-                  intelligence is available below.
+                  The client's stated concern is
+                  available for consultation.
+                  Verified V3 intelligence is
+                  presented separately from
+                  client-provided information.
                 </p>
 
               </div>
             )}
 
-            {/* SECTION 2: CLIENT AT A GLANCE */}
+            {/* SECTION 2: DISCUSSION-SPECIFIC OUTCOME */}
+
+            {showInitialOutcome && (
+              <>
+                <Title
+                  small="TSIA Consultation Outcome"
+                  big={`${readableTopic(primaryTopic)} — Numerology Outcome`}
+                />
+
+                <div className="rounded-2xl border border-[#dfd3c1] bg-[#fffdf9] p-5">
+
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[#ad7b40]">
+                    {outcomeStatus}
+                  </p>
+
+                  <h3 className="mt-2 font-serif text-lg font-semibold text-[#24354c]">
+                    Client's Discussion
+                  </h3>
+
+                  <p className="mt-3 text-xs font-semibold uppercase text-[#ad7b40]">
+                    Selected Topic
+                  </p>
+
+                  <p className="mt-1 text-sm text-[#24354c]">
+                    {readableTopic(primaryTopic)}
+                  </p>
+
+                  <p className="mt-4 text-xs font-semibold uppercase text-[#ad7b40]">
+                    Client's Main Concern
+                  </p>
+
+                  <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-[#776d61]">
+                    {concernAnswer || note.trim()}
+                  </p>
+
+                  {clarificationAnswer && (
+                    <>
+                      <p className="mt-4 text-xs font-semibold uppercase text-[#ad7b40]">
+                        Additional Clarification
+                      </p>
+
+                      <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-[#776d61]">
+                        {clarificationAnswer}
+                      </p>
+                    </>
+                  )}
+
+                </div>
+
+                {loading && (
+                  <div className="mt-4 flex items-center gap-2 rounded-xl bg-[#f8f4ed] p-4 text-xs text-[#776d61]">
+                    <Loader2 className="size-4 animate-spin" />
+                    Preparing verified numerology context...
+                  </div>
+                )}
+
+                {!loading && !error && consultationSelection && (
+                  <div className="mt-4 space-y-4">
+
+                    <div className="rounded-2xl border border-[#e6ddd1] p-5">
+
+                      <h3 className="font-serif text-lg font-semibold text-[#24354c]">
+                        Relevant Numerological Findings
+                      </h3>
+
+                      {directInsights.length > 0 ? (
+                        <div className="mt-4 space-y-3">
+                          {directInsights.map(
+                            (item) => (
+                              <div
+                                key={item.insight.id}
+                                className="rounded-xl bg-[#f8f4ed] p-4"
+                              >
+                                <p className="text-sm font-semibold text-[#24354c]">
+                                  {item.insight.title}
+                                </p>
+
+                                <p className="mt-2 text-sm leading-6 text-[#776d61]">
+                                  {item.insight.statement}
+                                </p>
+
+                                <p className="mt-2 text-[10px] uppercase tracking-wide text-[#ad7b40]">
+                                  {item.relevanceLevel === 'PRIMARY'
+                                    ? 'Directly matched to primary topic'
+                                    : 'Matched to secondary topic'}
+                                </p>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      ) : (
+                        <p className="mt-3 text-sm leading-6 text-[#776d61]">
+                          No verified V3 conclusion
+                          directly matches the selected
+                          discussion topic. General
+                          numerology observations must
+                          not be presented as a direct
+                          explanation of the client's
+                          concern.
+                        </p>
+                      )}
+
+                    </div>
+
+                    <div className="rounded-2xl border border-[#e6ddd1] p-5">
+
+                      <h3 className="font-serif text-lg font-semibold text-[#24354c]">
+                        Practitioner Guidance
+                      </h3>
+
+                      <p className="mt-3 text-sm leading-6 text-[#776d61]">
+                        Discuss the client's stated
+                        concern alongside the verified
+                        findings above. Explore which
+                        observations the client
+                        recognizes in their own
+                        experience before suggesting
+                        practical next steps.
+                      </p>
+
+                      <p className="mt-3 text-sm leading-6 text-[#776d61]">
+                        Client statements provide
+                        real-world context. They do
+                        not establish numerological
+                        causes or change the
+                        approved V3 conclusions.
+                      </p>
+
+                      {!clarificationAnswer &&
+                        !clarificationReviewed && (
+                          <p className="mt-3 text-sm leading-6 text-[#776d61]">
+                            The practitioner may
+                            request one clarification
+                            question to understand
+                            the situation more
+                            precisely.
+                          </p>
+                        )}
+
+                      {clarificationAnswer && (
+                        <p className="mt-3 text-sm leading-6 text-[#776d61]">
+                          The additional response
+                          should now be considered
+                          when discussing practical
+                          guidance. The underlying
+                          verified numerology remains
+                          unchanged.
+                        </p>
+                      )}
+
+                    </div>
+
+                  </div>
+                )}
+
+              </>
+            )}
+
+            {/* SECTION 3: CLIENT AT A GLANCE */}
 
             <Title
               small="Numerology Reference"
@@ -580,11 +883,8 @@ export function ConsultationAssistant({
 
             {loading && (
               <div className="flex items-center gap-2 rounded-xl bg-[#f8f4ed] p-4 text-xs text-[#776d61]">
-
                 <Loader2 className="size-4 animate-spin" />
-
                 Loading verified TSIA numerology...
-
               </div>
             )}
 
@@ -648,13 +948,11 @@ export function ConsultationAssistant({
                 <div className="grid gap-4 sm:grid-cols-2">
 
                   <div>
-
                     <p className="mb-2 text-xs font-semibold">
                       Standard Lo Shu
                     </p>
 
                     <div className="grid max-w-[230px] grid-cols-3">
-
                       {grid.map(
                         (number) => (
                           <GridCell
@@ -663,32 +961,26 @@ export function ConsultationAssistant({
                           />
                         )
                       )}
-
                     </div>
                   </div>
 
                   <div>
-
                     <p className="mb-2 text-xs font-semibold">
                       Personal Lo Shu
                     </p>
 
                     <div className="grid max-w-[230px] grid-cols-3">
-
                       {grid.map(
                         (number) => (
                           <GridCell
                             key={number}
                             text={repeatNumber(
                               number,
-                              calculation.loShu.counts[
-                                number
-                              ]
+                              calculation.loShu.counts[number]
                             )}
                           />
                         )
                       )}
-
                     </div>
                   </div>
 
@@ -783,18 +1075,15 @@ export function ConsultationAssistant({
               </>
             )}
 
-            {/* SECTION 3: TOPIC-BASED INTELLIGENCE */}
+            {/* SECTION 4: TOPIC-BASED INTELLIGENCE */}
 
             {!loading && !error && data && (
               <>
                 <Title
-                  small="Personalized Consultation Intelligence"
+                  small="Supporting Numerological Evidence"
                   big={
                     primaryTopic
-                      ? `${
-                          labels[primaryTopic] ||
-                          primaryTopic
-                        } Intelligence`
+                      ? `${readableTopic(primaryTopic)} Intelligence`
                       : 'Numerology Intelligence'
                   }
                 />
@@ -817,20 +1106,15 @@ export function ConsultationAssistant({
                   </div>
                 )}
 
-                {consultationSelection &&
-                  consultationSelection.insights.some(
-                    (item) =>
-                      item.relevanceLevel ===
-                      'GENERAL'
-                  ) && (
-                    <p className="mt-3 text-xs leading-5 text-[#8a8177]">
-                      Some findings shown above
-                      are general numerology
-                      observations rather than
-                      direct findings for the
-                      selected consultation topic.
-                    </p>
-                  )}
+                {generalInsights.length > 0 && (
+                  <p className="mt-3 text-xs leading-5 text-[#8a8177]">
+                    Some findings shown above
+                    are general numerology
+                    observations rather than
+                    direct findings for the
+                    selected consultation topic.
+                  </p>
+                )}
 
                 {consultationSelection?.warnings.map(
                   (warning, index) => (
@@ -841,10 +1125,11 @@ export function ConsultationAssistant({
                       {warning}
                     </p>
                   ))}
+
               </>
             )}
 
-            {/* SECTION 4: COMPLETE INTELLIGENCE */}
+            {/* SECTION 5: COMPLETE INTELLIGENCE */}
 
             {!loading && !error && data?.intelligence && (
               <>
@@ -855,16 +1140,14 @@ export function ConsultationAssistant({
 
                 <ConsultationCompleteIntelligence
                   conclusions={
-                    data.intelligence.conclusions
-                      .conclusions
+                    data.intelligence.conclusions.conclusions
                   }
                   developmentAssessments={
                     data.intelligence.conclusions
                       .developmentAssessments
                   }
                   crossQualityResolutions={
-                    data.intelligence.crossQuality
-                      .resolutions
+                    data.intelligence.crossQuality.resolutions
                   }
                 />
               </>
@@ -926,9 +1209,7 @@ function formatRepeated(
     : 'None'
 }
 
-function statusLabel(
-  status: string
-) {
+function statusLabel(status: string) {
   if (status === 'complete') {
     return 'Complete'
   }
