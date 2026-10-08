@@ -14,26 +14,37 @@ import type {
 } from '@/components/consultation-workspace'
 
 /**
- * TSIA Consultation Intelligence Selector
+ * TSIA CONSULTATION INTELLIGENCE SELECTOR
  *
- * This layer selects existing verified
- * V3 findings for a consultation.
+ * Version 1.1
  *
- * It NEVER:
- * - changes V2 calculations
- * - modifies V3 conclusions
- * - invents numerological evidence
- * - treats client statements as evidence
- * - predicts specific life events
+ * Selects existing verified V3 findings
+ * according to consultation topics.
+ *
+ * DEVELOPMENT RULE 001:
+ * SIMPLE • FAST • SAFE • RELIABLE
+ *
+ * This selector NEVER:
+ *
+ * - Changes V2 calculations
+ * - Modifies V3 conclusions
+ * - Creates numerological evidence
+ * - Treats client answers as evidence
+ * - Predicts specific life events
+ * - Changes approved V3 methodology
  */
 
 export const CONSULTATION_SELECTOR_VERSION =
-  'TSIA_CONSULTATION_SELECTOR_1.0' as const
+  'TSIA_CONSULTATION_SELECTOR_1.1' as const
 
 export type ConsultationInsight = {
   insight: EmployeeInsight
+
   relevanceScore: number
-  matchedDomains: readonly IntelligenceDomain[]
+
+  matchedDomains:
+    readonly IntelligenceDomain[]
+
   relevanceLevel:
     | 'PRIMARY'
     | 'SECONDARY'
@@ -41,29 +52,49 @@ export type ConsultationInsight = {
 }
 
 export type ConsultationSelectionResult = {
-  version: typeof CONSULTATION_SELECTOR_VERSION
+  version:
+    typeof CONSULTATION_SELECTOR_VERSION
+
   purpose: ConsultationPurpose
-  primaryTopic: ConsultationTopic | null
-  secondaryTopics: readonly ConsultationTopic[]
-  insights: readonly ConsultationInsight[]
+
+  primaryTopic:
+    ConsultationTopic | null
+
+  secondaryTopics:
+    readonly ConsultationTopic[]
+
+  insights:
+    readonly ConsultationInsight[]
+
   totalEligibleInsights: number
-  warnings: readonly string[]
+
+  warnings:
+    readonly string[]
 }
 
 type SelectorInput = {
   purpose: ConsultationPurpose
-  topics: readonly ConsultationTopic[]
-  insights: readonly EmployeeInsight[]
-  conclusions: ConclusionEngineResult
+
+  topics:
+    readonly ConsultationTopic[]
+
+  insights:
+    readonly EmployeeInsight[]
+
+  conclusions:
+    ConclusionEngineResult
+
   limit?: number
 }
 
 /**
- * Approved mapping between consultation
- * subjects and existing V3 domains.
+ * APPROVED TOPIC MAPPING
  *
- * No new numerology methodology is
- * introduced here.
+ * Maps consultation topics to
+ * existing V3 intelligence domains.
+ *
+ * No new numerology methodology
+ * is introduced.
  */
 const TOPIC_DOMAINS: Record<
   ConsultationTopic,
@@ -110,39 +141,11 @@ const TOPIC_DOMAINS: Record<
 }
 
 /**
- * Resolve a displayed insight back to
- * its approved V3 conclusion.
+ * ELIGIBILITY CHECK
  *
- * Employee insight IDs are prefixed
- * with EMP_ in the existing output layer.
- */
-function findConclusion(
-  insight: EmployeeInsight,
-  conclusions: readonly ResolvedConclusion[]
-): ResolvedConclusion | null {
-  if (
-    insight.source !==
-    'CORE_CONCLUSION'
-  ) {
-    return null
-  }
-
-  const conclusionId =
-    insight.id.startsWith('EMP_')
-      ? insight.id.slice(4)
-      : insight.id
-
-  return (
-    conclusions.find(
-      (item) =>
-        item.id === conclusionId
-    ) || null
-  )
-}
-
-/**
- * Only conclusions with approved
- * evidence support are eligible.
+ * Only approved conclusions with
+ * sufficient evidence can enter
+ * consultation selection.
  */
 function isEligible(
   conclusion: ResolvedConclusion
@@ -156,27 +159,91 @@ function isEligible(
 }
 
 /**
- * Rank verified employee insights
- * according to the selected subject.
+ * GET APPROVED CONCLUSION ID
+ *
+ * Employee output prefixes
+ * conclusion IDs with EMP_.
+ *
+ * Cross-quality findings are
+ * excluded from topic selection
+ * until their domain eligibility
+ * is independently validated.
+ */
+function getConclusionId(
+  insight: EmployeeInsight
+): string | null {
+  if (
+    insight.source !==
+    'CORE_CONCLUSION'
+  ) {
+    return null
+  }
+
+  return insight.id.startsWith(
+    'EMP_'
+  )
+    ? insight.id.slice(4)
+    : insight.id
+}
+
+/**
+ * TOPIC-BASED SELECTION
+ *
+ * Primary topic:
+ * Highest relevance.
+ *
+ * Secondary topics:
+ * Supporting relevance.
+ *
+ * General findings:
+ * Lower priority.
+ *
+ * All findings must originate
+ * from approved V3 conclusions.
  */
 export function selectConsultationIntelligence(
   input: SelectorInput
 ): ConsultationSelectionResult {
   const primaryTopic =
-    input.topics[0] || null
+    input.topics[0] ?? null
 
   const secondaryTopics =
     input.topics.slice(1)
 
   const primaryDomains =
-    primaryTopic
-      ? TOPIC_DOMAINS[primaryTopic]
-      : []
+    new Set<IntelligenceDomain>(
+      primaryTopic
+        ? TOPIC_DOMAINS[primaryTopic]
+        : []
+    )
 
   const secondaryDomains =
-    secondaryTopics.flatMap(
-      (topic) =>
-        TOPIC_DOMAINS[topic]
+    new Set<IntelligenceDomain>(
+      secondaryTopics.flatMap(
+        (topic) =>
+          TOPIC_DOMAINS[topic]
+      )
+    )
+
+  /**
+   * FAST CONCLUSION LOOKUP
+   *
+   * Build once per selection.
+   *
+   * Avoid repeated searches
+   * through the conclusion list.
+   */
+  const conclusionMap =
+    new Map<
+      string,
+      ResolvedConclusion
+    >(
+      input.conclusions.conclusions.map(
+        (conclusion) => [
+          conclusion.id,
+          conclusion,
+        ]
+      )
     )
 
   const selected:
@@ -184,61 +251,66 @@ export function selectConsultationIntelligence(
 
   const warnings: string[] = []
 
-  for (const insight of input.insights) {
-    const conclusion =
-      findConclusion(
-        insight,
-        input.conclusions.conclusions
-      )
+  for (
+    const insight of input.insights
+  ) {
+    const conclusionId =
+      getConclusionId(insight)
 
-    /**
-     * Cross-quality insights require
-     * separate domain validation.
-     *
-     * Until that is implemented, they
-     * are excluded rather than assigned
-     * an invented domain.
-     */
-    if (!conclusion) {
+    if (!conclusionId) {
       continue
     }
 
-    if (!isEligible(conclusion)) {
+    const conclusion =
+      conclusionMap.get(
+        conclusionId
+      )
+
+    if (
+      !conclusion ||
+      !isEligible(conclusion)
+    ) {
       continue
     }
 
     const matchedPrimary =
       conclusion.allowedDomains.filter(
         (domain) =>
-          primaryDomains.includes(domain)
+          primaryDomains.has(domain)
       )
 
     const matchedSecondary =
       conclusion.allowedDomains.filter(
         (domain) =>
-          secondaryDomains.includes(domain)
+          secondaryDomains.has(domain)
       )
-
-    let relevanceScore =
-      insight.priority
 
     let relevanceLevel:
       ConsultationInsight['relevanceLevel'] =
         'GENERAL'
 
-    if (matchedPrimary.length > 0) {
+    let relevanceScore =
+      insight.priority
+
+    if (
+      matchedPrimary.length > 0
+    ) {
+      relevanceLevel =
+        'PRIMARY'
+
       relevanceScore += 100
-      relevanceLevel = 'PRIMARY'
     } else if (
       matchedSecondary.length > 0
     ) {
+      relevanceLevel =
+        'SECONDARY'
+
       relevanceScore += 50
-      relevanceLevel = 'SECONDARY'
     }
 
     const matchedDomains =
       Array.from(
-        new Set([
+        new Set<IntelligenceDomain>([
           ...matchedPrimary,
           ...matchedSecondary,
         ])
@@ -246,30 +318,82 @@ export function selectConsultationIntelligence(
 
     selected.push({
       insight,
+
       relevanceScore,
+
       matchedDomains,
+
       relevanceLevel,
     })
   }
 
+  /**
+   * RANKING
+   *
+   * Primary topic findings first.
+   *
+   * Secondary topic findings next.
+   *
+   * General findings last.
+   *
+   * Existing employee priority
+   * breaks ties within each group.
+   */
+  const levelRank = {
+    PRIMARY: 3,
+    SECONDARY: 2,
+    GENERAL: 1,
+  } as const
+
   selected.sort(
-    (a, b) =>
-      b.relevanceScore -
-      a.relevanceScore
+    (a, b) => {
+      const levelDifference =
+        levelRank[b.relevanceLevel] -
+        levelRank[a.relevanceLevel]
+
+      if (levelDifference !== 0) {
+        return levelDifference
+      }
+
+      return (
+        b.relevanceScore -
+        a.relevanceScore
+      )
+    }
   )
 
+  /**
+   * DISPLAY LIMIT
+   *
+   * Default: five findings.
+   *
+   * This does not limit the
+   * underlying approved pool.
+   */
   const limit =
     Math.max(
       0,
-      input.limit ?? 5
+      Math.floor(
+        input.limit ?? 5
+      )
     )
 
   const result =
-    selected.slice(0, limit)
+    selected.slice(
+      0,
+      limit
+    )
 
+  /**
+   * WARNINGS
+   *
+   * Inform the practitioner
+   * when direct topic-specific
+   * intelligence is unavailable.
+   */
   if (
     primaryTopic &&
-    !result.some(
+    !selected.some(
       (item) =>
         item.relevanceLevel ===
         'PRIMARY'
@@ -280,17 +404,27 @@ export function selectConsultationIntelligence(
     )
   }
 
+  if (
+    selected.length === 0
+  ) {
+    warnings.push(
+      'No eligible verified V3 conclusions were available for consultation selection.'
+    )
+  }
+
   return {
     version:
       CONSULTATION_SELECTOR_VERSION,
 
-    purpose: input.purpose,
+    purpose:
+      input.purpose,
 
     primaryTopic,
 
     secondaryTopics,
 
-    insights: result,
+    insights:
+      result,
 
     totalEligibleInsights:
       selected.length,
