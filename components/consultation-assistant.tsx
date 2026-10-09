@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
@@ -22,9 +23,12 @@ import { buildUniversalNumerologyIntelligence } from '@/lib/consultation/univers
 
 import {
   CONSULTATION_LANGUAGES,
+  FAMILIARITY_CHOICE_IDS,
   LANGUAGE_INFO,
   createConsultationLanguagePreferences,
   getConsultationContent,
+  getGuidedQuestionContent,
+  getFamiliarityChoiceLabel,
   getTypingInputProps,
   updateConsultationLanguage,
   updateTypingLanguage,
@@ -124,13 +128,6 @@ const labels: Record<string, string> = {
   other: 'Other',
 }
 
-const familiarityOptions = [
-  'First time',
-  'Know a little',
-  'Consultation before',
-  'Know it quite well',
-]
-
 const grid: NumerologyDigit[] = [
   4, 9, 2,
   3, 5, 7,
@@ -150,13 +147,13 @@ const grahaNames: Record<number, string> = {
 }
 
 /*
- * Canonical question text is deliberately retained.
+ * These canonical English question texts are
+ * intentionally unchanged.
  *
- * Existing consultation records use questionText to
- * identify previously saved answers. Changing these
- * strings would break history matching.
+ * Existing saved consultations identify questions
+ * using their canonical questionText.
  *
- * Native-language text is used only for display.
+ * Native language is used only for presentation.
  */
 const introduction = [
   {
@@ -190,13 +187,6 @@ const clarificationQuestion =
 
 const INTRO_PROGRESS_MARKER =
   '[Jeevan Sutra: introduction completed without recorded response]'
-
-const languageNames: Record<ConsultationLanguage, string> = {
-  hi: 'हिन्दी',
-  en: 'English',
-  mr: 'मराठी',
-  gu: 'ગુજરાતી',
-}
 
 function topicName(value: string | null) {
   return value
@@ -593,7 +583,7 @@ function LanguageSelector({
       >
         {CONSULTATION_LANGUAGES.map((language) => (
           <option key={language} value={language}>
-            {languageNames[language]}
+            {LANGUAGE_INFO[language].nativeName}
           </option>
         ))}
       </select>
@@ -1012,23 +1002,49 @@ export function ConsultationAssistant({
     clarificationReviewed
 
   /*
-   * Canonical text is used for persistence.
-   * Display text is selected independently.
+   * Keep canonical English question text unchanged
+   * for database persistence and history matching.
    */
   const canonicalQuestionText = clarificationPending
     ? clarificationQuestion
     : decision.questionText
 
-  const displayQuestionText = clarificationPending
-    ? nativeClarification?.question || null
-    : consultationLanguage === 'en'
-      ? decision.questionText
-      : null
+  /*
+   * Resolve the visible question directly from
+   * the selected native-language resource.
+   *
+   * Do not translate English question text.
+   * Do not silently substitute English content.
+   *
+   * The explicit clarification flow uses the
+   * original CLARIFY_CONCERN question, preserving
+   * its existing database identity.
+   */
+  const nativeGuidedQuestion = clarificationPending
+    ? nativeClarification
+    : getGuidedQuestionContent(
+        consultationLanguage,
+        decision.questionKey,
+        primaryTopic,
+        false
+      )
 
-  const dynamicQuestionUnavailable =
-    showQuestion &&
-    !clarificationPending &&
-    consultationLanguage !== 'en'
+  const displayQuestionText =
+    nativeGuidedQuestion?.question || null
+
+  const nativeQuestionUnavailable =
+    showQuestion && !displayQuestionText
+
+  const familiarityLabelsAvailable =
+    !familiarity ||
+    clarificationPending ||
+    FAMILIARITY_CHOICE_IDS.every(
+      (option) =>
+        getFamiliarityChoiceLabel(
+          consultationLanguage,
+          option
+        ) !== null
+    )
 
   const canContinue =
     !saving &&
@@ -1036,6 +1052,7 @@ export function ConsultationAssistant({
     !restoreError &&
     Boolean(canonicalQuestionText?.trim()) &&
     Boolean(displayQuestionText?.trim()) &&
+    familiarityLabelsAvailable &&
     (clarificationPending
       ? Boolean(answer.trim())
       : familiarity
@@ -1163,6 +1180,17 @@ export function ConsultationAssistant({
       return
     }
 
+    /*
+     * Familiarity choices retain canonical English
+     * identifiers in saved clientAnswer.
+     *
+     * This is necessary because the existing
+     * question-intelligence engine reads these
+     * exact choice prefixes.
+     *
+     * The optional free-text answer remains
+     * exactly as entered by the practitioner.
+     */
     const clientAnswer = clarificationPending
       ? answer
       : familiarity
@@ -1253,7 +1281,14 @@ export function ConsultationAssistant({
       )
     }
 
-    return item.questionText
+    return (
+      getGuidedQuestionContent(
+        consultationLanguage,
+        item.questionKey,
+        primaryTopic,
+        false
+      )?.question || 'Localized question unavailable'
+    )
   }
 
   return (
@@ -1738,28 +1773,27 @@ export function ConsultationAssistant({
                             : 'Next Consultation Question'
                         }
                       >
-                        {dynamicQuestionUnavailable ? (
+                        {nativeQuestionUnavailable ? (
                           <div
                             role="alert"
                             className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-[#776d61]"
                           >
                             <p className="font-semibold text-[#24354c]">
-                              Native question content not yet available
+                              Native question content unavailable
                             </p>
                             <p className="mt-2">
-                              This guided question is not yet
-                              authored in the selected consultation
-                              language. Choose English to continue
-                              this question. Your saved responses
-                              will not be changed.
+                              The selected question is missing
+                              from this language resource.
+                              Saving is disabled until the
+                              native question is available.
                             </p>
                           </div>
-                        ) : !displayQuestionText ? (
+                        ) : !familiarityLabelsAvailable ? (
                           <p role="alert">
-                            The selected language question is
-                            unavailable. Saving is disabled.
+                            Native familiarity choices are
+                            incomplete. Saving is disabled.
                           </p>
-                        ) : (
+                        ) : displayQuestionText ? (
                           <>
                             <p
                               lang={LANGUAGE_INFO[consultationLanguage].locale}
@@ -1780,7 +1814,7 @@ export function ConsultationAssistant({
 
                             {familiarity && !clarificationPending && (
                               <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                                {familiarityOptions.map((option) => (
+                                {FAMILIARITY_CHOICE_IDS.map((option) => (
                                   <button
                                     key={option}
                                     type="button"
@@ -1792,7 +1826,10 @@ export function ConsultationAssistant({
                                         : 'border-[#e6ddd1] bg-white text-[#776d61]'
                                     }`}
                                   >
-                                    {option}
+                                    {getFamiliarityChoiceLabel(
+                                      consultationLanguage,
+                                      option
+                                    )}
                                   </button>
                                 ))}
                               </div>
@@ -1870,7 +1907,7 @@ export function ConsultationAssistant({
                               )}
                             </button>
                           </>
-                        )}
+                        ) : null}
                       </Panel>
                     )}
 
