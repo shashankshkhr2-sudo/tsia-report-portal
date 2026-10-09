@@ -736,8 +736,9 @@ export function ConsultationAssistant({
             if (
               next.shouldAskQuestion &&
               next.questionKey &&
-              normalizeQuestion(next.questionText) ===
-                normalizeQuestion(item.questionText)
+              next.questionText !== null &&
+  normalizeQuestion(next.questionText) ===
+  normalizeQuestion(item.questionText)
             ) {
               questionKey = next.questionKey
             }
@@ -1034,10 +1035,10 @@ export function ConsultationAssistant({
 
     const questionText = currentQuestionText
 
-    if (!questionText.trim()) {
-      setSaveError('Consultation question is missing.')
-      return
-    }
+if (!questionText || !questionText.trim()) {
+  setSaveError('Consultation question is missing.')
+  return
+}
 
     const clientAnswer = clarificationPending
       ? answer.trim()
