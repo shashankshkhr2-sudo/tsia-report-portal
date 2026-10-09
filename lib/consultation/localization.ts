@@ -1,17 +1,27 @@
 // lib/consultation/localization.ts
-// Jeevan Sutra — Native Language Foundation
+// Jeevan Sutra — Four-Language Localization Foundation
 //
 // Scope: Live Consultation only.
 //
 // LOCKED RULES:
-// 1. Native-language content is retrieved directly.
+// 1. Each language has independently maintained content.
 // 2. No runtime translation between languages.
-// 3. No silent fallback to another language.
-// 4. Consultation and typing languages are independent.
+// 3. No automatic fallback to another language.
+// 4. Consultation, typing and voice languages are independent.
 // 5. Stable question IDs are shared across languages.
-// 6. Client answers and practitioner observations
-//    must be preserved exactly as entered.
-// 7. Existing V2/V3 calculations remain unchanged.
+// 6. Client answers and practitioner observations are
+//    preserved exactly as entered.
+// 7. Existing consultation records remain unchanged.
+// 8. V2/V3 numerology engines remain unchanged.
+
+import { hindiConsultationContent } from "./locales/hi";
+import { englishConsultationContent } from "./locales/en";
+import { marathiConsultationContent } from "./locales/mr";
+import { gujaratiConsultationContent } from "./locales/gu";
+
+// --------------------------------------------------
+// 1. Supported languages
+// --------------------------------------------------
 
 export const CONSULTATION_LANGUAGES = [
   "hi",
@@ -26,11 +36,26 @@ export type ConsultationLanguage =
 export type ConsultationTypingLanguage =
   ConsultationLanguage;
 
+// --------------------------------------------------
+// 2. Stable consultation content IDs
+// --------------------------------------------------
+
 export type ConsultationContentKey =
   | "INTRO_WEEKDAYS"
   | "INTRO_NAVAGRAHA"
   | "INTRO_TIME"
   | "CLARIFY_CONCERN";
+
+export const CONSULTATION_CONTENT_IDS = [
+  "INTRO_WEEKDAYS",
+  "INTRO_NAVAGRAHA",
+  "INTRO_TIME",
+  "CLARIFY_CONCERN",
+] as const satisfies readonly ConsultationContentKey[];
+
+// --------------------------------------------------
+// 3. Content structure
+// --------------------------------------------------
 
 export interface ConsultationContent {
   id: ConsultationContentKey;
@@ -38,6 +63,26 @@ export interface ConsultationContent {
   question: string;
   explanation: string;
 }
+
+export type ConsultationLanguageResources =
+  Partial<
+    Record<
+      ConsultationContentKey,
+      ConsultationContent
+    >
+  >;
+
+export type ConsultationResourceRegistry =
+  Partial<
+    Record<
+      ConsultationLanguage,
+      ConsultationLanguageResources
+    >
+  >;
+
+// --------------------------------------------------
+// 4. Language metadata
+// --------------------------------------------------
 
 export interface ConsultationLanguageInfo {
   code: ConsultationLanguage;
@@ -94,51 +139,35 @@ export const LANGUAGE_INFO: Record<
   },
 };
 
+// --------------------------------------------------
+// 5. Default language preferences
+// --------------------------------------------------
+
 export const DEFAULT_CONSULTATION_LANGUAGE:
   ConsultationLanguage = "en";
 
 export const DEFAULT_TYPING_LANGUAGE:
   ConsultationTypingLanguage = "en";
 
-// These IDs must remain stable even when
-// the displayed language changes.
-
-export const CONSULTATION_CONTENT_IDS = [
-  "INTRO_WEEKDAYS",
-  "INTRO_NAVAGRAHA",
-  "INTRO_TIME",
-  "CLARIFY_CONCERN",
-] as const satisfies readonly ConsultationContentKey[];
-
-// Each language has its own native-authored resource.
+// --------------------------------------------------
+// 6. Native-language resource registry
+// --------------------------------------------------
 //
-// These imports will be activated when the
-// four language resource files are added.
-// Until then, this foundation remains safe
-// and independently deployable.
+// Each language is imported directly from its
+// independent resource file.
+//
+// No runtime translation is performed.
 
-export type ConsultationLanguageResources =
-  Partial<
-    Record<
-      ConsultationContentKey,
-      ConsultationContent
-    >
-  >;
+export const consultationResourceRegistry = {
+  hi: hindiConsultationContent,
+  en: englishConsultationContent,
+  mr: marathiConsultationContent,
+  gu: gujaratiConsultationContent,
+} satisfies ConsultationResourceRegistry;
 
-export type ConsultationResourceRegistry =
-  Partial<
-    Record<
-      ConsultationLanguage,
-      ConsultationLanguageResources
-    >
-  >;
-
-// An empty registry is intentional at this stage.
-// It prevents accidental English fallback or
-// pretending that translations are available.
-
-export const consultationResourceRegistry:
-  ConsultationResourceRegistry = {};
+// --------------------------------------------------
+// 7. Language validation
+// --------------------------------------------------
 
 export function isConsultationLanguage(
   value: unknown
@@ -151,25 +180,34 @@ export function isConsultationLanguage(
   );
 }
 
+// --------------------------------------------------
+// 8. Language information
+// --------------------------------------------------
+
 export function getConsultationLanguageInfo(
   language: ConsultationLanguage
 ): ConsultationLanguageInfo {
   return LANGUAGE_INFO[language];
 }
 
+// --------------------------------------------------
+// 9. Direct native-language content retrieval
+// --------------------------------------------------
+
 export function getConsultationContent(
   language: ConsultationLanguage,
   contentId: ConsultationContentKey
 ): ConsultationContent | null {
-  const resource =
-    consultationResourceRegistry[language];
+  const resources:
+    ConsultationLanguageResources =
+      consultationResourceRegistry[language];
 
-  if (!resource) {
-    return null;
-  }
-
-  return resource[contentId] ?? null;
+  return resources[contentId] ?? null;
 }
+
+// --------------------------------------------------
+// 10. Check native-language content availability
+// --------------------------------------------------
 
 export function hasConsultationContent(
   language: ConsultationLanguage,
@@ -182,6 +220,13 @@ export function hasConsultationContent(
     ) !== null
   );
 }
+
+// --------------------------------------------------
+// 11. Native typing preferences
+// --------------------------------------------------
+//
+// HTML language hints help browsers and keyboards,
+// but cannot force Android to change its keyboard.
 
 export function getTypingInputProps(
   language: ConsultationTypingLanguage
@@ -201,17 +246,25 @@ export function getTypingInputProps(
   };
 }
 
-// These values identify the requested language
-// for a future speech-to-text provider.
+// --------------------------------------------------
+// 12. Voice transcription locale
+// --------------------------------------------------
 //
-// They do not themselves start recording or
-// guarantee transcription availability.
+// This prepares language selection for a future
+// speech-to-text integration.
+//
+// It does not start recording or guarantee that
+// a transcription provider supports the locale.
 
 export function getSpeechLocale(
   language: ConsultationLanguage
 ): string {
   return LANGUAGE_INFO[language].speechLocale;
 }
+
+// --------------------------------------------------
+// 13. Independent language preferences
+// --------------------------------------------------
 
 export interface ConsultationLanguagePreferences {
   consultationLanguage: ConsultationLanguage;
@@ -230,6 +283,10 @@ export function createConsultationLanguagePreferences(
   };
 }
 
+// --------------------------------------------------
+// 14. Change consultation language
+// --------------------------------------------------
+
 export function updateConsultationLanguage(
   current: ConsultationLanguagePreferences,
   language: ConsultationLanguage
@@ -239,6 +296,10 @@ export function updateConsultationLanguage(
     consultationLanguage: language,
   };
 }
+
+// --------------------------------------------------
+// 15. Change typing language
+// --------------------------------------------------
 
 export function updateTypingLanguage(
   current: ConsultationLanguagePreferences,
@@ -250,6 +311,10 @@ export function updateTypingLanguage(
   };
 }
 
+// --------------------------------------------------
+// 16. Change voice transcription language
+// --------------------------------------------------
+
 export function updateVoiceLanguage(
   current: ConsultationLanguagePreferences,
   language: ConsultationLanguage
@@ -260,8 +325,12 @@ export function updateVoiceLanguage(
   };
 }
 
-// Do not translate, normalize or rewrite
-// user-entered consultation text.
+// --------------------------------------------------
+// 17. Preserve original consultation text
+// --------------------------------------------------
+//
+// Never automatically translate, trim, normalize
+// or rewrite client/practitioner responses.
 
 export function preserveConsultationText(
   text: string
