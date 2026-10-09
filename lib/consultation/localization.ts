@@ -1,10 +1,11 @@
+
 // lib/consultation/localization.ts
 // Jeevan Sutra — Native Language Foundation
 //
 // Scope: Live Consultation only.
 //
 // LOCKED RULES:
-// 1. Fetch native-authored content directly.
+// 1. Retrieve native-authored content directly.
 // 2. Never translate between languages at runtime.
 // 3. Never silently fall back to another language.
 // 4. Consultation, typing and voice languages are independent.
@@ -147,8 +148,9 @@ export type ConsultationResourceRegistry =
     >
   >;
 
-// Each language connects directly to its own file.
-// No translation or cross-language fallback occurs.
+// Each language uses its own native-authored file.
+// No runtime translation is performed.
+// No cross-language fallback is permitted.
 
 export const consultationResourceRegistry:
   ConsultationResourceRegistry = {
@@ -200,7 +202,19 @@ export function getConsultationContent(
 
   const content = resource[contentId];
 
-  if (!content || content.id !== contentId) {
+  // Reject missing, mismatched or incomplete content.
+  // Never substitute content from another language.
+
+  if (
+    !content ||
+    content.id !== contentId ||
+    typeof content.title !== "string" ||
+    typeof content.question !== "string" ||
+    typeof content.explanation !== "string" ||
+    !content.title.trim() ||
+    !content.question.trim() ||
+    !content.explanation.trim()
+  ) {
     return null;
   }
 
@@ -212,7 +226,10 @@ export function hasConsultationContent(
   contentId: ConsultationContentKey
 ): boolean {
   return (
-    getConsultationContent(language, contentId) !== null
+    getConsultationContent(
+      language,
+      contentId
+    ) !== null
   );
 }
 
@@ -238,9 +255,12 @@ export function getTypingInputProps(
   };
 }
 
-// This configures input language metadata.
-// The actual keyboard is controlled by the
-// user's device and installed input methods.
+// These settings provide language metadata for
+// text inputs and textareas.
+//
+// The user's device controls the actual keyboard.
+// Changing this setting does not automatically
+// install or switch a keyboard layout.
 
 // --------------------------------------------------
 // 10. Voice-language preparation
@@ -252,9 +272,9 @@ export function getSpeechLocale(
   return LANGUAGE_INFO[language].speechLocale;
 }
 
-// This returns the requested speech locale.
-// It does not start microphone recording,
-// request permission or transcribe audio.
+// This function only returns a speech locale.
+// It does not start recording, request microphone
+// permission or provide transcription.
 
 // --------------------------------------------------
 // 11. Independent language preferences
