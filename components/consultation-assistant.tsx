@@ -16,8 +16,6 @@ import {
 } from '@/app/actions/consultations'
 
 import { ConsultationV3Insights } from '@/components/consultation-v3-insights'
-import { ConsultationCompleteIntelligence } from '@/components/consultation-complete-intelligence'
-
 import { decideNextQuestion } from '@/lib/consultation/question-intelligence'
 import { selectConsultationIntelligence } from '@/lib/consultation/consultation-intelligence-selector'
 import { buildUniversalNumerologyIntelligence } from '@/lib/consultation/universal-numerology-intelligence'
@@ -72,11 +70,12 @@ type Data = {
   }
 }
 
-type RecordedAnswer = ConsultationAnswerForIntelligence & {
-  observation: string
-  savedId: string
-  important: boolean
-}
+type RecordedAnswer =
+  ConsultationAnswerForIntelligence & {
+    observation: string
+    savedId: string
+    important: boolean
+  }
 
 type IntroductionResponse = {
   question: string
@@ -214,7 +213,6 @@ function Panel({
       <h3 className="font-serif text-lg font-semibold text-[#24354c]">
         {title}
       </h3>
-
       <div className="mt-3 text-sm leading-6 text-[#776d61]">
         {children}
       </div>
@@ -234,7 +232,6 @@ function Info({
       <p className="text-[10px] font-semibold uppercase text-[#ad7b40]">
         {title}
       </p>
-
       <p className="mt-2 break-words text-sm font-semibold text-[#24354c]">
         {value}
       </p>
@@ -254,7 +251,6 @@ function SectionHeading({
       <p className="text-[10px] uppercase tracking-wide text-[#ad7b40]">
         {small}
       </p>
-
       <h2 className="mt-1 font-serif text-xl font-semibold text-[#24354c]">
         {big}
       </h2>
@@ -267,10 +263,7 @@ function CalculationDisplay({
 }: {
   calculation: NumerologyCalculationResult
 }) {
-  const numberText = (
-    compound: number,
-    final: number
-  ) =>
+  const numberText = (compound: number, final: number) =>
     compound === final
       ? String(final)
       : `${compound}/${final}`
@@ -290,30 +283,22 @@ function CalculationDisplay({
           value={`${numberText(
             calculation.mulank.compound,
             calculation.mulank.final
-          )} · ${
-            grahaNames[calculation.mulank.final] || ''
-          }`}
+          )} · ${grahaNames[calculation.mulank.final] || ''}`}
         />
-
         <Info
           title="Bhagyank"
           value={`${numberText(
             calculation.bhagyank.compound,
             calculation.bhagyank.final
-          )} · ${
-            grahaNames[calculation.bhagyank.final] || ''
-          }`}
+          )} · ${grahaNames[calculation.bhagyank.final] || ''}`}
         />
-
         <Info
           title="Name Number"
           value={`${numberText(
             calculation.nameNumber.compoundTotal,
             calculation.nameNumber.finalNumber
           )} · ${
-            grahaNames[
-              calculation.nameNumber.finalNumber
-            ] || ''
+            grahaNames[calculation.nameNumber.finalNumber] || ''
           }`}
         />
       </div>
@@ -323,7 +308,6 @@ function CalculationDisplay({
           <p className="mb-2 text-center text-xs font-semibold text-[#24354c]">
             Standard Lo Shu
           </p>
-
           <div className="grid grid-cols-3 gap-[2px]">
             {grid.map((number) => (
               <div
@@ -340,7 +324,6 @@ function CalculationDisplay({
           <p className="mb-2 text-center text-xs font-semibold text-[#24354c]">
             Personal Lo Shu
           </p>
-
           <div className="grid grid-cols-3 gap-[2px]">
             {grid.map((number) => (
               <div
@@ -361,7 +344,6 @@ function CalculationDisplay({
           title="Golden Rajyog"
           value={`4-5-6 · ${calculation.rajyog.golden.status}`}
         />
-
         <Info
           title="Silver Rajyog"
           value={`2-5-8 · ${calculation.rajyog.silver.status}`}
@@ -372,24 +354,16 @@ function CalculationDisplay({
         <summary className="cursor-pointer font-semibold text-[#24354c]">
           Complete Lo Shu Details
         </summary>
-
         <div className="mt-3 space-y-2 text-sm text-[#776d61]">
           <p>
             <b>Present:</b>{' '}
-            {calculation.loShu.presentNumbers.join(', ') ||
-              'None'}
+            {calculation.loShu.presentNumbers.join(', ') || 'None'}
           </p>
-
           <p>
             <b>Missing:</b>{' '}
-            {calculation.loShu.missingNumbers.join(', ') ||
-              'None'}
+            {calculation.loShu.missingNumbers.join(', ') || 'None'}
           </p>
-
-          <p>
-            <b>Repeated:</b> {repeats || 'None'}
-          </p>
-
+          <p><b>Repeated:</b> {repeats || 'None'}</p>
           <p><b>Mental row:</b> 4-9-2</p>
           <p><b>Emotional/Will row:</b> 3-5-7</p>
           <p><b>Practical/Material row:</b> 8-1-6</p>
@@ -399,6 +373,7 @@ function CalculationDisplay({
     </>
   )
 }
+
 function LiveGuidance({
   result,
 }: {
@@ -429,12 +404,9 @@ function LiveGuidance({
                 <p className="font-semibold text-[#24354c]">
                   {index + 1}. {item.title}
                 </p>
-                <p className="mt-2">
-                  {item.interpretation}
-                </p>
+                <p className="mt-2">{item.interpretation}</p>
                 <p className="mt-2 text-xs text-[#ad7b40]">
-                  {item.verificationStatus ===
-                  'V3_SUPPORTED'
+                  {item.verificationStatus === 'V3_SUPPORTED'
                     ? 'Approved V3 finding'
                     : 'Traditional association — confirm with client'}
                 </p>
@@ -475,7 +447,6 @@ function LiveGuidance({
           {result.suggestedQuestions[0] ||
             'Which part of this guidance best matches your experience?'}
         </p>
-
         {result.suggestedQuestions.length > 1 && (
           <details className="mt-3">
             <summary className="cursor-pointer font-semibold text-[#24354c]">
@@ -498,7 +469,6 @@ function LiveGuidance({
         <summary className="cursor-pointer font-serif text-lg font-semibold text-[#24354c]">
           Full Consultation Interpretation
         </summary>
-
         <div className="mt-4 space-y-4 text-sm leading-6 text-[#776d61]">
           <div>
             <p className="font-semibold text-[#24354c]">
@@ -519,16 +489,11 @@ function LiveGuidance({
           </div>
 
           {result.relevantQualities.map((quality) => (
-            <div
-              key={quality.qualityId}
-              className="border-t pt-3"
-            >
+            <div key={quality.qualityId} className="border-t pt-3">
               <p className="font-semibold text-[#24354c]">
                 {quality.title}
               </p>
-              <p className="mt-1">
-                {quality.interpretation}
-              </p>
+              <p className="mt-1">{quality.interpretation}</p>
               {quality.evidence.map((evidence, index) => (
                 <p key={index} className="mt-2 text-xs">
                   {evidence.description}
@@ -542,21 +507,15 @@ function LiveGuidance({
               <p className="font-semibold text-[#24354c]">
                 {item.title}
               </p>
-              <p className="mt-1">
-                {item.possiblePattern}
-              </p>
+              <p className="mt-1">{item.possiblePattern}</p>
               <p className="mt-2">
-                <b>Improvement:</b>{' '}
-                {item.practicalImprovement}
+                <b>Improvement:</b> {item.practicalImprovement}
               </p>
             </div>
           ))}
 
           {result.warnings.map((warning, index) => (
-            <p
-              key={index}
-              className="border-t pt-2 text-xs"
-            >
+            <p key={index} className="border-t pt-2 text-xs">
               {warning}
             </p>
           ))}
@@ -571,7 +530,6 @@ function LiveGuidance({
     </div>
   )
 }
-
 export function ConsultationAssistant({
   client,
   mode,
@@ -582,66 +540,50 @@ export function ConsultationAssistant({
   consultationNumber,
   onBack,
 }: Props) {
-  const isFirstConsultation =
-    consultationNumber === 1
+  const isFirstConsultation = consultationNumber === 1
 
   const [introStep, setIntroStep] = useState(0)
-  const [introRevealed, setIntroRevealed] =
-    useState(false)
-  const [introAnswer, setIntroAnswer] =
-    useState('')
-  const [introObservation, setIntroObservation] =
-    useState('')
-  const [introImportant, setIntroImportant] =
-    useState(false)
-
+  const [introRevealed, setIntroRevealed] = useState(false)
+  const [introAnswer, setIntroAnswer] = useState('')
+  const [introObservation, setIntroObservation] = useState('')
+  const [introImportant, setIntroImportant] = useState(false)
   const [introResponses, setIntroResponses] =
     useState<IntroductionResponse[]>([])
 
   const [choice, setChoice] = useState('')
   const [answer, setAnswer] = useState('')
-  const [observation, setObservation] =
-    useState('')
-  const [importantForNext, setImportantForNext] =
-    useState(false)
+  const [observation, setObservation] = useState('')
+  const [importantForNext, setImportantForNext] = useState(false)
 
-  const [answers, setAnswers] =
-    useState<RecordedAnswer[]>([])
-
+  const [answers, setAnswers] = useState<RecordedAnswer[]>([])
   const [unmappedAnswers, setUnmappedAnswers] =
     useState<SavedResponse[]>([])
 
   const [clarificationNeeded, setClarificationNeeded] =
     useState(false)
-  const [
-    clarificationReviewed,
-    setClarificationReviewed,
-  ] = useState(false)
-
-  const [data, setData] =
-    useState<Data | null>(null)
-
-  const [loading, setLoading] =
-    useState(true)
-  const [restoring, setRestoring] =
-    useState(true)
-  const [restoreError, setRestoreError] =
-    useState('')
-  const [restoreAttempt, setRestoreAttempt] =
-    useState(0)
-
-  const [error, setError] =
-    useState('')
-  const [saving, setSaving] =
+  const [clarificationReviewed, setClarificationReviewed] =
     useState(false)
-  const [saveError, setSaveError] =
-    useState('')
-  const [showDeepAnalysis, setShowDeepAnalysis] =
-    useState(false)
+
+  const [data, setData] = useState<Data | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [restoring, setRestoring] = useState(true)
+  const [restoreError, setRestoreError] = useState('')
+  const [restoreAttempt, setRestoreAttempt] = useState(0)
+  const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const [showDeepAnalysis, setShowDeepAnalysis] = useState(false)
 
   const introductionComplete =
     !isFirstConsultation ||
     introStep >= introduction.length
+
+  const topicsKey = topics.join('|')
+
+  const stableTopics = useMemo(
+    () => topicsKey.split('|').filter(Boolean) as ConsultationTopic[],
+    [topicsKey]
+  )
 
   useEffect(() => {
     let active = true
@@ -652,15 +594,13 @@ export function ConsultationAssistant({
       setData(null)
 
       try {
-        const response =
-          await generateNumerologyV2(client.id)
+        const response = await generateNumerologyV2(client.id)
 
         if (!active) return
 
         if (response.error || !response.result) {
           setError(
-            response.error ||
-              'Unable to load numerology.'
+            response.error || 'Unable to load numerology.'
           )
           return
         }
@@ -671,21 +611,16 @@ export function ConsultationAssistant({
           !result.calculation ||
           !result.intelligence ||
           !result.consultationInsightPool ||
-          !Array.isArray(
-            result.consultationInsightPool.insights
-          )
+          !Array.isArray(result.consultationInsightPool.insights)
         ) {
-          setError(
-            'Incomplete consultation intelligence.'
-          )
+          setError('Incomplete consultation intelligence.')
           return
         }
 
         setData({
           calculation: result.calculation,
           intelligence: result.intelligence,
-          consultationInsightPool:
-            result.consultationInsightPool,
+          consultationInsightPool: result.consultationInsightPool,
         })
       } catch {
         if (active) {
@@ -715,15 +650,21 @@ export function ConsultationAssistant({
       setIntroResponses([])
       setIntroStep(0)
       setIntroRevealed(false)
+      setIntroAnswer('')
+      setIntroObservation('')
+      setIntroImportant(false)
+      setAnswer('')
+      setObservation('')
+      setChoice('')
+      setImportantForNext(false)
       setClarificationNeeded(false)
       setClarificationReviewed(false)
 
       try {
-        const response =
-          await getConsultationAnswers({
-            consultationId,
-            clientId: client.id,
-          })
+        const response = await getConsultationAnswers({
+          consultationId,
+          clientId: client.id,
+        })
 
         if (!active) return
 
@@ -747,8 +688,7 @@ export function ConsultationAssistant({
 
           if (matched) {
             const progressOnly =
-              item.employeeObservation ===
-              INTRO_PROGRESS_MARKER
+              item.employeeObservation === INTRO_PROGRESS_MARKER
 
             introductions.push({
               question: matched.question,
@@ -757,16 +697,14 @@ export function ConsultationAssistant({
                 ? ''
                 : item.employeeObservation,
               savedId: item.id,
-              important:
-                item.importantForNextConsultation,
+              important: item.importantForNextConsultation,
             })
           } else {
             remaining.push({
               id: item.id,
               questionText: item.questionText,
               clientAnswer: item.clientAnswer,
-              employeeObservation:
-                item.employeeObservation,
+              employeeObservation: item.employeeObservation,
               importantForNextConsultation:
                 item.importantForNextConsultation,
             })
@@ -788,7 +726,7 @@ export function ConsultationAssistant({
             const next = decideNextQuestion({
               consultationNumber,
               purpose,
-              topics,
+              topics: stableTopics,
               todayNote: note,
               currentAnswers: restored,
               clarificationNeeded: false,
@@ -796,6 +734,7 @@ export function ConsultationAssistant({
 
             if (
               next.shouldAskQuestion &&
+              next.questionKey &&
               normalizeQuestion(next.questionText) ===
                 normalizeQuestion(item.questionText)
             ) {
@@ -803,15 +742,14 @@ export function ConsultationAssistant({
             }
           }
 
-          if (questionKey) {
+          if (questionKey !== null) {
             restored.push({
               questionKey,
               questionText: item.questionText,
               clientAnswer: item.clientAnswer,
               observation: item.employeeObservation,
               savedId: item.id,
-              important:
-                item.importantForNextConsultation,
+              important: item.importantForNextConsultation,
             })
           } else {
             unknown.push(item)
@@ -828,8 +766,7 @@ export function ConsultationAssistant({
           for (const question of introduction) {
             if (
               introductions.some(
-                (item) =>
-                  item.question === question.question
+                (item) => item.question === question.question
               )
             ) {
               completed += 1
@@ -838,9 +775,12 @@ export function ConsultationAssistant({
             }
           }
 
-          if (completed > 0) {
-            setIntroStep(completed - 1)
-            setIntroRevealed(true)
+          if (completed === introduction.length) {
+            setIntroStep(introduction.length)
+            setIntroRevealed(false)
+          } else if (completed > 0) {
+            setIntroStep(completed)
+            setIntroRevealed(false)
           } else {
             setIntroStep(0)
             setIntroRevealed(false)
@@ -850,8 +790,7 @@ export function ConsultationAssistant({
         if (
           restored.some(
             (item) =>
-              item.questionKey ===
-              'CONCERN_CLARIFICATION'
+              item.questionKey === 'CONCERN_CLARIFICATION'
           )
         ) {
           setClarificationReviewed(true)
@@ -879,7 +818,7 @@ export function ConsultationAssistant({
     consultationNumber,
     isFirstConsultation,
     purpose,
-    topics,
+    stableTopics,
     note,
     restoreAttempt,
   ])
@@ -889,7 +828,7 @@ export function ConsultationAssistant({
       decideNextQuestion({
         consultationNumber,
         purpose,
-        topics,
+        topics: stableTopics,
         todayNote: note,
         currentAnswers: answers,
         clarificationNeeded,
@@ -897,7 +836,7 @@ export function ConsultationAssistant({
     [
       consultationNumber,
       purpose,
-      topics,
+      stableTopics,
       note,
       answers,
       clarificationNeeded,
@@ -909,18 +848,16 @@ export function ConsultationAssistant({
       data
         ? selectConsultationIntelligence({
             purpose,
-            topics,
-            insights:
-              data.consultationInsightPool.insights,
-            conclusions:
-              data.intelligence.conclusions,
+            topics: stableTopics,
+            insights: data.consultationInsightPool.insights,
+            conclusions: data.intelligence.conclusions,
             limit: 5,
           })
         : null,
-    [data, purpose, topics]
+    [data, purpose, stableTopics]
   )
 
-  const primaryTopic = topics[0] || null
+  const primaryTopic = stableTopics[0] || null
 
   const concern = lastAnswer(answers, [
     'TODAY_NOTE_EXPLORATION',
@@ -941,21 +878,14 @@ export function ConsultationAssistant({
             clientConcern: actualConcern,
             clarification,
             calculation: data.calculation,
-            conclusions:
-              data.intelligence.conclusions,
+            conclusions: data.intelligence.conclusions,
           })
         : null,
-    [
-      data,
-      actualConcern,
-      clarification,
-      primaryTopic,
-    ]
+    [data, actualConcern, clarification, primaryTopic]
   )
 
   const familiarity =
-    decision.questionKey ===
-    'NUMEROLOGY_FAMILIARITY'
+    decision.questionKey === 'NUMEROLOGY_FAMILIARITY'
 
   const clarificationPending =
     clarificationNeeded && !clarification
@@ -971,10 +901,8 @@ export function ConsultationAssistant({
 
   const hasConcernAnswer = answers.some(
     (item) =>
-      item.questionKey ===
-        'TODAY_NOTE_EXPLORATION' ||
-      item.questionKey ===
-        'PRIMARY_CONCERN_EXPLORATION'
+      item.questionKey === 'TODAY_NOTE_EXPLORATION' ||
+      item.questionKey === 'PRIMARY_CONCERN_EXPLORATION'
   )
 
   const showOutcome =
@@ -984,10 +912,9 @@ export function ConsultationAssistant({
     !clarificationPending &&
     clarificationReviewed
 
-  const currentQuestionText =
-    clarificationPending
-      ? clarificationQuestion
-      : decision.questionText
+  const currentQuestionText = clarificationPending
+    ? clarificationQuestion
+    : decision.questionText
 
   const canContinue =
     !saving &&
@@ -1005,15 +932,14 @@ export function ConsultationAssistant({
     employeeObservation: string,
     important: boolean
   ) {
-    const response =
-      await saveConsultationAnswer({
-        consultationId,
-        clientId: client.id,
-        questionText,
-        clientAnswer,
-        employeeObservation,
-        importantForNextConsultation: important,
-      })
+    const response = await saveConsultationAnswer({
+      consultationId,
+      clientId: client.id,
+      questionText,
+      clientAnswer,
+      employeeObservation,
+      importantForNextConsultation: important,
+    })
 
     if (response.error || !response.result) {
       throw new Error(
@@ -1040,6 +966,15 @@ export function ConsultationAssistant({
     const current = introduction[introStep]
     if (!current) return
 
+    const alreadySaved = introResponses.some(
+      (item) => item.question === current.question
+    )
+
+    if (alreadySaved) {
+      setIntroRevealed(true)
+      return
+    }
+
     setSaving(true)
     setSaveError('')
 
@@ -1052,9 +987,7 @@ export function ConsultationAssistant({
         current.question,
         clientAnswer,
         practitionerObservation ||
-          (!clientAnswer
-            ? INTRO_PROGRESS_MARKER
-            : ''),
+          (!clientAnswer ? INTRO_PROGRESS_MARKER : ''),
         introImportant
       )
 
@@ -1087,7 +1020,23 @@ export function ConsultationAssistant({
   async function continueQuestion() {
     if (!canContinue) return
 
+    const questionKey = clarificationPending
+      ? 'CONCERN_CLARIFICATION'
+      : decision.questionKey
+
+    if (!questionKey) {
+      setSaveError(
+        'Unable to identify the consultation question.'
+      )
+      return
+    }
+
     const questionText = currentQuestionText
+
+    if (!questionText.trim()) {
+      setSaveError('Consultation question is missing.')
+      return
+    }
 
     const clientAnswer = clarificationPending
       ? answer.trim()
@@ -1108,9 +1057,565 @@ export function ConsultationAssistant({
         importantForNext
       )
 
-      const questionKey = clarificationPending
-        ? 'CONCERN_CLARIFICATION'
-        : decision.questionKey
+      setAnswers((previous) => [
+        ...previous,
+        {
+          questionKey,
+          questionText,
+          clientAnswer,
+          observation: observation.trim(),
+          savedId,
+          important: importantForNext,
+        },
+      ])
+
+      setChoice('')
+      setAnswer('')
+      setObservation('')
+      setImportantForNext(false)
+
+      if (clarificationPending) {
+        setClarificationNeeded(false)
+        setClarificationReviewed(true)
+      } else {
+        setClarificationReviewed(false)
+      }
+    } catch (caught) {
+      setSaveError(
+        caught instanceof Error
+          ? caught.message
+          : 'Unable to save consultation answer.'
+      )
+    } finally {
+      setSaving(false)
+    }
+
+  }export function ConsultationAssistant({
+  client,
+  mode,
+  purpose,
+  topics,
+  note,
+  consultationId,
+  consultationNumber,
+  onBack,
+}: Props) {
+  const isFirstConsultation = consultationNumber === 1
+
+  const [introStep, setIntroStep] = useState(0)
+  const [introRevealed, setIntroRevealed] = useState(false)
+  const [introAnswer, setIntroAnswer] = useState('')
+  const [introObservation, setIntroObservation] = useState('')
+  const [introImportant, setIntroImportant] = useState(false)
+  const [introResponses, setIntroResponses] =
+    useState<IntroductionResponse[]>([])
+
+  const [choice, setChoice] = useState('')
+  const [answer, setAnswer] = useState('')
+  const [observation, setObservation] = useState('')
+  const [importantForNext, setImportantForNext] = useState(false)
+
+  const [answers, setAnswers] = useState<RecordedAnswer[]>([])
+  const [unmappedAnswers, setUnmappedAnswers] =
+    useState<SavedResponse[]>([])
+
+  const [clarificationNeeded, setClarificationNeeded] =
+    useState(false)
+  const [clarificationReviewed, setClarificationReviewed] =
+    useState(false)
+
+  const [data, setData] = useState<Data | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [restoring, setRestoring] = useState(true)
+  const [restoreError, setRestoreError] = useState('')
+  const [restoreAttempt, setRestoreAttempt] = useState(0)
+  const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const [showDeepAnalysis, setShowDeepAnalysis] = useState(false)
+
+  const introductionComplete =
+    !isFirstConsultation ||
+    introStep >= introduction.length
+
+  const topicsKey = topics.join('|')
+
+  const stableTopics = useMemo(
+    () => topicsKey.split('|').filter(Boolean) as ConsultationTopic[],
+    [topicsKey]
+  )
+
+  useEffect(() => {
+    let active = true
+
+    async function load() {
+      setLoading(true)
+      setError('')
+      setData(null)
+
+      try {
+        const response = await generateNumerologyV2(client.id)
+
+        if (!active) return
+
+        if (response.error || !response.result) {
+          setError(
+            response.error || 'Unable to load numerology.'
+          )
+          return
+        }
+
+        const result = response.result
+
+        if (
+          !result.calculation ||
+          !result.intelligence ||
+          !result.consultationInsightPool ||
+          !Array.isArray(result.consultationInsightPool.insights)
+        ) {
+          setError('Incomplete consultation intelligence.')
+          return
+        }
+
+        setData({
+          calculation: result.calculation,
+          intelligence: result.intelligence,
+          consultationInsightPool: result.consultationInsightPool,
+        })
+      } catch {
+        if (active) {
+          setError('Unable to load numerology.')
+        }
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
+    void load()
+
+    return () => {
+      active = false
+    }
+  }, [client.id])
+
+  useEffect(() => {
+    let active = true
+
+    async function restore() {
+      setRestoring(true)
+      setRestoreError('')
+      setSaveError('')
+      setAnswers([])
+      setUnmappedAnswers([])
+      setIntroResponses([])
+      setIntroStep(0)
+      setIntroRevealed(false)
+      setIntroAnswer('')
+      setIntroObservation('')
+      setIntroImportant(false)
+      setAnswer('')
+      setObservation('')
+      setChoice('')
+      setImportantForNext(false)
+      setClarificationNeeded(false)
+      setClarificationReviewed(false)
+
+      try {
+        const response = await getConsultationAnswers({
+          consultationId,
+          clientId: client.id,
+        })
+
+        if (!active) return
+
+        if (response.error || !response.result) {
+          setRestoreError(
+            response.error ||
+              'Unable to restore consultation history.'
+          )
+          return
+        }
+
+        const introductions: IntroductionResponse[] = []
+        const remaining: SavedResponse[] = []
+
+        for (const item of response.result) {
+          const matched = introduction.find(
+            (question) =>
+              normalizeQuestion(question.question) ===
+              normalizeQuestion(item.questionText)
+          )
+
+          if (matched) {
+            const progressOnly =
+              item.employeeObservation === INTRO_PROGRESS_MARKER
+
+            introductions.push({
+              question: matched.question,
+              clientAnswer: item.clientAnswer,
+              practitionerObservation: progressOnly
+                ? ''
+                : item.employeeObservation,
+              savedId: item.id,
+              important: item.importantForNextConsultation,
+            })
+          } else {
+            remaining.push({
+              id: item.id,
+              questionText: item.questionText,
+              clientAnswer: item.clientAnswer,
+              employeeObservation: item.employeeObservation,
+              importantForNextConsultation:
+                item.importantForNextConsultation,
+            })
+          }
+        }
+
+        const restored: RecordedAnswer[] = []
+        const unknown: SavedResponse[] = []
+
+        for (const item of remaining) {
+          let questionKey: string | null = null
+
+          if (
+            normalizeQuestion(item.questionText) ===
+            normalizeQuestion(clarificationQuestion)
+          ) {
+            questionKey = 'CONCERN_CLARIFICATION'
+          } else {
+            const next = decideNextQuestion({
+              consultationNumber,
+              purpose,
+              topics: stableTopics,
+              todayNote: note,
+              currentAnswers: restored,
+              clarificationNeeded: false,
+            })
+
+            if (
+              next.shouldAskQuestion &&
+              next.questionKey &&
+              normalizeQuestion(next.questionText) ===
+                normalizeQuestion(item.questionText)
+            ) {
+              questionKey = next.questionKey
+            }
+          }
+
+          if (questionKey !== null) {
+            restored.push({
+              questionKey,
+              questionText: item.questionText,
+              clientAnswer: item.clientAnswer,
+              observation: item.employeeObservation,
+              savedId: item.id,
+              important: item.importantForNextConsultation,
+            })
+          } else {
+            unknown.push(item)
+          }
+        }
+
+        setIntroResponses(introductions)
+        setAnswers(restored)
+        setUnmappedAnswers(unknown)
+
+        if (isFirstConsultation) {
+          let completed = 0
+
+          for (const question of introduction) {
+            if (
+              introductions.some(
+                (item) => item.question === question.question
+              )
+            ) {
+              completed += 1
+            } else {
+              break
+            }
+          }
+
+          if (completed === introduction.length) {
+            setIntroStep(introduction.length)
+            setIntroRevealed(false)
+          } else if (completed > 0) {
+            setIntroStep(completed)
+            setIntroRevealed(false)
+          } else {
+            setIntroStep(0)
+            setIntroRevealed(false)
+          }
+        }
+
+        if (
+          restored.some(
+            (item) =>
+              item.questionKey === 'CONCERN_CLARIFICATION'
+          )
+        ) {
+          setClarificationReviewed(true)
+          setClarificationNeeded(false)
+        }
+      } catch {
+        if (active) {
+          setRestoreError(
+            'Unable to restore consultation history.'
+          )
+        }
+      } finally {
+        if (active) setRestoring(false)
+      }
+    }
+
+    void restore()
+
+    return () => {
+      active = false
+    }
+  }, [
+    consultationId,
+    client.id,
+    consultationNumber,
+    isFirstConsultation,
+    purpose,
+    stableTopics,
+    note,
+    restoreAttempt,
+  ])
+
+  const decision = useMemo(
+    () =>
+      decideNextQuestion({
+        consultationNumber,
+        purpose,
+        topics: stableTopics,
+        todayNote: note,
+        currentAnswers: answers,
+        clarificationNeeded,
+      }),
+    [
+      consultationNumber,
+      purpose,
+      stableTopics,
+      note,
+      answers,
+      clarificationNeeded,
+    ]
+  )
+
+  const selection = useMemo(
+    () =>
+      data
+        ? selectConsultationIntelligence({
+            purpose,
+            topics: stableTopics,
+            insights: data.consultationInsightPool.insights,
+            conclusions: data.intelligence.conclusions,
+            limit: 5,
+          })
+        : null,
+    [data, purpose, stableTopics]
+  )
+
+  const primaryTopic = stableTopics[0] || null
+
+  const concern = lastAnswer(answers, [
+    'TODAY_NOTE_EXPLORATION',
+    'PRIMARY_CONCERN_EXPLORATION',
+  ])
+
+  const clarification = lastAnswer(answers, [
+    'CONCERN_CLARIFICATION',
+  ])
+
+  const actualConcern = concern || note.trim()
+
+  const universal = useMemo(
+    () =>
+      data && actualConcern
+        ? buildUniversalNumerologyIntelligence({
+            topic: normalizeTopic(primaryTopic),
+            clientConcern: actualConcern,
+            clarification,
+            calculation: data.calculation,
+            conclusions: data.intelligence.conclusions,
+          })
+        : null,
+    [data, actualConcern, clarification, primaryTopic]
+  )
+
+  const familiarity =
+    decision.questionKey === 'NUMEROLOGY_FAMILIARITY'
+
+  const clarificationPending =
+    clarificationNeeded && !clarification
+
+  const ready =
+    decision.stage === 'READY_FOR_V3' ||
+    !decision.shouldAskQuestion
+
+  const showQuestion =
+    introductionComplete &&
+    (clarificationPending ||
+      (!ready && decision.shouldAskQuestion))
+
+  const hasConcernAnswer = answers.some(
+    (item) =>
+      item.questionKey === 'TODAY_NOTE_EXPLORATION' ||
+      item.questionKey === 'PRIMARY_CONCERN_EXPLORATION'
+  )
+
+  const showOutcome =
+    introductionComplete &&
+    Boolean(actualConcern) &&
+    (hasConcernAnswer || ready) &&
+    !clarificationPending &&
+    clarificationReviewed
+
+  const currentQuestionText = clarificationPending
+    ? clarificationQuestion
+    : decision.questionText
+
+  const canContinue =
+    !saving &&
+    !restoring &&
+    !restoreError &&
+    (clarificationPending
+      ? Boolean(answer.trim())
+      : familiarity
+        ? Boolean(choice)
+        : Boolean(answer.trim()))
+
+  async function persistAnswer(
+    questionText: string,
+    clientAnswer: string,
+    employeeObservation: string,
+    important: boolean
+  ) {
+    const response = await saveConsultationAnswer({
+      consultationId,
+      clientId: client.id,
+      questionText,
+      clientAnswer,
+      employeeObservation,
+      importantForNextConsultation: important,
+    })
+
+    if (response.error || !response.result) {
+      throw new Error(
+        response.error ||
+          'Unable to save consultation response.'
+      )
+    }
+
+    return response.result.id
+  }
+
+  async function continueIntroduction() {
+    if (saving || restoring || restoreError) return
+
+    if (introRevealed) {
+      setIntroStep((previous) => previous + 1)
+      setIntroRevealed(false)
+      setIntroAnswer('')
+      setIntroObservation('')
+      setIntroImportant(false)
+      return
+    }
+
+    const current = introduction[introStep]
+    if (!current) return
+
+    const alreadySaved = introResponses.some(
+      (item) => item.question === current.question
+    )
+
+    if (alreadySaved) {
+      setIntroRevealed(true)
+      return
+    }
+
+    setSaving(true)
+    setSaveError('')
+
+    try {
+      const clientAnswer = introAnswer.trim()
+      const practitionerObservation =
+        introObservation.trim()
+
+      const savedId = await persistAnswer(
+        current.question,
+        clientAnswer,
+        practitionerObservation ||
+          (!clientAnswer ? INTRO_PROGRESS_MARKER : ''),
+        introImportant
+      )
+
+      setIntroResponses((previous) => [
+        ...previous,
+        {
+          question: current.question,
+          clientAnswer,
+          practitionerObservation,
+          savedId,
+          important: introImportant,
+        },
+      ])
+
+      setIntroRevealed(true)
+      setIntroAnswer('')
+      setIntroObservation('')
+      setIntroImportant(false)
+    } catch (caught) {
+      setSaveError(
+        caught instanceof Error
+          ? caught.message
+          : 'Unable to save introduction response.'
+      )
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function continueQuestion() {
+    if (!canContinue) return
+
+    const questionKey = clarificationPending
+      ? 'CONCERN_CLARIFICATION'
+      : decision.questionKey
+
+    if (!questionKey) {
+      setSaveError(
+        'Unable to identify the consultation question.'
+      )
+      return
+    }
+
+    const questionText = currentQuestionText
+
+    if (!questionText.trim()) {
+      setSaveError('Consultation question is missing.')
+      return
+    }
+
+    const clientAnswer = clarificationPending
+      ? answer.trim()
+      : familiarity
+        ? answer.trim()
+          ? `${choice}. ${answer.trim()}`
+          : choice
+        : answer.trim()
+
+    setSaving(true)
+    setSaveError('')
+
+    try {
+      const savedId = await persistAnswer(
+        questionText,
+        clientAnswer,
+        observation.trim(),
+        importantForNext
+      )
 
       setAnswers((previous) => [
         ...previous,
@@ -1146,6 +1651,19 @@ export function ConsultationAssistant({
     }
   }
 
+  function reviewClarification(needed: boolean) {
+    setClarificationNeeded(needed)
+    setClarificationReviewed(!needed)
+    setAnswer('')
+    setObservation('')
+    setChoice('')
+    setImportantForNext(false)
+    setSaveError('')
+  }
+
+  const currentIntro = introductionComplete
+    ? null
+    : introduction[introStep]
   return (
     <div className="min-h-full bg-[#f7f3ed] p-4">
       <div className="mx-auto max-w-3xl">
@@ -1191,7 +1709,7 @@ export function ConsultationAssistant({
                   {String(mode).replace(/_/g, ' ')}
                 </span>
 
-                {topics.map((topic) => (
+                {stableTopics.map((topic) => (
                   <span
                     key={String(topic)}
                     className="rounded-full bg-white/15 px-3 py-1 text-xs"
@@ -1288,9 +1806,7 @@ export function ConsultationAssistant({
                             <textarea
                               value={introObservation}
                               onChange={(event) =>
-                                setIntroObservation(
-                                  event.target.value
-                                )
+                                setIntroObservation(event.target.value)
                               }
                               disabled={saving}
                               rows={3}
@@ -1304,9 +1820,7 @@ export function ConsultationAssistant({
                               type="checkbox"
                               checked={introImportant}
                               onChange={(event) =>
-                                setIntroImportant(
-                                  event.target.checked
-                                )
+                                setIntroImportant(event.target.checked)
                               }
                               disabled={saving}
                               className="h-4 w-4 accent-[#24354c]"
@@ -1378,9 +1892,7 @@ export function ConsultationAssistant({
 
                 {note.trim() && (
                   <Panel title="Today's Consultation Note">
-                    <p className="whitespace-pre-wrap">
-                      {note}
-                    </p>
+                    <p className="whitespace-pre-wrap">{note}</p>
                   </Panel>
                 )}
 
@@ -1409,9 +1921,7 @@ export function ConsultationAssistant({
 
                 {!loading && data && (
                   <Panel title="Verified Numerology Calculation">
-                    <CalculationDisplay
-                      calculation={data.calculation}
-                    />
+                    <CalculationDisplay calculation={data.calculation} />
                   </Panel>
                 )}
 
@@ -1434,8 +1944,7 @@ export function ConsultationAssistant({
 
                           <p className="mt-2 text-[#776d61]">
                             <b>Client:</b>{' '}
-                            {item.clientAnswer ||
-                              'No response recorded'}
+                            {item.clientAnswer || 'No response recorded'}
                           </p>
 
                           {item.practitionerObservation && (
@@ -1481,13 +1990,11 @@ export function ConsultationAssistant({
                               <p className="font-semibold text-[#24354c]">
                                 {index + 1}. {item.questionText}
                               </p>
-
                               <Check className="h-4 w-4 shrink-0 text-green-700" />
                             </div>
 
                             <p className="mt-3 whitespace-pre-wrap text-sm text-[#776d61]">
-                              <b>Client Answer:</b>{' '}
-                              {item.clientAnswer}
+                              <b>Client Answer:</b> {item.clientAnswer}
                             </p>
 
                             {item.observation && (
@@ -1515,11 +2022,10 @@ export function ConsultationAssistant({
                         </summary>
 
                         <p className="mt-3 text-xs text-[#776d61]">
-                          These responses were recovered from
-                          the database, but their question
-                          identifiers could not be verified.
-                          They have not been used to infer the
-                          client's concern.
+                          These responses were recovered from the
+                          database, but their question identifiers
+                          could not be verified. They have not
+                          been used to infer the client's concern.
                         </p>
 
                         <div className="mt-3 space-y-3">
@@ -1534,8 +2040,7 @@ export function ConsultationAssistant({
 
                               <p className="mt-2 whitespace-pre-wrap">
                                 <b>Client:</b>{' '}
-                                {item.clientAnswer ||
-                                  'No response'}
+                                {item.clientAnswer || 'No response'}
                               </p>
 
                               {item.employeeObservation && (
@@ -1568,35 +2073,29 @@ export function ConsultationAssistant({
                           {currentQuestionText}
                         </p>
 
-                        {familiarity &&
-                          !clarificationPending && (
-                            <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                              {familiarityOptions.map(
-                                (option) => (
-                                  <button
-                                    key={option}
-                                    type="button"
-                                    onClick={() =>
-                                      setChoice(option)
-                                    }
-                                    disabled={saving}
-                                    className={`rounded-xl border p-3 text-left text-sm font-semibold ${
-                                      choice === option
-                                        ? 'border-[#ad7b40] bg-[#f5ead8] text-[#24354c]'
-                                        : 'border-[#e6ddd1] bg-white text-[#776d61]'
-                                    }`}
-                                  >
-                                    {option}
-                                  </button>
-                                )
-                              )}
-                            </div>
-                          )}
+                        {familiarity && !clarificationPending && (
+                          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            {familiarityOptions.map((option) => (
+                              <button
+                                key={option}
+                                type="button"
+                                onClick={() => setChoice(option)}
+                                disabled={saving}
+                                className={`rounded-xl border p-3 text-left text-sm font-semibold ${
+                                  choice === option
+                                    ? 'border-[#ad7b40] bg-[#f5ead8] text-[#24354c]'
+                                    : 'border-[#e6ddd1] bg-white text-[#776d61]'
+                                }`}
+                              >
+                                {option}
+                              </button>
+                            ))}
+                          </div>
+                        )}
 
                         <div className="mt-4">
                           <label className="mb-2 block text-xs font-semibold text-[#24354c]">
-                            {familiarity &&
-                            !clarificationPending
+                            {familiarity && !clarificationPending
                               ? 'Additional Client Response (Optional)'
                               : 'Client Answer'}
                           </label>
@@ -1621,9 +2120,7 @@ export function ConsultationAssistant({
                           <textarea
                             value={observation}
                             onChange={(event) =>
-                              setObservation(
-                                event.target.value
-                              )
+                              setObservation(event.target.value)
                             }
                             disabled={saving}
                             rows={3}
@@ -1637,9 +2134,7 @@ export function ConsultationAssistant({
                             type="checkbox"
                             checked={importantForNext}
                             onChange={(event) =>
-                              setImportantForNext(
-                                event.target.checked
-                              )
+                              setImportantForNext(event.target.checked)
                             }
                             disabled={saving}
                             className="h-4 w-4 accent-[#24354c]"
@@ -1686,7 +2181,6 @@ export function ConsultationAssistant({
                               <p className="text-xs font-semibold text-[#ad7b40]">
                                 Current Understanding
                               </p>
-
                               <p className="mt-2 whitespace-pre-wrap text-[#24354c]">
                                 {actualConcern}
                               </p>
@@ -1735,7 +2229,6 @@ export function ConsultationAssistant({
                                 <p className="font-semibold text-[#24354c]">
                                   Additional Clarification
                                 </p>
-
                                 <p className="mt-2 whitespace-pre-wrap">
                                   {clarification}
                                 </p>
@@ -1756,7 +2249,9 @@ export function ConsultationAssistant({
 
                             <div className="mt-4">
                               <ConsultationV3Insights
-                                insights={selection.insights}
+                                insights={selection.insights.map(
+                                  (item) => item.insight
+                                )}
                               />
                             </div>
                           </details>
@@ -1779,10 +2274,56 @@ export function ConsultationAssistant({
                             </button>
 
                             {showDeepAnalysis && (
-                              <div className="mt-4">
-                                <ConsultationCompleteIntelligence
-                                  intelligence={data.intelligence}
-                                />
+                              <div className="mt-4 space-y-4">
+                                <Panel title="V3 Intelligence Engine">
+                                  <p>
+                                    Version:{' '}
+                                    {data.intelligence.engineVersion}
+                                  </p>
+                                  <p className="mt-2">
+                                    The sections below display the
+                                    actual verified V3 engine output.
+                                  </p>
+                                </Panel>
+
+                                <details className="rounded-2xl border border-[#e6ddd1] bg-white p-4">
+                                  <summary className="cursor-pointer font-semibold text-[#24354c]">
+                                    V3 Conclusions
+                                  </summary>
+                                  <pre className="mt-4 max-h-[500px] overflow-auto whitespace-pre-wrap break-words rounded-xl bg-[#f8f4ed] p-3 text-xs text-[#24354c]">
+                                    {JSON.stringify(
+                                      data.intelligence.conclusions,
+                                      null,
+                                      2
+                                    )}
+                                  </pre>
+                                </details>
+
+                                <details className="rounded-2xl border border-[#e6ddd1] bg-white p-4">
+                                  <summary className="cursor-pointer font-semibold text-[#24354c]">
+                                    Cross-Quality Analysis
+                                  </summary>
+                                  <pre className="mt-4 max-h-[500px] overflow-auto whitespace-pre-wrap break-words rounded-xl bg-[#f8f4ed] p-3 text-xs text-[#24354c]">
+                                    {JSON.stringify(
+                                      data.intelligence.crossQuality,
+                                      null,
+                                      2
+                                    )}
+                                  </pre>
+                                </details>
+
+                                <details className="rounded-2xl border border-[#e6ddd1] bg-white p-4">
+                                  <summary className="cursor-pointer font-semibold text-[#24354c]">
+                                    Intelligence Evidence
+                                  </summary>
+                                  <pre className="mt-4 max-h-[500px] overflow-auto whitespace-pre-wrap break-words rounded-xl bg-[#f8f4ed] p-3 text-xs text-[#24354c]">
+                                    {JSON.stringify(
+                                      data.intelligence.evidence,
+                                      null,
+                                      2
+                                    )}
+                                  </pre>
+                                </details>
                               </div>
                             )}
                           </>
@@ -1813,18 +2354,16 @@ export function ConsultationAssistant({
                       </>
                     )}
 
-                    {ready &&
-                      !actualConcern &&
-                      !showQuestion && (
-                        <Panel title="Consultation Status">
-                          <p>
-                            The guided questions are complete.
-                            Record the client's main concern
-                            before generating personalized
-                            concern-specific guidance.
-                          </p>
-                        </Panel>
-                      )}
+                    {ready && !actualConcern && !showQuestion && (
+                      <Panel title="Consultation Status">
+                        <p>
+                          The guided questions are complete.
+                          Record the client's main concern
+                          before generating personalized
+                          concern-specific guidance.
+                        </p>
+                      </Panel>
+                    )}
                   </>
                 )}
 
@@ -1852,6 +2391,7 @@ export function ConsultationAssistant({
     </div>
   )
 }
+
   function reviewClarification(needed: boolean) {
     setClarificationNeeded(needed)
     setClarificationReviewed(!needed)
@@ -1862,7 +2402,6 @@ export function ConsultationAssistant({
     setSaveError('')
   }
 
-  const currentIntro =
-    introductionComplete
-      ? null
-      : introduction[introStep]
+  const currentIntro = introductionComplete
+    ? null
+    : introduction[introStep]
