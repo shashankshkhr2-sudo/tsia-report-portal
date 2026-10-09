@@ -2,75 +2,151 @@
 // lib/consultation/localization.ts
 // Jeevan Sutra — Native Language Foundation
 //
-// Scope: Live Consultation only.
+// SIMPLE • FAST • SAFE • RELIABLE
 //
 // LOCKED RULES:
 // 1. Retrieve native-authored content directly.
 // 2. Never translate between languages at runtime.
 // 3. Never silently fall back to another language.
-// 4. Consultation, typing and voice languages are independent.
+// 4. Consultation, typing and voice are independent.
 // 5. Question IDs remain stable across languages.
-// 6. Preserve client and practitioner text exactly.
+// 6. Preserve client and practitioner text.
 // 7. Do not change V2/V3 numerology calculations.
 
-import { hindiConsultationContent } from "./locales/hi";
-import { englishConsultationContent } from "./locales/en";
-import { marathiConsultationContent } from "./locales/mr";
-import { gujaratiConsultationContent } from "./locales/gu";
+import {
+  hindiConsultationContent,
+  hindiConsultationTopicQuestions,
+  hindiFamiliarityOptions,
+} from './locales/hi'
+
+import {
+  englishConsultationContent,
+  englishConsultationTopicQuestions,
+  englishFamiliarityOptions,
+} from './locales/en'
+
+import {
+  marathiConsultationContent,
+  marathiConsultationTopicQuestions,
+  marathiFamiliarityOptions,
+} from './locales/mr'
+
+import {
+  gujaratiConsultationContent,
+  gujaratiConsultationTopicQuestions,
+  gujaratiFamiliarityOptions,
+} from './locales/gu'
 
 // --------------------------------------------------
 // 1. Supported languages
 // --------------------------------------------------
 
 export const CONSULTATION_LANGUAGES = [
-  "hi",
-  "en",
-  "mr",
-  "gu",
-] as const;
+  'hi',
+  'en',
+  'mr',
+  'gu',
+] as const
 
 export type ConsultationLanguage =
-  (typeof CONSULTATION_LANGUAGES)[number];
+  (typeof CONSULTATION_LANGUAGES)[number]
 
 export type ConsultationTypingLanguage =
-  ConsultationLanguage;
+  ConsultationLanguage
 
 // --------------------------------------------------
-// 2. Stable content identifiers
+// 2. Stable question identifiers
 // --------------------------------------------------
 
 export type ConsultationContentKey =
-  | "INTRO_WEEKDAYS"
-  | "INTRO_NAVAGRAHA"
-  | "INTRO_TIME"
-  | "CLARIFY_CONCERN";
+  | 'INTRO_WEEKDAYS'
+  | 'INTRO_NAVAGRAHA'
+  | 'INTRO_TIME'
+  | 'CLARIFY_CONCERN'
+  | 'NUMEROLOGY_FAMILIARITY'
+  | 'PREVIOUS_NUMEROLOGIST'
+  | 'TODAY_NOTE_EXPLORATION'
+  | 'PRIMARY_CONCERN_EXPLORATION'
+  | 'CONCERN_CLARIFICATION'
 
 export interface ConsultationContent {
-  id: ConsultationContentKey;
-  title: string;
-  question: string;
-  explanation: string;
+  id: ConsultationContentKey
+  title: string
+  question: string
+  explanation: string
 }
 
 export const CONSULTATION_CONTENT_IDS = [
-  "INTRO_WEEKDAYS",
-  "INTRO_NAVAGRAHA",
-  "INTRO_TIME",
-  "CLARIFY_CONCERN",
-] as const satisfies readonly ConsultationContentKey[];
+  'INTRO_WEEKDAYS',
+  'INTRO_NAVAGRAHA',
+  'INTRO_TIME',
+  'CLARIFY_CONCERN',
+  'NUMEROLOGY_FAMILIARITY',
+  'PREVIOUS_NUMEROLOGIST',
+  'TODAY_NOTE_EXPLORATION',
+  'PRIMARY_CONCERN_EXPLORATION',
+  'CONCERN_CLARIFICATION',
+] as const satisfies readonly ConsultationContentKey[]
 
 // --------------------------------------------------
-// 3. Language metadata
+// 3. Consultation topics
+// --------------------------------------------------
+
+export const CONSULTATION_TOPIC_IDS = [
+  'career',
+  'business',
+  'money',
+  'family',
+  'relationship',
+  'marriage',
+  'personal_direction',
+  'other',
+] as const
+
+export type ConsultationTopicId =
+  (typeof CONSULTATION_TOPIC_IDS)[number]
+
+export interface ConsultationTopicQuestions {
+  opening: string
+  clarification: string
+}
+
+export type ConsultationTopicResources = Record<
+  ConsultationTopicId,
+  ConsultationTopicQuestions
+>
+
+// --------------------------------------------------
+// 4. Familiarity choices
+// --------------------------------------------------
+
+export const FAMILIARITY_CHOICE_IDS = [
+  'First time',
+  'Know a little',
+  'Consultation before',
+  'Know it quite well',
+] as const
+
+export type FamiliarityChoiceId =
+  (typeof FAMILIARITY_CHOICE_IDS)[number]
+
+export type FamiliarityChoiceResources = Record<
+  FamiliarityChoiceId,
+  string
+>
+
+// --------------------------------------------------
+// 5. Language metadata
 // --------------------------------------------------
 
 export interface ConsultationLanguageInfo {
-  code: ConsultationLanguage;
-  nativeName: string;
-  englishName: string;
-  locale: string;
-  script: "Devanagari" | "Latin" | "Gujarati";
-  direction: "ltr";
-  speechLocale: string;
+  code: ConsultationLanguage
+  nativeName: string
+  englishName: string
+  locale: string
+  script: 'Devanagari' | 'Latin' | 'Gujarati'
+  direction: 'ltr'
+  speechLocale: string
 }
 
 export const LANGUAGE_INFO: Record<
@@ -78,58 +154,58 @@ export const LANGUAGE_INFO: Record<
   ConsultationLanguageInfo
 > = {
   hi: {
-    code: "hi",
-    nativeName: "हिन्दी",
-    englishName: "Hindi",
-    locale: "hi-IN",
-    script: "Devanagari",
-    direction: "ltr",
-    speechLocale: "hi-IN",
+    code: 'hi',
+    nativeName: 'हिन्दी',
+    englishName: 'Hindi',
+    locale: 'hi-IN',
+    script: 'Devanagari',
+    direction: 'ltr',
+    speechLocale: 'hi-IN',
   },
 
   en: {
-    code: "en",
-    nativeName: "English",
-    englishName: "English",
-    locale: "en-IN",
-    script: "Latin",
-    direction: "ltr",
-    speechLocale: "en-IN",
+    code: 'en',
+    nativeName: 'English',
+    englishName: 'English',
+    locale: 'en-IN',
+    script: 'Latin',
+    direction: 'ltr',
+    speechLocale: 'en-IN',
   },
 
   mr: {
-    code: "mr",
-    nativeName: "मराठी",
-    englishName: "Marathi",
-    locale: "mr-IN",
-    script: "Devanagari",
-    direction: "ltr",
-    speechLocale: "mr-IN",
+    code: 'mr',
+    nativeName: 'मराठी',
+    englishName: 'Marathi',
+    locale: 'mr-IN',
+    script: 'Devanagari',
+    direction: 'ltr',
+    speechLocale: 'mr-IN',
   },
 
   gu: {
-    code: "gu",
-    nativeName: "ગુજરાતી",
-    englishName: "Gujarati",
-    locale: "gu-IN",
-    script: "Gujarati",
-    direction: "ltr",
-    speechLocale: "gu-IN",
+    code: 'gu',
+    nativeName: 'ગુજરાતી',
+    englishName: 'Gujarati',
+    locale: 'gu-IN',
+    script: 'Gujarati',
+    direction: 'ltr',
+    speechLocale: 'gu-IN',
   },
-};
+}
 
 // --------------------------------------------------
-// 4. Default preferences
+// 6. Default preferences
 // --------------------------------------------------
 
 export const DEFAULT_CONSULTATION_LANGUAGE:
-  ConsultationLanguage = "en";
+  ConsultationLanguage = 'en'
 
 export const DEFAULT_TYPING_LANGUAGE:
-  ConsultationTypingLanguage = "en";
+  ConsultationTypingLanguage = 'en'
 
 // --------------------------------------------------
-// 5. Native-language resource registry
+// 7. Native resource registries
 // --------------------------------------------------
 
 export type ConsultationLanguageResources =
@@ -138,7 +214,7 @@ export type ConsultationLanguageResources =
       ConsultationContentKey,
       ConsultationContent
     >
-  >;
+  >
 
 export type ConsultationResourceRegistry =
   Partial<
@@ -146,11 +222,7 @@ export type ConsultationResourceRegistry =
       ConsultationLanguage,
       ConsultationLanguageResources
     >
-  >;
-
-// Each language uses its own native-authored file.
-// No runtime translation is performed.
-// No cross-language fallback is permitted.
+  >
 
 export const consultationResourceRegistry:
   ConsultationResourceRegistry = {
@@ -158,35 +230,51 @@ export const consultationResourceRegistry:
     en: englishConsultationContent,
     mr: marathiConsultationContent,
     gu: gujaratiConsultationContent,
-  };
+  }
+
+export const consultationTopicRegistry: Record<
+  ConsultationLanguage,
+  ConsultationTopicResources
+> = {
+  hi: hindiConsultationTopicQuestions,
+  en: englishConsultationTopicQuestions,
+  mr: marathiConsultationTopicQuestions,
+  gu: gujaratiConsultationTopicQuestions,
+}
+
+export const consultationFamiliarityRegistry: Record<
+  ConsultationLanguage,
+  FamiliarityChoiceResources
+> = {
+  hi: hindiFamiliarityOptions,
+  en: englishFamiliarityOptions,
+  mr: marathiFamiliarityOptions,
+  gu: gujaratiFamiliarityOptions,
+}
 
 // --------------------------------------------------
-// 6. Language validation
+// 8. Language validation
 // --------------------------------------------------
 
 export function isConsultationLanguage(
   value: unknown
 ): value is ConsultationLanguage {
   return (
-    typeof value === "string" &&
+    typeof value === 'string' &&
     CONSULTATION_LANGUAGES.some(
       (language) => language === value
     )
-  );
+  )
 }
-
-// --------------------------------------------------
-// 7. Language information
-// --------------------------------------------------
 
 export function getConsultationLanguageInfo(
   language: ConsultationLanguage
 ): ConsultationLanguageInfo {
-  return LANGUAGE_INFO[language];
+  return LANGUAGE_INFO[language]
 }
 
 // --------------------------------------------------
-// 8. Direct native-content retrieval
+// 9. Native content retrieval
 // --------------------------------------------------
 
 export function getConsultationContent(
@@ -194,96 +282,209 @@ export function getConsultationContent(
   contentId: ConsultationContentKey
 ): ConsultationContent | null {
   const resource =
-    consultationResourceRegistry[language];
+    consultationResourceRegistry[language]
 
-  if (!resource) {
-    return null;
-  }
+  if (!resource) return null
 
-  const content = resource[contentId];
-
-  // Reject missing, mismatched or incomplete content.
-  // Never substitute content from another language.
+  const content = resource[contentId]
 
   if (
     !content ||
     content.id !== contentId ||
-    typeof content.title !== "string" ||
-    typeof content.question !== "string" ||
-    typeof content.explanation !== "string" ||
+    typeof content.title !== 'string' ||
+    typeof content.question !== 'string' ||
+    typeof content.explanation !== 'string' ||
     !content.title.trim() ||
     !content.question.trim() ||
     !content.explanation.trim()
   ) {
-    return null;
+    return null
   }
 
-  return content;
+  return content
 }
 
 export function hasConsultationContent(
   language: ConsultationLanguage,
   contentId: ConsultationContentKey
 ): boolean {
-  return (
-    getConsultationContent(
-      language,
-      contentId
-    ) !== null
-  );
+  return getConsultationContent(language, contentId) !== null
 }
 
 // --------------------------------------------------
-// 9. Independent typing-language configuration
+// 10. Topic-specific native questions
+// --------------------------------------------------
+
+export function isConsultationTopicId(
+  value: unknown
+): value is ConsultationTopicId {
+  return (
+    typeof value === 'string' &&
+    CONSULTATION_TOPIC_IDS.some(
+      (topic) => topic === value
+    )
+  )
+}
+
+export function getConsultationTopicQuestions(
+  language: ConsultationLanguage,
+  topic: ConsultationTopicId
+): ConsultationTopicQuestions | null {
+  const resource =
+    consultationTopicRegistry[language]?.[topic]
+
+  if (
+    !resource ||
+    typeof resource.opening !== 'string' ||
+    typeof resource.clarification !== 'string' ||
+    !resource.opening.trim() ||
+    !resource.clarification.trim()
+  ) {
+    return null
+  }
+
+  return resource
+}
+
+// --------------------------------------------------
+// 11. Familiarity choice labels
+// --------------------------------------------------
+
+export function getFamiliarityChoiceLabel(
+  language: ConsultationLanguage,
+  choiceId: FamiliarityChoiceId
+): string | null {
+  const label =
+    consultationFamiliarityRegistry[language]?.[choiceId]
+
+  if (
+    typeof label !== 'string' ||
+    !label.trim()
+  ) {
+    return null
+  }
+
+  return label
+}
+
+// --------------------------------------------------
+// 12. Guided question presentation
+// --------------------------------------------------
+
+// The question engine remains responsible for
+// selecting the next question.
+//
+// This function only resolves display text.
+// It never modifies canonical question text,
+// question IDs, answers or consultation history.
+
+export function getGuidedQuestionContent(
+  language: ConsultationLanguage,
+  questionKey: string | null,
+  primaryTopic: string | null,
+  isClarification = false
+): ConsultationContent | null {
+  if (!questionKey) return null
+
+  const topic: ConsultationTopicId =
+    isConsultationTopicId(primaryTopic)
+      ? primaryTopic
+      : 'other'
+
+  const topicQuestions =
+    getConsultationTopicQuestions(language, topic)
+
+  if (
+    isClarification ||
+    questionKey === 'CONCERN_CLARIFICATION'
+  ) {
+    const base = getConsultationContent(
+      language,
+      'CONCERN_CLARIFICATION'
+    )
+
+    if (!base || !topicQuestions) return null
+
+    return {
+      ...base,
+      question: topicQuestions.clarification,
+    }
+  }
+
+  if (questionKey === 'PRIMARY_CONCERN_EXPLORATION') {
+    const base = getConsultationContent(
+      language,
+      'PRIMARY_CONCERN_EXPLORATION'
+    )
+
+    if (!base || !topicQuestions) return null
+
+    return {
+      ...base,
+      question: topicQuestions.opening,
+    }
+  }
+
+  if (
+    CONSULTATION_CONTENT_IDS.some(
+      (id) => id === questionKey
+    )
+  ) {
+    return getConsultationContent(
+      language,
+      questionKey as ConsultationContentKey
+    )
+  }
+
+  return null
+}
+
+// --------------------------------------------------
+// 13. Typing language
 // --------------------------------------------------
 
 export function getTypingInputProps(
   language: ConsultationTypingLanguage
 ): {
-  lang: string;
-  dir: "ltr";
-  autoCapitalize: "sentences";
-  spellCheck: boolean;
+  lang: string
+  dir: 'ltr'
+  autoCapitalize: 'sentences'
+  spellCheck: boolean
 } {
-  const info = LANGUAGE_INFO[language];
+  const info = LANGUAGE_INFO[language]
 
   return {
     lang: info.locale,
     dir: info.direction,
-    autoCapitalize: "sentences",
+    autoCapitalize: 'sentences',
     spellCheck: true,
-  };
+  }
 }
 
-// These settings provide language metadata for
-// text inputs and textareas.
-//
-// The user's device controls the actual keyboard.
-// Changing this setting does not automatically
-// install or switch a keyboard layout.
+// Device keyboard selection remains controlled
+// by the user's operating system.
 
 // --------------------------------------------------
-// 10. Voice-language preparation
+// 14. Voice language
 // --------------------------------------------------
 
 export function getSpeechLocale(
   language: ConsultationLanguage
 ): string {
-  return LANGUAGE_INFO[language].speechLocale;
+  return LANGUAGE_INFO[language].speechLocale
 }
 
-// This function only returns a speech locale.
-// It does not start recording, request microphone
-// permission or provide transcription.
+// Voice recognition and transcription are not
+// implemented by this function.
 
 // --------------------------------------------------
-// 11. Independent language preferences
+// 15. Independent preferences
 // --------------------------------------------------
 
 export interface ConsultationLanguagePreferences {
-  consultationLanguage: ConsultationLanguage;
-  typingLanguage: ConsultationTypingLanguage;
-  voiceLanguage: ConsultationLanguage;
+  consultationLanguage: ConsultationLanguage
+  typingLanguage: ConsultationTypingLanguage
+  voiceLanguage: ConsultationLanguage
 }
 
 export function createConsultationLanguagePreferences(
@@ -294,7 +495,7 @@ export function createConsultationLanguagePreferences(
     consultationLanguage: preferredLanguage,
     typingLanguage: preferredLanguage,
     voiceLanguage: preferredLanguage,
-  };
+  }
 }
 
 export function updateConsultationLanguage(
@@ -304,7 +505,7 @@ export function updateConsultationLanguage(
   return {
     ...current,
     consultationLanguage: language,
-  };
+  }
 }
 
 export function updateTypingLanguage(
@@ -314,7 +515,7 @@ export function updateTypingLanguage(
   return {
     ...current,
     typingLanguage: language,
-  };
+  }
 }
 
 export function updateVoiceLanguage(
@@ -324,15 +525,15 @@ export function updateVoiceLanguage(
   return {
     ...current,
     voiceLanguage: language,
-  };
+  }
 }
 
 // --------------------------------------------------
-// 12. Preserve original consultation responses
+// 16. Preserve original consultation text
 // --------------------------------------------------
 
 export function preserveConsultationText(
   text: string
 ): string {
-  return text;
+  return text
 }
