@@ -527,10 +527,10 @@ function LiveGuidance({
           <p>{result.scope.suggestedResponse}</p>
         </Panel>
       )}
-    </div>
+        </div>
   )
 }
-   
+
 export function ConsultationAssistant({
   client,
   mode,
