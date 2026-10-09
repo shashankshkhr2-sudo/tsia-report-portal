@@ -20,6 +20,23 @@ import { decideNextQuestion } from '@/lib/consultation/question-intelligence'
 import { selectConsultationIntelligence } from '@/lib/consultation/consultation-intelligence-selector'
 import { buildUniversalNumerologyIntelligence } from '@/lib/consultation/universal-numerology-intelligence'
 
+import {
+  CONSULTATION_LANGUAGES,
+  LANGUAGE_INFO,
+  createConsultationLanguagePreferences,
+  getConsultationContent,
+  getTypingInputProps,
+  updateConsultationLanguage,
+  updateTypingLanguage,
+  updateVoiceLanguage,
+} from '@/lib/consultation/localization'
+
+import type {
+  ConsultationLanguage,
+  ConsultationLanguagePreferences,
+  ConsultationContentKey,
+} from '@/lib/consultation/localization'
+
 import type {
   UniversalConsultationTopic,
   UniversalNumerologyResult,
@@ -132,8 +149,18 @@ const grahaNames: Record<number, string> = {
   9: 'Mangal',
 }
 
+/*
+ * Canonical question text is deliberately retained.
+ *
+ * Existing consultation records use questionText to
+ * identify previously saved answers. Changing these
+ * strings would break history matching.
+ *
+ * Native-language text is used only for display.
+ */
 const introduction = [
   {
+    id: 'INTRO_WEEKDAYS',
     title: 'Seven Days and the Grahas',
     question:
       'Have you ever thought about why we have seven days in a week?',
@@ -141,6 +168,7 @@ const introduction = [
       'In Bharatiya Jyotish, the seven weekdays are traditionally associated with seven Grahas: Surya, Chandra, Mangal, Budh, Guru, Shukra and Shani. We know them through Ravivar, Somvar, Mangalvar, Budhvar, Guruvar, Shukravar and Shanivar. Rahu and Ketu are also part of the Navagraha system, but they are lunar nodes and do not have separate weekdays.',
   },
   {
+    id: 'INTRO_NAVAGRAHA',
     title: 'Nine Numbers and Navagraha',
     question:
       'Have you ever wondered why Indian numerology uses nine basic numbers?',
@@ -148,6 +176,7 @@ const introduction = [
       'Indian Ank Shastra traditionally associates the numbers 1 to 9 with the Navagrahas. Number 1 represents Surya, 2 Chandra, 3 Guru, 4 Rahu, 5 Budh, 6 Shukra, 7 Ketu, 8 Shani and 9 Mangal. This is the traditional connection between Ank Shastra, Navagraha and Jyotish Shastra.',
   },
   {
+    id: 'INTRO_TIME',
     title: 'Time and the Sun',
     question:
       'What time is showing on your watch right now? Is it the same time everywhere in the world?',
@@ -161,6 +190,13 @@ const clarificationQuestion =
 
 const INTRO_PROGRESS_MARKER =
   '[Jeevan Sutra: introduction completed without recorded response]'
+
+const languageNames: Record<ConsultationLanguage, string> = {
+  hi: 'हिन्दी',
+  en: 'English',
+  mr: 'मराठी',
+  gu: 'ગુજરાતી',
+}
 
 function topicName(value: string | null) {
   return value
@@ -531,6 +567,40 @@ function LiveGuidance({
   )
 }
 
+function LanguageSelector({
+  label,
+  value,
+  onChange,
+  disabled,
+}: {
+  label: string
+  value: ConsultationLanguage
+  onChange: (value: ConsultationLanguage) => void
+  disabled: boolean
+}) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-xs font-semibold text-[#24354c]">
+        {label}
+      </span>
+      <select
+        value={value}
+        onChange={(event) =>
+          onChange(event.target.value as ConsultationLanguage)
+        }
+        disabled={disabled}
+        className="w-full rounded-xl border border-[#e6ddd1] bg-[#fffdf9] px-3 py-3 text-sm font-semibold text-[#24354c] outline-none focus:border-[#ad7b40] disabled:opacity-50"
+      >
+        {CONSULTATION_LANGUAGES.map((language) => (
+          <option key={language} value={language}>
+            {languageNames[language]}
+          </option>
+        ))}
+      </select>
+    </label>
+  )
+}
+
 export function ConsultationAssistant({
   client,
   mode,
@@ -542,6 +612,22 @@ export function ConsultationAssistant({
   onBack,
 }: Props) {
   const isFirstConsultation = consultationNumber === 1
+
+  const [languagePreferences, setLanguagePreferences] =
+    useState<ConsultationLanguagePreferences>(() =>
+      createConsultationLanguagePreferences('en')
+    )
+
+  const consultationLanguage =
+    languagePreferences.consultationLanguage
+
+  const typingLanguage =
+    languagePreferences.typingLanguage
+
+  const voiceLanguage =
+    languagePreferences.voiceLanguage
+
+  const typingProps = getTypingInputProps(typingLanguage)
 
   const [introStep, setIntroStep] = useState(0)
   const [introRevealed, setIntroRevealed] = useState(false)
@@ -585,6 +671,25 @@ export function ConsultationAssistant({
     () => topicsKey.split('|').filter(Boolean) as ConsultationTopic[],
     [topicsKey]
   )
+
+  const currentIntro = introductionComplete
+    ? null
+    : introduction[introStep]
+
+  const nativeIntroduction = currentIntro
+    ? getConsultationContent(
+        consultationLanguage,
+        currentIntro.id as ConsultationContentKey
+      )
+    : null
+
+  const nativeClarification = getConsultationContent(
+    consultationLanguage,
+    'CLARIFY_CONCERN'
+  )
+
+  const currentIntroductionAvailable =
+    !currentIntro || nativeIntroduction !== null
 
   useEffect(() => {
     let active = true
@@ -737,8 +842,8 @@ export function ConsultationAssistant({
               next.shouldAskQuestion &&
               next.questionKey &&
               next.questionText !== null &&
-  normalizeQuestion(next.questionText) ===
-  normalizeQuestion(item.questionText)
+              normalizeQuestion(next.questionText) ===
+                normalizeQuestion(item.questionText)
             ) {
               questionKey = next.questionKey
             }
@@ -777,16 +882,8 @@ export function ConsultationAssistant({
             }
           }
 
-          if (completed === introduction.length) {
-            setIntroStep(introduction.length)
-            setIntroRevealed(false)
-          } else if (completed > 0) {
-            setIntroStep(completed)
-            setIntroRevealed(false)
-          } else {
-            setIntroStep(0)
-            setIntroRevealed(false)
-          }
+          setIntroStep(completed)
+          setIntroRevealed(false)
         }
 
         if (
@@ -914,14 +1011,31 @@ export function ConsultationAssistant({
     !clarificationPending &&
     clarificationReviewed
 
-  const currentQuestionText = clarificationPending
+  /*
+   * Canonical text is used for persistence.
+   * Display text is selected independently.
+   */
+  const canonicalQuestionText = clarificationPending
     ? clarificationQuestion
     : decision.questionText
+
+  const displayQuestionText = clarificationPending
+    ? nativeClarification?.question || null
+    : consultationLanguage === 'en'
+      ? decision.questionText
+      : null
+
+  const dynamicQuestionUnavailable =
+    showQuestion &&
+    !clarificationPending &&
+    consultationLanguage !== 'en'
 
   const canContinue =
     !saving &&
     !restoring &&
     !restoreError &&
+    Boolean(canonicalQuestionText?.trim()) &&
+    Boolean(displayQuestionText?.trim()) &&
     (clarificationPending
       ? Boolean(answer.trim())
       : familiarity
@@ -954,7 +1068,14 @@ export function ConsultationAssistant({
   }
 
   async function continueIntroduction() {
-    if (saving || restoring || restoreError) return
+    if (
+      saving ||
+      restoring ||
+      restoreError ||
+      !currentIntroductionAvailable
+    ) {
+      return
+    }
 
     if (introRevealed) {
       setIntroStep((previous) => previous + 1)
@@ -981,15 +1102,17 @@ export function ConsultationAssistant({
     setSaveError('')
 
     try {
-      const clientAnswer = introAnswer.trim()
-      const practitionerObservation =
-        introObservation.trim()
+      const clientAnswer = introAnswer
+      const practitionerObservation = introObservation
 
       const savedId = await persistAnswer(
         current.question,
         clientAnswer,
-        practitionerObservation ||
-          (!clientAnswer ? INTRO_PROGRESS_MARKER : ''),
+        practitionerObservation.trim()
+          ? practitionerObservation
+          : !clientAnswer.trim()
+            ? INTRO_PROGRESS_MARKER
+            : '',
         introImportant
       )
 
@@ -1033,20 +1156,22 @@ export function ConsultationAssistant({
       return
     }
 
-    const questionText = currentQuestionText
+    const questionText = canonicalQuestionText
 
-if (!questionText || !questionText.trim()) {
-  setSaveError('Consultation question is missing.')
-  return
-}
+    if (!questionText || !questionText.trim()) {
+      setSaveError('Consultation question is missing.')
+      return
+    }
 
     const clientAnswer = clarificationPending
-      ? answer.trim()
+      ? answer
       : familiarity
         ? answer.trim()
-          ? `${choice}. ${answer.trim()}`
+          ? `${choice}. ${answer}`
           : choice
-        : answer.trim()
+        : answer
+
+    const employeeObservation = observation
 
     setSaving(true)
     setSaveError('')
@@ -1055,7 +1180,7 @@ if (!questionText || !questionText.trim()) {
       const savedId = await persistAnswer(
         questionText,
         clientAnswer,
-        observation.trim(),
+        employeeObservation,
         importantForNext
       )
 
@@ -1065,7 +1190,7 @@ if (!questionText || !questionText.trim()) {
           questionKey,
           questionText,
           clientAnswer,
-          observation: observation.trim(),
+          observation: employeeObservation,
           savedId,
           important: importantForNext,
         },
@@ -1103,9 +1228,33 @@ if (!questionText || !questionText.trim()) {
     setSaveError('')
   }
 
-  const currentIntro = introductionComplete
-    ? null
-    : introduction[introStep]
+  function displaySavedIntroQuestion(question: string) {
+    const matched = introduction.find(
+      (item) =>
+        normalizeQuestion(item.question) ===
+        normalizeQuestion(question)
+    )
+
+    if (!matched) return question
+
+    return (
+      getConsultationContent(
+        consultationLanguage,
+        matched.id as ConsultationContentKey
+      )?.question || 'Localized question unavailable'
+    )
+  }
+
+  function displaySavedQuestion(item: RecordedAnswer) {
+    if (item.questionKey === 'CONCERN_CLARIFICATION') {
+      return (
+        nativeClarification?.question ||
+        'Localized question unavailable'
+      )
+    }
+
+    return item.questionText
+  }
 
   return (
     <div className="min-h-full bg-[#f7f3ed] p-4">
@@ -1165,24 +1314,82 @@ if (!questionText || !questionText.trim()) {
           </header>
 
           <main className="p-4 sm:p-6">
+            <section className="rounded-2xl border border-[#e6ddd1] bg-white p-4">
+              <h2 className="font-serif text-lg font-semibold text-[#24354c]">
+                Consultation Language Settings
+              </h2>
+
+              <p className="mt-2 text-xs leading-5 text-[#776d61]">
+                Consultation content, typing preference and
+                voice preference are independent.
+              </p>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <LanguageSelector
+                  label="Consultation Language"
+                  value={consultationLanguage}
+                  disabled={saving}
+                  onChange={(language) =>
+                    setLanguagePreferences((previous) =>
+                      updateConsultationLanguage(previous, language)
+                    )
+                  }
+                />
+
+                <LanguageSelector
+                  label="Typing Language"
+                  value={typingLanguage}
+                  disabled={saving}
+                  onChange={(language) =>
+                    setLanguagePreferences((previous) =>
+                      updateTypingLanguage(previous, language)
+                    )
+                  }
+                />
+
+                <LanguageSelector
+                  label="Voice Language"
+                  value={voiceLanguage}
+                  disabled={saving}
+                  onChange={(language) =>
+                    setLanguagePreferences((previous) =>
+                      updateVoiceLanguage(previous, language)
+                    )
+                  }
+                />
+              </div>
+
+              <p className="mt-3 text-xs text-[#776d61]">
+                Typing locale: {LANGUAGE_INFO[typingLanguage].locale}
+                {' · '}
+                Voice locale: {LANGUAGE_INFO[voiceLanguage].speechLocale}
+              </p>
+
+              <p className="mt-2 text-xs leading-5 text-[#776d61]">
+                Typing language does not automatically change
+                your phone keyboard. Voice recording and
+                transcription are not yet enabled.
+              </p>
+            </section>
+
             {saveError && (
               <div
                 role="alert"
-                className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+                className="mb-4 mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
               >
                 {saveError}
               </div>
             )}
 
             {restoring && (
-              <div className="flex items-center gap-3 rounded-xl bg-[#f8f4ed] p-4 text-sm text-[#24354c]">
+              <div className="mt-4 flex items-center gap-3 rounded-xl bg-[#f8f4ed] p-4 text-sm text-[#24354c]">
                 <Loader2 className="h-5 w-5 animate-spin" />
                 Restoring saved consultation history...
               </div>
             )}
 
             {!restoring && restoreError && (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-4">
+              <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4">
                 <p className="text-sm font-semibold text-red-700">
                   Consultation history could not be loaded.
                 </p>
@@ -1217,102 +1424,121 @@ if (!questionText || !questionText.trim()) {
                       big="Understanding Our Indian Traditions"
                     />
 
-                    <Panel title={currentIntro.title}>
-                      <p className="text-base font-semibold leading-7 text-[#24354c]">
-                        {currentIntro.question}
-                      </p>
+                    {!nativeIntroduction ? (
+                      <Panel title="Language Content Unavailable">
+                        <p role="alert">
+                          The native content for this introduction
+                          is missing in the selected language.
+                          Please complete the language resource
+                          before continuing.
+                        </p>
+                      </Panel>
+                    ) : (
+                      <Panel title={nativeIntroduction.title}>
+                        <p
+                          lang={LANGUAGE_INFO[consultationLanguage].locale}
+                          className="text-base font-semibold leading-7 text-[#24354c]"
+                        >
+                          {nativeIntroduction.question}
+                        </p>
 
-                      {!introRevealed && (
-                        <div className="mt-5 space-y-4">
-                          <div>
-                            <label className="mb-2 block text-xs font-semibold text-[#24354c]">
-                              Client Response (Optional)
+                        {!introRevealed && (
+                          <div className="mt-5 space-y-4">
+                            <div>
+                              <label className="mb-2 block text-xs font-semibold text-[#24354c]">
+                                Client Response (Optional)
+                              </label>
+
+                              <textarea
+                                {...typingProps}
+                                value={introAnswer}
+                                onChange={(event) =>
+                                  setIntroAnswer(event.target.value)
+                                }
+                                disabled={saving}
+                                rows={3}
+                                placeholder="Enter what the client says..."
+                                className="w-full rounded-xl border border-[#e6ddd1] bg-[#fffdf9] p-3 text-sm text-[#24354c] outline-none focus:border-[#ad7b40]"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="mb-2 block text-xs font-semibold text-[#24354c]">
+                                Practitioner Observation (Optional)
+                              </label>
+
+                              <textarea
+                                {...typingProps}
+                                value={introObservation}
+                                onChange={(event) =>
+                                  setIntroObservation(event.target.value)
+                                }
+                                disabled={saving}
+                                rows={3}
+                                placeholder="Record your observation..."
+                                className="w-full rounded-xl border border-[#e6ddd1] bg-[#fffdf9] p-3 text-sm text-[#24354c] outline-none focus:border-[#ad7b40]"
+                              />
+                            </div>
+
+                            <label className="flex items-center gap-3 rounded-xl bg-[#f8f4ed] p-3 text-sm font-medium text-[#24354c]">
+                              <input
+                                type="checkbox"
+                                checked={introImportant}
+                                onChange={(event) =>
+                                  setIntroImportant(event.target.checked)
+                                }
+                                disabled={saving}
+                                className="h-4 w-4 accent-[#24354c]"
+                              />
+                              Important for Next Consultation
                             </label>
-
-                            <textarea
-                              value={introAnswer}
-                              onChange={(event) =>
-                                setIntroAnswer(event.target.value)
-                              }
-                              disabled={saving}
-                              rows={3}
-                              placeholder="Enter what the client says..."
-                              className="w-full rounded-xl border border-[#e6ddd1] bg-[#fffdf9] p-3 text-sm text-[#24354c] outline-none focus:border-[#ad7b40]"
-                            />
                           </div>
-
-                          <div>
-                            <label className="mb-2 block text-xs font-semibold text-[#24354c]">
-                              Practitioner Observation (Optional)
-                            </label>
-
-                            <textarea
-                              value={introObservation}
-                              onChange={(event) =>
-                                setIntroObservation(event.target.value)
-                              }
-                              disabled={saving}
-                              rows={3}
-                              placeholder="Record your observation..."
-                              className="w-full rounded-xl border border-[#e6ddd1] bg-[#fffdf9] p-3 text-sm text-[#24354c] outline-none focus:border-[#ad7b40]"
-                            />
-                          </div>
-
-                          <label className="flex items-center gap-3 rounded-xl bg-[#f8f4ed] p-3 text-sm font-medium text-[#24354c]">
-                            <input
-                              type="checkbox"
-                              checked={introImportant}
-                              onChange={(event) =>
-                                setIntroImportant(event.target.checked)
-                              }
-                              disabled={saving}
-                              className="h-4 w-4 accent-[#24354c]"
-                            />
-                            Important for Next Consultation
-                          </label>
-                        </div>
-                      )}
-
-                      {introRevealed && (
-                        <div className="mt-5 rounded-xl border border-[#e6ddd1] bg-[#f8f4ed] p-4">
-                          <p className="text-xs font-semibold uppercase text-[#ad7b40]">
-                            Practitioner Explanation
-                          </p>
-
-                          <p className="mt-3 leading-7 text-[#24354c]">
-                            {currentIntro.explanation}
-                          </p>
-                        </div>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          void continueIntroduction()
-                        }}
-                        disabled={saving}
-                        className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#24354c] px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
-                      >
-                        {saving ? (
-                          <>
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Saving...
-                          </>
-                        ) : introRevealed ? (
-                          <>
-                            {introStep === introduction.length - 1
-                              ? 'Continue to Consultation'
-                              : 'Next Introduction Question'}
-                            <ChevronRight className="h-4 w-4" />
-                          </>
-                        ) : (
-                          <>
-                            Save & Show Explanation
-                            <ChevronRight className="h-4 w-4" />
-                          </>
                         )}
-                      </button>
-                    </Panel>
+
+                        {introRevealed && (
+                          <div className="mt-5 rounded-xl border border-[#e6ddd1] bg-[#f8f4ed] p-4">
+                            <p className="text-xs font-semibold uppercase text-[#ad7b40]">
+                              Practitioner Explanation
+                            </p>
+
+                            <p
+                              lang={LANGUAGE_INFO[consultationLanguage].locale}
+                              className="mt-3 leading-7 text-[#24354c]"
+                            >
+                              {nativeIntroduction.explanation}
+                            </p>
+                          </div>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            void continueIntroduction()
+                          }}
+                          disabled={saving}
+                          className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#24354c] px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+                        >
+                          {saving ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Saving...
+                            </>
+                          ) : introRevealed ? (
+                            <>
+                              {introStep === introduction.length - 1
+                                ? 'Continue to Consultation'
+                                : 'Next Introduction Question'}
+                              <ChevronRight className="h-4 w-4" />
+                            </>
+                          ) : (
+                            <>
+                              Save & Show Explanation
+                              <ChevronRight className="h-4 w-4" />
+                            </>
+                          )}
+                        </button>
+                      </Panel>
+                    )}
                   </>
                 )}
 
@@ -1382,16 +1608,16 @@ if (!questionText || !questionText.trim()) {
                           className="rounded-xl bg-[#f8f4ed] p-3 text-sm"
                         >
                           <p className="font-semibold text-[#24354c]">
-                            {item.question}
+                            {displaySavedIntroQuestion(item.question)}
                           </p>
 
-                          <p className="mt-2 text-[#776d61]">
+                          <p className="mt-2 whitespace-pre-wrap text-[#776d61]">
                             <b>Client:</b>{' '}
                             {item.clientAnswer || 'No response recorded'}
                           </p>
 
                           {item.practitionerObservation && (
-                            <p className="mt-2 text-[#776d61]">
+                            <p className="mt-2 whitespace-pre-wrap text-[#776d61]">
                               <b>Practitioner:</b>{' '}
                               {item.practitionerObservation}
                             </p>
@@ -1431,7 +1657,7 @@ if (!questionText || !questionText.trim()) {
                           >
                             <div className="flex items-start justify-between gap-3">
                               <p className="font-semibold text-[#24354c]">
-                                {index + 1}. {item.questionText}
+                                {index + 1}. {displaySavedQuestion(item)}
                               </p>
                               <Check className="h-4 w-4 shrink-0 text-green-700" />
                             </div>
@@ -1512,99 +1738,139 @@ if (!questionText || !questionText.trim()) {
                             : 'Next Consultation Question'
                         }
                       >
-                        <p className="text-base font-semibold leading-7 text-[#24354c]">
-                          {currentQuestionText}
-                        </p>
-
-                        {familiarity && !clarificationPending && (
-                          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                            {familiarityOptions.map((option) => (
-                              <button
-                                key={option}
-                                type="button"
-                                onClick={() => setChoice(option)}
-                                disabled={saving}
-                                className={`rounded-xl border p-3 text-left text-sm font-semibold ${
-                                  choice === option
-                                    ? 'border-[#ad7b40] bg-[#f5ead8] text-[#24354c]'
-                                    : 'border-[#e6ddd1] bg-white text-[#776d61]'
-                                }`}
-                              >
-                                {option}
-                              </button>
-                            ))}
+                        {dynamicQuestionUnavailable ? (
+                          <div
+                            role="alert"
+                            className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-[#776d61]"
+                          >
+                            <p className="font-semibold text-[#24354c]">
+                              Native question content not yet available
+                            </p>
+                            <p className="mt-2">
+                              This guided question is not yet
+                              authored in the selected consultation
+                              language. Choose English to continue
+                              this question. Your saved responses
+                              will not be changed.
+                            </p>
                           </div>
+                        ) : !displayQuestionText ? (
+                          <p role="alert">
+                            The selected language question is
+                            unavailable. Saving is disabled.
+                          </p>
+                        ) : (
+                          <>
+                            <p
+                              lang={LANGUAGE_INFO[consultationLanguage].locale}
+                              className="text-base font-semibold leading-7 text-[#24354c]"
+                            >
+                              {displayQuestionText}
+                            </p>
+
+                            {clarificationPending &&
+                              nativeClarification && (
+                                <p
+                                  lang={LANGUAGE_INFO[consultationLanguage].locale}
+                                  className="mt-3 text-sm leading-6 text-[#776d61]"
+                                >
+                                  {nativeClarification.explanation}
+                                </p>
+                              )}
+
+                            {familiarity && !clarificationPending && (
+                              <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                {familiarityOptions.map((option) => (
+                                  <button
+                                    key={option}
+                                    type="button"
+                                    onClick={() => setChoice(option)}
+                                    disabled={saving}
+                                    className={`rounded-xl border p-3 text-left text-sm font-semibold ${
+                                      choice === option
+                                        ? 'border-[#ad7b40] bg-[#f5ead8] text-[#24354c]'
+                                        : 'border-[#e6ddd1] bg-white text-[#776d61]'
+                                    }`}
+                                  >
+                                    {option}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+
+                            <div className="mt-4">
+                              <label className="mb-2 block text-xs font-semibold text-[#24354c]">
+                                {familiarity && !clarificationPending
+                                  ? 'Additional Client Response (Optional)'
+                                  : 'Client Answer'}
+                              </label>
+
+                              <textarea
+                                {...typingProps}
+                                value={answer}
+                                onChange={(event) =>
+                                  setAnswer(event.target.value)
+                                }
+                                disabled={saving}
+                                rows={4}
+                                placeholder="Record the client's answer..."
+                                className="w-full rounded-xl border border-[#e6ddd1] bg-[#fffdf9] p-3 text-sm text-[#24354c] outline-none focus:border-[#ad7b40]"
+                              />
+                            </div>
+
+                            <div className="mt-4">
+                              <label className="mb-2 block text-xs font-semibold text-[#24354c]">
+                                Practitioner Observation (Optional)
+                              </label>
+
+                              <textarea
+                                {...typingProps}
+                                value={observation}
+                                onChange={(event) =>
+                                  setObservation(event.target.value)
+                                }
+                                disabled={saving}
+                                rows={3}
+                                placeholder="Your interpretation, observations, or follow-up notes..."
+                                className="w-full rounded-xl border border-[#e6ddd1] bg-[#fffdf9] p-3 text-sm text-[#24354c] outline-none focus:border-[#ad7b40]"
+                              />
+                            </div>
+
+                            <label className="mt-4 flex items-center gap-3 rounded-xl bg-[#f8f4ed] p-3 text-sm font-medium text-[#24354c]">
+                              <input
+                                type="checkbox"
+                                checked={importantForNext}
+                                onChange={(event) =>
+                                  setImportantForNext(event.target.checked)
+                                }
+                                disabled={saving}
+                                className="h-4 w-4 accent-[#24354c]"
+                              />
+                              Important for Next Consultation
+                            </label>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                void continueQuestion()
+                              }}
+                              disabled={!canContinue}
+                              className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#24354c] px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              {saving ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                  Saving...
+                                </>
+                              ) : (
+                                <>
+                                  Save & Continue
+                                  <ChevronRight className="h-4 w-4" />
+                                </>
+                              )}
+                            </button>
+                          </>
                         )}
-
-                        <div className="mt-4">
-                          <label className="mb-2 block text-xs font-semibold text-[#24354c]">
-                            {familiarity && !clarificationPending
-                              ? 'Additional Client Response (Optional)'
-                              : 'Client Answer'}
-                          </label>
-
-                          <textarea
-                            value={answer}
-                            onChange={(event) =>
-                              setAnswer(event.target.value)
-                            }
-                            disabled={saving}
-                            rows={4}
-                            placeholder="Record the client's answer..."
-                            className="w-full rounded-xl border border-[#e6ddd1] bg-[#fffdf9] p-3 text-sm text-[#24354c] outline-none focus:border-[#ad7b40]"
-                          />
-                        </div>
-
-                        <div className="mt-4">
-                          <label className="mb-2 block text-xs font-semibold text-[#24354c]">
-                            Practitioner Observation (Optional)
-                          </label>
-
-                          <textarea
-                            value={observation}
-                            onChange={(event) =>
-                              setObservation(event.target.value)
-                            }
-                            disabled={saving}
-                            rows={3}
-                            placeholder="Your interpretation, observations, or follow-up notes..."
-                            className="w-full rounded-xl border border-[#e6ddd1] bg-[#fffdf9] p-3 text-sm text-[#24354c] outline-none focus:border-[#ad7b40]"
-                          />
-                        </div>
-
-                        <label className="mt-4 flex items-center gap-3 rounded-xl bg-[#f8f4ed] p-3 text-sm font-medium text-[#24354c]">
-                          <input
-                            type="checkbox"
-                            checked={importantForNext}
-                            onChange={(event) =>
-                              setImportantForNext(event.target.checked)
-                            }
-                            disabled={saving}
-                            className="h-4 w-4 accent-[#24354c]"
-                          />
-                          Important for Next Consultation
-                        </label>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            void continueQuestion()
-                          }}
-                          disabled={!canContinue}
-                          className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#24354c] px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          {saving ? (
-                            <>
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              Saving...
-                            </>
-                          ) : (
-                            <>
-                              Save & Continue
-                              <ChevronRight className="h-4 w-4" />
-                            </>
-                          )}
-                        </button>
                       </Panel>
                     )}
 
