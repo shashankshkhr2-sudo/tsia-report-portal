@@ -530,6 +530,7 @@ function LiveGuidance({
     </div>
   )
 }
+   
 export function ConsultationAssistant({
   client,
   mode,
