@@ -1,18 +1,36 @@
+
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-const PUBLIC_PATHS = ['/login']
+const PUBLIC_PATHS = [
+  '/',
+  '/login',
+  '/website',
+]
 
 function isPublicPath(pathname: string) {
-  return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`))
+  return PUBLIC_PATHS.some(
+    (path) =>
+      pathname === path ||
+      (path !== '/' && pathname.startsWith(`${path}/`))
+  )
 }
 
-function redirectWithCookies(request: NextRequest, source: NextResponse, pathname: string) {
+function redirectWithCookies(
+  request: NextRequest,
+  source: NextResponse,
+  pathname: string
+) {
   const url = request.nextUrl.clone()
   url.pathname = pathname
   url.search = ''
+
   const redirect = NextResponse.redirect(url)
-  source.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie))
+
+  source.cookies.getAll().forEach((cookie) =>
+    redirect.cookies.set(cookie)
+  )
+
   return redirect
 }
 
@@ -28,19 +46,40 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          )
+
           response = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
+
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          )
         },
       },
-    },
+    }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
   const { pathname } = request.nextUrl
 
-  if (!user && !isPublicPath(pathname)) return redirectWithCookies(request, response, '/login')
-  if (user && pathname === '/login') return redirectWithCookies(request, response, '/')
+  // Allow visitors to access the public Jeevan Sutra website.
+  if (isPublicPath(pathname)) {
+    if (user && pathname === '/login') {
+      return redirectWithCookies(request, response, '/employee')
+    }
+
+    response.headers.set('Cache-Control', 'private, no-store')
+    return response
+  }
+
+  // Protect employee and other private application routes.
+  if (!user) {
+    return redirectWithCookies(request, response, '/login')
+  }
 
   response.headers.set('Cache-Control', 'private, no-store')
   return response
