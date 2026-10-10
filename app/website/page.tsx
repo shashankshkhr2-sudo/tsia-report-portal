@@ -1,31 +1,44 @@
 
 import Link from 'next/link'
 
+/* ==========================================
+   JEEVAN SUTRA — HOMEPAGE
+   PART 1 OF 2
+
+   File: app/website/page.tsx
+   Branch: website-development
+========================================== */
+
 const benefits = [
   {
     symbol: '✦',
     title: 'Personal Strengths',
-    detail: 'Explore the qualities associated with your numbers.',
+    detail:
+      'Explore the qualities associated with your numbers.',
   },
   {
     symbol: '◇',
     title: 'Career Guidance',
-    detail: 'Reflect on professional direction and working style.',
+    detail:
+      'Reflect on professional direction and working style.',
   },
   {
     symbol: '♡',
     title: 'Relationships',
-    detail: 'Explore traditional patterns of connection and communication.',
+    detail:
+      'Explore traditional patterns of connection and communication.',
   },
   {
     symbol: '◎',
     title: 'Money & Opportunities',
-    detail: 'Consider numerological themes around planning and opportunity.',
+    detail:
+      'Consider numerological themes around planning and opportunity.',
   },
   {
     symbol: '❋',
     title: 'Personal Growth',
-    detail: 'Build greater self-awareness through guided reflection.',
+    detail:
+      'Build greater self-awareness through guided reflection.',
   },
 ]
 
@@ -69,40 +82,43 @@ const services = [
 ]
 
 /*
- * Static symbolic nine-Graha mandala.
- *
- * Centre of the artwork: (300, 300).
- * Rahu: (139, 461).
- * Ketu: (461, 139).
- *
- * Their midpoint is exactly (300, 300), and both
- * have the same distance from the centre.
- *
- * This artwork is a numerology illustration,
- * not an astronomical planetary-position chart.
- */
+  NINE-GRAHA POSITIONS
+
+  Earth centre: (300, 300)
+
+  Rahu: (134, 466)
+  Ketu: (466, 134)
+
+  Their midpoint is (300, 300).
+  They are diametrically opposite and
+  equidistant from the centre.
+
+  This is a static symbolic numerology
+  illustration, not an astronomical chart.
+*/
+
 const grahas = [
   {
     n: 1,
     hindi: 'सूर्य',
     english: 'Surya',
     x: 300,
-    y: 72,
+    y: 65,
     fill: '#F6B93F',
   },
   {
     n: 2,
     hindi: 'चंद्र',
     english: 'Chandra',
-    x: 139,
-    y: 139,
+    x: 134,
+    y: 134,
     fill: '#C5D0D6',
   },
   {
     n: 3,
     hindi: 'गुरु',
     english: 'Guru',
-    x: 72,
+    x: 65,
     y: 300,
     fill: '#CFA66C',
   },
@@ -110,8 +126,8 @@ const grahas = [
     n: 4,
     hindi: 'राहु',
     english: 'Rahu',
-    x: 139,
-    y: 461,
+    x: 134,
+    y: 466,
     fill: '#8A8E9E',
   },
   {
@@ -119,7 +135,7 @@ const grahas = [
     hindi: 'बुध',
     english: 'Budh',
     x: 220,
-    y: 513,
+    y: 530,
     fill: '#90AE87',
   },
   {
@@ -127,22 +143,22 @@ const grahas = [
     hindi: 'शुक्र',
     english: 'Shukra',
     x: 380,
-    y: 513,
+    y: 530,
     fill: '#E0B9A5',
   },
   {
     n: 7,
     hindi: 'केतु',
     english: 'Ketu',
-    x: 461,
-    y: 139,
+    x: 466,
+    y: 134,
     fill: '#9A899B',
   },
   {
     n: 8,
     hindi: 'शनि',
     english: 'Shani',
-    x: 528,
+    x: 535,
     y: 300,
     fill: '#B8A16B',
   },
@@ -150,55 +166,69 @@ const grahas = [
     n: 9,
     hindi: 'मंगल',
     english: 'Mangal',
-    x: 461,
-    y: 461,
+    x: 466,
+    y: 466,
     fill: '#C97456',
   },
 ]
 
+/* ==========================================
+   STATIC NINE-GRAHA ARTWORK
+========================================== */
+
 function GrahaArtwork() {
   return (
     <svg
-      viewBox="0 0 600 600"
+      viewBox="0 0 600 640"
       className="h-auto w-full"
       role="img"
-      aria-label="Static symbolic numerology mandala with nine numbered Grahas and Earth at its centre"
+      aria-label="Nine numbered Grahas surrounding Earth, with Rahu and Ketu opposite each other"
     >
       <defs>
-        <radialGradient
-          id="js-earth"
-          cx="35%"
-          cy="30%"
-          r="75%"
-        >
+        <radialGradient id="js-earth">
           <stop stopColor="#7EC1C2" />
-          <stop offset="0.55" stopColor="#347B9B" />
-          <stop offset="1" stopColor="#123754" />
+          <stop
+            offset="0.55"
+            stopColor="#347B9B"
+          />
+          <stop
+            offset="1"
+            stopColor="#123754"
+          />
         </radialGradient>
 
         <radialGradient id="js-sun">
           <stop stopColor="#FFF5B7" />
-          <stop offset="0.6" stopColor="#FFC44F" />
-          <stop offset="1" stopColor="#BD621C" />
+          <stop
+            offset="0.6"
+            stopColor="#FFC44F"
+          />
+          <stop
+            offset="1"
+            stopColor="#BD621C"
+          />
         </radialGradient>
 
         <radialGradient id="js-bg">
           <stop stopColor="#873B42" />
-          <stop offset="1" stopColor="#3C1024" />
+          <stop
+            offset="1"
+            stopColor="#3C1024"
+          />
         </radialGradient>
       </defs>
 
-      {/* Background disc */}
+      {/* Background */}
       <circle
         cx="300"
         cy="300"
         r="285"
         fill="url(#js-bg)"
         stroke="#C5A15A"
-        strokeOpacity=".6"
+        strokeOpacity="0.6"
       />
 
-      {/* Decorative orbital rings */}
+      {/* Circular gold rings */}
       {[110, 154, 190, 228, 265].map((r) => (
         <circle
           key={r}
@@ -212,44 +242,45 @@ function GrahaArtwork() {
         />
       ))}
 
-      {/* Outer radial markers */}
+      {/* Decorative radial lines */}
       {Array.from({ length: 36 }, (_, i) => {
-        const a = (i * Math.PI) / 18
+        const angle = (i * Math.PI) / 18
 
         return (
           <line
             key={i}
-            x1={300 + 272 * Math.cos(a)}
-            y1={300 + 272 * Math.sin(a)}
-            x2={300 + 281 * Math.cos(a)}
-            y2={300 + 281 * Math.sin(a)}
+            x1={300 + 272 * Math.cos(angle)}
+            y1={300 + 272 * Math.sin(angle)}
+            x2={300 + 281 * Math.cos(angle)}
+            y2={300 + 281 * Math.sin(angle)}
             stroke="#D8B475"
-            strokeOpacity=".65"
+            strokeOpacity="0.65"
           />
         )
       })}
 
-      {/* Exact Rahu-Ketu axis */}
+      {/* Rahu-Ketu opposite axis */}
       <line
-        x1="139"
-        y1="461"
-        x2="461"
-        y2="139"
+        x1="134"
+        y1="466"
+        x2="466"
+        y2="134"
         stroke="#D5B277"
         strokeWidth="1.5"
         strokeDasharray="5 7"
-        strokeOpacity=".6"
+        strokeOpacity="0.6"
       />
 
-      {/* Earth */}
+      {/* Earth halo */}
       <circle
         cx="300"
         cy="300"
         r="88"
         fill="#D9AD5E"
-        opacity=".13"
+        opacity="0.13"
       />
 
+      {/* Earth */}
       <circle
         cx="300"
         cy="300"
@@ -259,11 +290,11 @@ function GrahaArtwork() {
         strokeWidth="2"
       />
 
-      {/* Symbolic continents */}
+      {/* Decorative continents */}
       <path
         d="M274 241q25 4 20 24l25 10-9 19-17 4-12 24-20-12 4-20-17-17 13-16zM324 308l19-5 17 14-9 23-15 7-10-15z"
         fill="#9BBE8E"
-        opacity=".75"
+        opacity="0.75"
       />
 
       <text
@@ -278,11 +309,11 @@ function GrahaArtwork() {
       </text>
 
       {/* Nine numbered Grahas */}
-      {grahas.map((g) => (
-        <g key={g.n}>
+      {grahas.map((graha) => (
+        <g key={graha.n}>
           <circle
-            cx={g.x}
-            cy={g.y}
+            cx={graha.x}
+            cy={graha.y}
             r="30"
             fill="#3A1527"
             stroke="#E2C58D"
@@ -290,46 +321,46 @@ function GrahaArtwork() {
           />
 
           <circle
-            cx={g.x}
-            cy={g.y}
+            cx={graha.x}
+            cy={graha.y}
             r="21"
             fill={
-              g.n === 1
+              graha.n === 1
                 ? 'url(#js-sun)'
-                : g.fill
+                : graha.fill
             }
           />
 
           <text
-            x={g.x}
-            y={g.y + 5}
+            x={graha.x}
+            y={graha.y + 5}
             textAnchor="middle"
             fontWeight="bold"
             fontSize="17"
             fill="#251322"
           >
-            {g.n}
+            {graha.n}
           </text>
 
           <text
-            x={g.x}
-            y={g.y + 44}
+            x={graha.x}
+            y={graha.y + 44}
             textAnchor="middle"
             fill="#FFF3DC"
             fontSize="14"
             fontWeight="600"
           >
-            {g.hindi}
+            {graha.hindi}
           </text>
 
           <text
-            x={g.x}
-            y={g.y + 60}
+            x={graha.x}
+            y={graha.y + 60}
             textAnchor="middle"
             fill="#F0D29B"
             fontSize="12"
           >
-            {g.english}
+            {graha.english}
           </text>
         </g>
       ))}
@@ -337,23 +368,27 @@ function GrahaArtwork() {
   )
 }
 
+/* ==========================================
+   JEEVAN SUTRA BRAND
+========================================== */
+
 function Brand() {
   return (
     <Link
       href="/website"
-      className="flex items-center gap-3"
+      className="flex min-w-0 items-center gap-2 sm:gap-3"
       aria-label="Jeevan Sutra homepage"
     >
-      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#D8B475] font-serif text-xl text-[#EAD8AD] sm:h-14 sm:w-14">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#D8B475] font-serif text-xl text-[#EAD8AD] sm:h-14 sm:w-14">
         JS
       </span>
 
-      <span className="flex flex-col">
-        <span className="font-serif text-lg font-semibold tracking-[.12em] text-[#F5E2BA] sm:text-2xl">
+      <span className="flex min-w-0 flex-col">
+        <span className="whitespace-nowrap font-serif text-[17px] font-semibold tracking-[0.06em] text-[#F5E2BA] sm:text-2xl">
           JEEVAN SUTRA
         </span>
 
-        <span className="mt-1 text-[8px] tracking-[.15em] text-[#EAD8AD] sm:text-[10px]">
+        <span className="mt-1 text-[7px] tracking-[0.06em] text-[#EAD8AD] sm:text-[10px] sm:tracking-[0.15em]">
           THE COMPLETE GUIDANCE EXPERIENCE
         </span>
       </span>
@@ -361,96 +396,109 @@ function Brand() {
   )
 }
 
+/* ==========================================
+   HOMEPAGE COMPONENT
+========================================== */
+
 export default function JeevanSutraHomePage() {
   return (
     <main className="min-h-screen bg-[#FAF7F0] text-[#42353A]">
-      {/* HEADER */}
-      <header className="relative z-10 border-b border-[#C5A15A]/40 bg-[#64263B]">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-8">
-          {/* Navigation menu */}
-          <details className="group relative order-1">
-            <summary
-              className="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-full border border-[#C5A15A]/60 text-[#EAD8AD] [&::-webkit-details-marker]:hidden"
-              aria-label="Open navigation menu"
-            >
-              <span className="text-2xl leading-none">
-                ☰
+
+      {/* HEADER — VALID MOBILE MENU */}
+      <header className="relative z-20 border-b border-[#C5A15A]/40 bg-[#64263B]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-8">
+
+          <details className="group">
+
+            {/* Summary must be first child */}
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 py-4 [&::-webkit-details-marker]:hidden">
+
+              {/* Brand presentation */}
+              <span className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#D8B475] font-serif text-xl text-[#EAD8AD] sm:h-14 sm:w-14">
+                  JS
+                </span>
+
+                <span className="flex min-w-0 flex-col">
+                  <span className="whitespace-nowrap font-serif text-[17px] font-semibold tracking-[0.06em] text-[#F5E2BA] sm:text-2xl">
+                    JEEVAN SUTRA
+                  </span>
+
+                  <span className="mt-1 text-[7px] tracking-[0.06em] text-[#EAD8AD] sm:text-[10px] sm:tracking-[0.15em]">
+                    THE COMPLETE GUIDANCE EXPERIENCE
+                  </span>
+                </span>
               </span>
+
+              {/* Menu icon */}
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#C5A15A]/60 text-[#EAD8AD]">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  aria-hidden="true"
+                >
+                  <path d="M4 7h16M4 12h16M4 17h16" />
+                </svg>
+              </span>
+
             </summary>
 
+            {/* Menu expands below header */}
             <nav
               aria-label="Main navigation"
-              className="absolute left-0 top-14 z-30 w-56 rounded-xl border border-[#C5A15A]/50 bg-[#4D1930] p-4 shadow-xl"
+              className="border-t border-[#C5A15A]/30 pb-5 pt-3"
             >
-              {[
-                ['About', '#about'],
-                ['Free Discovery', '#free-discovery'],
-                ['How It Works', '#how-it-works'],
-                ['Services', '#services'],
-                ['Leadership', '#leadership'],
-              ].map(([label, href]) => (
-                <a
-                  key={href}
-                  href={href}
-                  className="block rounded px-3 py-2 text-sm text-[#FAF1E1] hover:bg-white/10"
+              <div className="grid gap-1 sm:grid-cols-3">
+                {[
+                  ['Home', '/website'],
+                  ['About', '#about'],
+                  ['Free Discovery', '#free-discovery'],
+                  ['How It Works', '#how-it-works'],
+                  ['Services', '#services'],
+                  ['Leadership', '#leadership'],
+                ].map(([label, href]) => (
+                  <a
+                    key={href}
+                    href={href}
+                    className="block rounded-lg px-4 py-3 text-sm font-medium text-[#FAF1E1] hover:bg-white/10"
+                  >
+                    {label}
+                  </a>
+                ))}
+
+                <Link
+                  href="/website/register"
+                  className="mt-2 block rounded-lg bg-[#EAD8AD] px-4 py-3 text-center text-sm font-bold text-[#64263B]"
                 >
-                  {label}
-                </a>
-              ))}
-
-              <Link
-                href="/website/register"
-                className="mt-2 block rounded-lg bg-[#EAD8AD] px-3 py-3 text-center text-sm font-bold text-[#64263B]"
-              >
-                Register
-              </Link>
+                  Register
+                </Link>
+              </div>
             </nav>
+
           </details>
-
-          {/* Brand */}
-          <div className="order-2 min-w-0">
-            <Brand />
-          </div>
-
-          {/* Customer account */}
-          <Link
-            href="/website/register"
-            aria-label="Customer registration"
-            title="Customer registration"
-            className="order-3 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#C5A15A]/60 text-[#EAD8AD]"
-          >
-            <svg
-              width="23"
-              height="23"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-            >
-              <circle
-                cx="12"
-                cy="8"
-                r="3.5"
-              />
-
-              <path d="M4 21c0-4.5 3-7 8-7s8 2.5 8 7" />
-            </svg>
-          </Link>
         </div>
       </header>
 
       {/* HERO */}
       <section className="relative overflow-hidden bg-gradient-to-br from-[#64263B] via-[#5A2037] to-[#320C1D] text-white">
+
         <div className="pointer-events-none absolute -left-32 top-10 h-80 w-80 rounded-full border border-[#C5A15A]/20" />
 
-        <div className="mx-auto grid max-w-7xl items-center gap-7 px-5 pb-14 pt-12 md:grid-cols-[1.02fr_.98fr] md:gap-8 md:px-10 md:py-20">
-          {/* Headline */}
-          <div className="relative z-10">
-            <p className="mb-6 text-[11px] font-semibold uppercase tracking-[.22em] text-[#EAD8AD]">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 px-5 pb-14 pt-12 md:grid-cols-2 md:gap-8 md:px-10 md:py-20">
+
+          {/* English headline */}
+          <div className="relative z-10 min-w-0">
+
+            <p className="mb-6 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#EAD8AD] sm:text-xs sm:tracking-[0.22em]">
               Your Personal Numerology Journey
             </p>
 
-            <h1 className="font-serif text-[clamp(2.1rem,4.1vw,4rem)] font-semibold leading-[1.17] tracking-tight text-[#FFF8EB]">
+            <h1 className="font-serif text-[clamp(1.95rem,7.5vw,3.2rem)] font-semibold leading-[1.16] tracking-tight text-[#FFF8EB] md:text-[clamp(2.7rem,4vw,4rem)]">
               <span className="block">
                 Your Name.
               </span>
@@ -469,13 +517,14 @@ export default function JeevanSutraHomePage() {
             {/* Hindi headline */}
             <div
               lang="hi"
-              className="font-serif text-[clamp(1.75rem,3.1vw,3rem)] font-medium leading-[1.5] text-[#F2D9A9]"
+              className="font-serif text-[clamp(1.65rem,6vw,2.5rem)] font-medium leading-[1.6] text-[#F2D9A9] md:text-[clamp(2rem,3vw,3rem)]"
             >
               <p>आपका नाम।</p>
               <p>आपकी जन्म तिथि।</p>
               <p>आपकी व्यक्तिगत खोज।</p>
             </div>
 
+            {/* Hero description */}
             <p className="mt-7 max-w-xl text-base leading-8 text-[#F2E5E5]">
               Discover your personal numbers, explore
               your strengths and begin a thoughtful
@@ -484,11 +533,12 @@ export default function JeevanSutraHomePage() {
               to get started.
             </p>
 
-            {/* Actions */}
-            <div className="mt-8 flex flex-wrap gap-3">
+            {/* Hero buttons */}
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+
               <Link
                 href="/website/register"
-                className="inline-flex items-center justify-center rounded-full bg-[#EAD8AD] px-7 py-4 text-center font-bold text-[#64263B] shadow-lg transition hover:bg-[#FFF0CA]"
+                className="inline-flex items-center justify-center rounded-full bg-[#EAD8AD] px-6 py-4 text-center font-bold text-[#64263B] shadow-lg transition hover:bg-[#FFF0CA]"
               >
                 Discover My Numbers — Free
                 <span className="ml-2">
@@ -498,19 +548,23 @@ export default function JeevanSutraHomePage() {
 
               <a
                 href="#free-discovery"
-                className="inline-flex items-center justify-center rounded-full border border-[#D7B57B] px-6 py-4 font-medium text-[#FAF1E1] hover:bg-white/10"
+                className="inline-flex items-center justify-center rounded-full border border-[#D7B57B] px-6 py-4 text-center font-medium text-[#FAF1E1] hover:bg-white/10"
               >
                 What Will I Discover?
               </a>
+
             </div>
 
-            <p className="mt-6 text-sm text-[#EAD8AD]">
+            {/* Trust line */}
+            <p className="mt-6 text-sm leading-7 text-[#EAD8AD]">
               ✓ No birth time required
-              &nbsp; ✓ Free personal discovery
+              <span className="mx-2">•</span>
+              ✓ Free personal discovery
             </p>
+
           </div>
 
-          {/* Static nine-Graha illustration */}
+          {/* Graha illustration */}
           <div className="relative mx-auto w-full max-w-[600px]">
             <GrahaArtwork />
 
@@ -519,11 +573,14 @@ export default function JeevanSutraHomePage() {
               associations • Symbolic illustration
             </p>
           </div>
+
         </div>
       </section>
 
+      {/* PART 2 CONTINUES HERE */}
+
       {/* BENEFITS */}
-      <section className="relative bg-[#FAF7F0] px-5 py-16 md:px-10">
+      <section className="bg-[#FAF7F0] px-5 py-16 md:px-10">
         <div className="mx-auto max-w-7xl">
           <div className="mb-10 text-center">
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#A17B42]">
@@ -574,10 +631,11 @@ export default function JeevanSutraHomePage() {
             </h2>
 
             <p className="mt-6 text-lg leading-8 text-[#665B55]">
-              Begin with your birth name, current name and
-              date of birth. Jeevan Sutra will use defined
-              numerological calculations to prepare your
-              personalized introductory discovery.
+              Begin with your birth name, current name
+              and date of birth. Jeevan Sutra uses
+              defined numerological calculations to
+              prepare your personalized introductory
+              discovery.
             </p>
           </div>
 
@@ -587,19 +645,19 @@ export default function JeevanSutraHomePage() {
                 number: '01',
                 title: 'Mulank — Birth Number',
                 description:
-                  'Understand the traditional qualities associated with your reduced birth-day number.',
+                  'Explore the traditional qualities associated with your reduced birth-day number.',
               },
               {
                 number: '02',
                 title: 'Bhagyank — Life Path Number',
                 description:
-                  'Explore the numerological number calculated from your complete date of birth.',
+                  'Discover your numerological number calculated from your complete date of birth.',
               },
               {
                 number: '03',
                 title: 'Personal Lo Shu Grid',
                 description:
-                  'View your individual grid, number repetitions, missing numbers and important patterns.',
+                  'Explore number repetitions, missing numbers and important patterns in your individual grid.',
               },
               {
                 number: '04',
@@ -651,22 +709,22 @@ export default function JeevanSutraHomePage() {
               </h3>
 
               <p className="mt-5 leading-8 text-[#665B55]">
-                The Lo Shu grid is a traditional numerical
-                arrangement used in numerological
-                interpretation.
+                The Lo Shu grid is a traditional
+                numerical arrangement used in
+                numerological interpretation.
               </p>
 
               <p className="mt-4 leading-8 text-[#665B55]">
-                Your actual grid will be calculated from
-                the non-zero digits of your date of birth,
-                together with your final Mulank and
-                Bhagyank, following our defined method.
+                Your personal grid will be calculated
+                from the non-zero digits of your date
+                of birth, together with your final
+                Mulank and Bhagyank.
               </p>
 
               <p className="mt-4 leading-8 text-[#665B55]">
                 Present numbers, repetitions, missing
                 numbers, rows, columns and traditional
-                Rajyog combinations will be interpreted
+                Rajyog combinations are interpreted
                 individually.
               </p>
             </div>
@@ -794,8 +852,8 @@ export default function JeevanSutraHomePage() {
               Names and spelling changes have long
               attracted interest in numerology.
               Jeevan Sutra helps you explore the
-              traditional number associations of your
-              birth name and current name.
+              traditional number associations of
+              your birth name and current name.
             </p>
 
             <p className="mt-5 leading-8 text-[#EAD8AD]">
@@ -888,8 +946,8 @@ export default function JeevanSutraHomePage() {
 
           <p className="mx-auto mt-8 max-w-3xl text-center text-sm leading-7 text-[#756C6E]">
             Premium services are being developed.
-            Availability, pricing and delivery
-            will be confirmed before purchase.
+            Availability, pricing and delivery will
+            be confirmed before purchase.
           </p>
         </div>
       </section>
