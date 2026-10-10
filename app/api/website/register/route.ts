@@ -1,7 +1,12 @@
 
 import { NextRequest, NextResponse } from 'next/server'
+import { createHmac, timingSafeEqual } from 'node:crypto'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
+const JS_ORGANIZATION_ID =
+  'd7e678c2-2d43-4fd9-9ef4-48a791b6a5ba'
 
 const allowedGenders = new Set([
   'male',
@@ -10,8 +15,30 @@ const allowedGenders = new Set([
   'prefer_not_to_say',
 ])
 
+const allowedCategories = new Set(['free', 'other'])
+
+const MAX_BODY_BYTES = 10000
+
+function reply(
+  error: string,
+  status: number,
+  extraHeaders: Record<string, string> = {}
+) {
+  return NextResponse.json(
+    { success: false, error },
+    {
+      status,
+      headers: {
+        'Cache-Control': 'no-store',
+        ...extraHeaders,
+      },
+    }
+  )
+}
+
 function validDate(value: string) {
   const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value)
+
   if (!match) return null
 
   const day = Number(match[1])
@@ -39,48 +66,138 @@ function validDate(value: string) {
   ].join('-')
 }
 
+function stringValue(value: unknown) {
+  return typeof value === 'string' ? value.trim() : ''
+}
+
+function safeEqual(a: string, b: string) {
+  const left = Buffer.from(a)
+  const right = Buffer.from(b)
+
+  return (
+    left.length === right.length &&
+    timingSafeEqual(left, right)
+  )
+}
+
+function requestSignature(
+  secret: string,
+  value: string
+) {
+  return createHmac('sha256', secret)
+    .update(value)
+    .digest('hex')
+}
+
 export async function POST(request: NextRequest) {
   try {
-    if (Number(request.headers.get('content-length') || 0) > 10000) {
-      return NextResponse.json(
-        { error: 'Request too large.' },
-        { status: 413 }
+    const supabaseUrl =
+      process.env.NEXT_PUBLIC_SUPABASE_URL
+
+    const supabaseSecret =
+      process.env.SUPABASE_SECRET_KEY
+
+    const registrationApiKey =
+      process.env.JS_REGISTRATION_API_KEY
+
+    if (
+      !supabaseUrl ||
+      !supabaseSecret ||
+      !registrationApiKey
+    ) {
+      console.error(
+        'Jeevan Sutra registration configuration missing'
+      )
+
+      return reply(
+        'Registration service is temporarily unavailable.',
+        503
       )
     }
 
-    const body = await request.json()
+    /*
+      Temporary private testing gate.
 
-    if (!body || typeof body !== 'object' || Array.isArray(body)) {
-      return NextResponse.json(
-        { error: 'Invalid registration details.' },
-        { status: 400 }
-      )
+      The browser does not receive this key.
+      Only a trusted server-side caller can use
+      this endpoint during initial testing.
+
+      Remove this gate only after persistent
+      rate limiting and anti-bot protection
+      are implemented.
+    */
+
+    const suppliedKey =
+      request.headers.get('x-js-registration-key') || ''
+
+    const expectedSignature = requestSignature(
+      registrationApiKey,
+      'jeevansutra-registration'
+    )
+
+    if (
+      !suppliedKey ||
+      !safeEqual(suppliedKey, expectedSignature)
+    ) {
+      return reply('Registration is not yet open.', 403)
     }
 
-    const birthName =
-      typeof body.birthName === 'string'
-        ? body.birthName.trim()
-        : ''
+    const declaredSize = Number(
+      request.headers.get('content-length') || 0
+    )
 
-    const currentName =
-      typeof body.currentName === 'string'
-        ? body.currentName.trim()
-        : ''
+    if (declaredSize > MAX_BODY_BYTES) {
+      return reply('Request too large.', 413)
+    }
 
-    const mobile =
-      typeof body.mobile === 'string'
-        ? body.mobile.replace(/\s/g, '')
-        : ''
+    const rawBody = await request.text()
 
-    const email =
-      typeof body.email === 'string'
-        ? body.email.trim().toLowerCase()
-        : ''
+    if (
+      Buffer.byteLength(rawBody, 'utf8') >
+      MAX_BODY_BYTES
+    ) {
+      return reply('Request too large.', 413)
+    }
 
-    const dob =
-      typeof body.dob === 'string'
-        ? validDate(body.dob)
-        : null
+    let body: Record<string, unknown>
+
+    try {
+      const parsed: unknown = JSON.parse(rawBody)
+
+      if (
+        !parsed ||
+        typeof parsed !== 'object' ||
+        Array.isArray(parsed)
+      ) {
+        return reply(
+          'Invalid registration details.',
+          400
+        )
+      }
+
+      body = parsed as Record<string, unknown>
+    } catch {
+      return reply('Invalid JSON request.', 400)
+    }
+
+    const birthName = stringValue(body.birthName)
+    const currentName = stringValue(body.currentName)
+    const mobile = stringValue(body.mobile).replace(
+      /\s/g,
+      ''
+    )
+    const email = stringValue(body.email).toLowerCase()
+    const gender = stringValue(body.gender)
+    const whatsapp = stringValue(
+      body.whatsapp
+    ).replace(/\s/g, '')
+
+    const category = stringValue(body.category)
+    const selectedService = stringValue(
+      body.selectedService
+    )
+
+    const dob = validDate(stringValue(body.dob))
 
     if (
       !birthName ||
@@ -91,9 +208,9 @@ export async function POST(request: NextRequest) {
       !/^[6-9]\d{9}$/.test(mobile) ||
       body.consent !== true
     ) {
-      return NextResponse.json(
-        { error: 'Please check the required registration details.' },
-        { status: 400 }
+      return reply(
+        'Please check the required registration details.',
+        400
       )
     }
 
@@ -102,55 +219,134 @@ export async function POST(request: NextRequest) {
       (email.length > 254 ||
         !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
     ) {
-      return NextResponse.json(
-        { error: 'Please enter a valid email address.' },
-        { status: 400 }
+      return reply(
+        'Please enter a valid email address.',
+        400
       )
     }
 
     if (
-      body.gender &&
-      (typeof body.gender !== 'string' ||
-        !allowedGenders.has(body.gender))
+      gender &&
+      !allowedGenders.has(gender)
     ) {
-      return NextResponse.json(
-        { error: 'Invalid gender selection.' },
-        { status: 400 }
+      return reply('Invalid gender selection.', 400)
+    }
+
+    if (
+      !allowedCategories.has(category) ||
+      selectedService.length > 150 ||
+      (category === 'other' && !selectedService)
+    ) {
+      return reply(
+        'Please select a valid service.',
+        400
       )
     }
 
     if (
-      body.category !== 'free' &&
-      body.category !== 'other'
+      whatsapp &&
+      !/^[6-9]\d{9}$/.test(whatsapp)
     ) {
-      return NextResponse.json(
-        { error: 'Invalid service category.' },
-        { status: 400 }
+      return reply(
+        'Please enter a valid WhatsApp number.',
+        400
       )
     }
 
+    const endpoint = new URL(
+      '/rest/v1/rpc/save_jeevansutra_registration',
+      supabaseUrl
+    )
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        apikey: supabaseSecret,
+        Authorization: `Bearer ${supabaseSecret}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({
+        p_birth_name: birthName,
+        p_current_name: currentName,
+        p_dob: dob,
+        p_mobile: mobile,
+        p_email: email || null,
+        p_gender: gender || null,
+        p_whatsapp: whatsapp || mobile,
+        p_category: category,
+        p_service:
+          category === 'other'
+            ? selectedService
+            : null,
+        p_consent: true,
+      }),
+      cache: 'no-store',
+      signal: AbortSignal.timeout(10000),
+    })
+
+    if (!response.ok) {
+      console.error(
+        'Jeevan Sutra database save failed',
+        response.status
+      )
+
+      return reply(
+        'Unable to save registration. Please try again.',
+        503
+      )
+    }
+
+    const result: unknown = await response.json()
+
+    if (!Array.isArray(result) || result.length !== 1) {
+      console.error(
+        'Unexpected Jeevan Sutra database response'
+      )
+
+      return reply(
+        'Unable to confirm registration.',
+        503
+      )
+    }
+
+    const saved = result[0] as Record<string, unknown>
+
     if (
-      body.category === 'other' &&
-      (typeof body.selectedService !== 'string' ||
-        !body.selectedService.trim())
+      typeof saved.saved_client_id !== 'string' ||
+      typeof saved.saved_client_number !== 'string'
     ) {
-      return NextResponse.json(
-        { error: 'Please select a service.' },
-        { status: 400 }
+      return reply(
+        'Unable to confirm registration.',
+        503
       )
     }
 
     return NextResponse.json(
       {
-        success: false,
-        error: 'Registration saving is not configured yet.',
+        success: true,
+        message: 'Registration saved successfully.',
+        clientId: saved.saved_client_id,
+        clientNumber: saved.saved_client_number,
+        organizationId: JS_ORGANIZATION_ID,
+        verificationStatus: 'not_verified',
       },
-      { status: 503 }
+      {
+        status: 201,
+        headers: {
+          'Cache-Control': 'no-store',
+        },
+      }
     )
-  } catch {
-    return NextResponse.json(
-      { error: 'Unable to process registration.' },
-      { status: 400 }
+  } catch (error) {
+    console.error(
+      'Jeevan Sutra registration request failed',
+      error instanceof Error ? error.name : 'Unknown error'
+    )
+
+    return reply(
+      'Registration service is temporarily unavailable.',
+      503
     )
   }
 }
