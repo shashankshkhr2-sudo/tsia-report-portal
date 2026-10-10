@@ -15,10 +15,22 @@ function toDisplay(value: string): string {
   return `${day}/${month}/${year}`
 }
 
+function formatDOB(text: string): string {
+  const digits = text.replace(/\D/g, '').slice(0, 8)
+
+  if (digits.length <= 2) return digits
+  if (digits.length <= 4) {
+    return `${digits.slice(0, 2)}/${digits.slice(2)}`
+  }
+
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`
+}
+
 function toISO(text: string): string | null {
   if (!/^\d{2}\/\d{2}\/\d{4}$/.test(text)) return null
 
   const [day, month, year] = text.split('/').map(Number)
+
   if (year < 1 || year > 9999) return null
 
   const date = new Date(0)
@@ -41,23 +53,31 @@ function toISO(text: string): string | null {
   ].join('-')
 }
 
+function todayISO(): string {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 export function DobInput({ value, onChange }: DobInputProps) {
   const [draft, setDraft] = useState<string | null>(null)
 
   const display = draft ?? toDisplay(value)
-  const valid = draft === null || draft === '' || toISO(draft) !== null
+  const complete = display.length === 10
+  const valid = !complete || toISO(display) !== null
 
   function handleTextChange(text: string) {
-    const cleaned = text.replace(/[^\d/]/g, '').slice(0, 10)
-    setDraft(cleaned)
+    const formatted = formatDOB(text)
+    setDraft(formatted)
 
-    if (cleaned === '') {
+    if (formatted === '') {
       onChange('')
       return
     }
 
-    const iso = toISO(cleaned)
-    onChange(iso ?? '')
+    onChange(toISO(formatted) ?? '')
   }
 
   return (
@@ -65,16 +85,23 @@ export function DobInput({ value, onChange }: DobInputProps) {
       <input
         type="text"
         inputMode="numeric"
+        autoComplete="bday"
         placeholder="DD/MM/YYYY"
         aria-label="Date of birth in day month year format"
         aria-invalid={!valid}
         value={display}
         onChange={(event) => handleTextChange(event.target.value)}
         onBlur={() => {
-          if (draft && toISO(draft)) setDraft(null)
+          if (draft && toISO(draft)) {
+            setDraft(null)
+          }
         }}
         maxLength={10}
-        className="h-12 min-w-0 flex-1 rounded-xl border border-[#e5d9d2] bg-white px-3 text-sm text-[#3c3030] outline-none focus:border-[#8b3045]"
+        className={`h-12 min-w-0 flex-1 rounded-xl border bg-white px-3 text-sm text-[#3c3030] outline-none ${
+          valid
+            ? 'border-[#e5d9d2] focus:border-[#8b3045]'
+            : 'border-red-500 focus:border-red-500'
+        }`}
       />
 
       <label className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#e5d9d2] bg-white">
@@ -83,9 +110,14 @@ export function DobInput({ value, onChange }: DobInputProps) {
           type="date"
           aria-label="Choose date of birth from calendar"
           value={value}
-          max={new Date().toLocaleDateString('en-CA')}
+          max={todayISO()}
           onChange={(event) => {
-            onChange(event.target.value)
+            const selected = event.target.value
+            const formatted = toDisplay(selected)
+
+            onChange(
+              formatted && toISO(formatted) ? selected : ''
+            )
             setDraft(null)
           }}
           className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
