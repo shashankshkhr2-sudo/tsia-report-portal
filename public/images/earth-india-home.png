@@ -1,0 +1,2 @@
+cd ~/tsia-report-portal
+sed -i 's|/images/earth-india.png|/images/earth-india-home.png|g' app/website/GrahaArtwork.tsx
