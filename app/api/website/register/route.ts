@@ -1,6 +1,5 @@
-
 import { NextRequest, NextResponse } from 'next/server'
-import { createHmac, timingSafeEqual } from 'node:crypto'
+import { createHmac } from 'node:crypto'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -20,6 +19,15 @@ const allowedGenders = new Set([
 const allowedCategories = new Set([
   'free',
   'other',
+])
+
+const allowedServices = new Set([
+  'Personal Numerology Report',
+  'Life Path Guidance',
+  'Astrology Consultation',
+  'Career & Professional Guidance',
+  'Relationship & Family Guidance',
+  'Personalized Remedies & Yantras',
 ])
 
 function reply(
@@ -58,9 +66,11 @@ function validDate(value: string): string | null {
   const month = Number(match[2])
   const year = Number(match[3])
 
+  const now = new Date()
+
   if (
     year < 1900 ||
-    year > new Date().getUTCFullYear()
+    year > now.getUTCFullYear()
   ) {
     return null
   }
@@ -77,24 +87,21 @@ function validDate(value: string): string | null {
     return null
   }
 
+  const today = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate()
+  )
+
+  if (date.getTime() > today) {
+    return null
+  }
+
   return [
     String(year).padStart(4, '0'),
     String(month).padStart(2, '0'),
     String(day).padStart(2, '0'),
   ].join('-')
-}
-
-function safeEqual(
-  supplied: string,
-  expected: string
-): boolean {
-  const a = Buffer.from(supplied)
-  const b = Buffer.from(expected)
-
-  return (
-    a.length === b.length &&
-    timingSafeEqual(a, b)
-  )
 }
 
 function hmac(
@@ -121,14 +128,27 @@ async function callSupabase(
     supabaseUrl
   )
 
+  /*
+    New Supabase secret keys go in the
+    apikey header, not in a Bearer header.
+
+    Legacy service-role JWT keys also use
+    the Authorization header.
+  */
+  const headers: Record<string, string> = {
+    apikey: supabaseSecret,
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  }
+
+  if (!supabaseSecret.startsWith('sb_secret_')) {
+    headers.Authorization =
+      `Bearer ${supabaseSecret}`
+  }
+
   const response = await fetch(url, {
     method: 'POST',
-    headers: {
-      apikey: supabaseSecret,
-      Authorization: `Bearer ${supabaseSecret}`,
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
+    headers,
     body: JSON.stringify(payload),
     cache: 'no-store',
     signal: AbortSignal.timeout(10000),
@@ -155,10 +175,8 @@ async function checkRateLimit(
     Accept only a trusted Vercel-provided
     client address.
 
-    If the header is unavailable, fail
-    closed rather than bypassing limits.
+    If unavailable, fail closed.
   */
-
   const forwarded =
     request.headers.get('x-vercel-forwarded-for')
 
@@ -225,16 +243,12 @@ export async function POST(request: NextRequest) {
     const supabaseSecret =
       process.env.SUPABASE_SECRET_KEY
 
-    const registrationApiKey =
-      process.env.JS_REGISTRATION_API_KEY
-
     const rateLimitHashSecret =
       process.env.JS_RATE_LIMIT_HASH_SECRET
 
     if (
       !supabaseUrl ||
       !supabaseSecret ||
-      !registrationApiKey ||
       !rateLimitHashSecret ||
       rateLimitHashSecret.length < 32
     ) {
@@ -249,28 +263,15 @@ export async function POST(request: NextRequest) {
     }
 
     /*
-      PRIVATE TESTING GATE
+      LAUNCH GATE
 
-      This API is not yet open to public
-      browser submissions.
-
-      Do not expose the testing secret
-      in client-side JavaScript.
+      Leave this environment variable unset
+      until OTP delivery and the complete
+      registration flow are ready for testing.
     */
-
-    const suppliedKey =
-      request.headers.get(
-        'x-js-registration-key'
-      ) || ''
-
-    const expectedKey = hmac(
-      registrationApiKey,
-      'jeevansutra-registration'
-    )
-
     if (
-      !suppliedKey ||
-      !safeEqual(suppliedKey, expectedKey)
+      process.env.JS_PUBLIC_REGISTRATION_ENABLED !==
+      'true'
     ) {
       return reply(
         'Registration is not yet open.',
@@ -281,11 +282,8 @@ export async function POST(request: NextRequest) {
     /*
       REQUEST SIZE CHECK
     */
-
     const declaredSize = Number(
-      request.headers.get(
-        'content-length'
-      ) || 0
+      request.headers.get('content-length') || 0
     )
 
     if (declaredSize > MAX_BODY_BYTES) {
@@ -295,6 +293,105 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    /*
+      VERIFY CUSTOMER ACCESS TOKEN
+
+      The user ID is obtained from Supabase
+      Auth, never from the submitted form.
+    */
+    const authorization =
+      request.headers.get('authorization') || ''
+
+    const tokenMatch =
+      /^Bearer ([^\s]+)$/i.exec(authorization)
+
+    if (
+      !tokenMatch ||
+      tokenMatch[1].length > 8192
+    ) {
+      return reply(
+        'Please verify your email before registering.',
+        401
+      )
+    }
+
+    const authResponse = await fetch(
+      new URL('/auth/v1/user', supabaseUrl),
+      {
+        method: 'GET',
+        headers: {
+          apikey: supabaseSecret,
+          Authorization:
+            `Bearer ${tokenMatch[1]}`,
+        },
+        cache: 'no-store',
+        signal: AbortSignal.timeout(10000),
+      }
+    )
+
+    if (!authResponse.ok) {
+      if (
+        authResponse.status === 401 ||
+        authResponse.status === 403
+      ) {
+        return reply(
+          'Your verification session has expired. Please sign in again.',
+          401
+        )
+      }
+
+      console.error(
+        'Jeevan Sutra account verification failed',
+        authResponse.status
+      )
+
+      return reply(
+        'Email verification is temporarily unavailable.',
+        503
+      )
+    }
+
+    const authData: unknown = await authResponse
+      .json()
+      .catch(() => null)
+
+    if (
+      !authData ||
+      typeof authData !== 'object' ||
+      Array.isArray(authData)
+    ) {
+      return reply(
+        'Unable to confirm your account.',
+        503
+      )
+    }
+
+    const authUser =
+      authData as Record<string, unknown>
+
+    if (
+      typeof authUser.id !== 'string' ||
+      !authUser.id ||
+      typeof authUser.email !== 'string' ||
+      !authUser.email.trim() ||
+      typeof authUser.email_confirmed_at !== 'string' ||
+      !authUser.email_confirmed_at ||
+      authUser.is_anonymous === true
+    ) {
+      return reply(
+        'Please verify your email before registering.',
+        403
+      )
+    }
+
+    const verifiedUserId = authUser.id
+
+    const verifiedEmail =
+      authUser.email.trim().toLowerCase()
+
+    /*
+      READ AND PARSE REQUEST
+    */
     const rawBody = await request.text()
 
     if (
@@ -336,7 +433,6 @@ export async function POST(request: NextRequest) {
     /*
       NORMALIZE INPUTS
     */
-
     const birthName =
       stringValue(body.birthName)
 
@@ -368,9 +464,8 @@ export async function POST(request: NextRequest) {
       validDate(stringValue(body.dob))
 
     /*
-      VALIDATION
+      VALIDATE REGISTRATION DETAILS
     */
-
     if (
       !birthName ||
       !currentName ||
@@ -387,15 +482,20 @@ export async function POST(request: NextRequest) {
     }
 
     if (
-      email &&
-      (
-        email.length > 254 ||
-        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-      )
+      !email ||
+      email.length > 254 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
     ) {
       return reply(
         'Please enter a valid email address.',
         400
+      )
+    }
+
+    if (email !== verifiedEmail) {
+      return reply(
+        'Please use the email address you verified.',
+        403
       )
     }
 
@@ -411,10 +511,9 @@ export async function POST(request: NextRequest) {
 
     if (
       !allowedCategories.has(category) ||
-      selectedService.length > 150 ||
       (
         category === 'other' &&
-        !selectedService
+        !allowedServices.has(selectedService)
       )
     ) {
       return reply(
@@ -436,7 +535,6 @@ export async function POST(request: NextRequest) {
     /*
       DATABASE-BACKED RATE LIMIT
     */
-
     const allowed = await checkRateLimit(
       supabaseUrl,
       supabaseSecret,
@@ -455,25 +553,28 @@ export async function POST(request: NextRequest) {
     }
 
     /*
-      ATOMIC REGISTRATION SAVE
+      ATOMIC VERIFIED REGISTRATION
 
-      The Supabase function inserts into:
-      1. public.clients
-      2. public.jeevansutra_registrations
+      The database independently checks the
+      confirmed email for this Auth user.
 
-      The database generates the JS client number.
+      It saves the Master Client and linked
+      registration in one transaction.
+
+      Retries for the same Auth user return
+      the existing linked client.
     */
-
     const result = await callSupabase(
       supabaseUrl,
       supabaseSecret,
-      'save_jeevansutra_registration',
+      'save_verified_jeevansutra_registration',
       {
+        p_auth_user_id: verifiedUserId,
         p_birth_name: birthName,
         p_current_name: currentName,
         p_dob: dob,
         p_mobile: mobile,
-        p_email: email || null,
+        p_email: verifiedEmail,
         p_gender: gender || null,
         p_whatsapp: whatsapp || mobile,
         p_category: category,
@@ -507,7 +608,6 @@ export async function POST(request: NextRequest) {
     /*
       VERIFY SAVED RESULT
     */
-
     if (
       !Array.isArray(result.data) ||
       result.data.length !== 1
@@ -522,12 +622,27 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const saved = result.data[0] as
-      Record<string, unknown>
+    const savedRow: unknown = result.data[0]
+
+    if (
+      !savedRow ||
+      typeof savedRow !== 'object' ||
+      Array.isArray(savedRow)
+    ) {
+      return reply(
+        'Unable to confirm registration.',
+        503
+      )
+    }
+
+    const saved =
+      savedRow as Record<string, unknown>
 
     if (
       typeof saved.saved_client_id !== 'string' ||
-      typeof saved.saved_client_number !== 'string'
+      !saved.saved_client_id ||
+      typeof saved.saved_client_number !== 'string' ||
+      !saved.saved_client_number
     ) {
       return reply(
         'Unable to confirm registration.',
@@ -538,7 +653,6 @@ export async function POST(request: NextRequest) {
     /*
       SUCCESS
     */
-
     return NextResponse.json(
       {
         success: true,
@@ -551,7 +665,7 @@ export async function POST(request: NextRequest) {
         organizationId:
           JS_ORGANIZATION_ID,
         verificationStatus:
-          'not_verified',
+          'verified',
       },
       {
         status: 201,
@@ -560,12 +674,13 @@ export async function POST(request: NextRequest) {
         },
       }
     )
-  } catch (error) {
+  } catch {
+    /*
+      Avoid logging submitted details,
+      credentials or access tokens.
+    */
     console.error(
-      'Jeevan Sutra registration failed',
-      error instanceof Error
-        ? error.message
-        : 'Unknown error'
+      'Jeevan Sutra registration request failed'
     )
 
     return reply(
