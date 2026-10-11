@@ -16,7 +16,7 @@ const grahas: Graha[] = [
     english: 'Surya',
     x: 300,
     y: 74,
-    tone: '#DCA866',
+    tone: '#EF9A32',
   },
   {
     n: 2,
@@ -24,7 +24,7 @@ const grahas: Graha[] = [
     english: 'Chandra',
     x: 142,
     y: 139,
-    tone: '#C6C7C5',
+    tone: '#E8EDF4',
   },
   {
     n: 3,
@@ -32,7 +32,7 @@ const grahas: Graha[] = [
     english: 'Guru',
     x: 76,
     y: 296,
-    tone: '#C1A17E',
+    tone: '#E8BD35',
   },
   {
     n: 4,
@@ -40,7 +40,7 @@ const grahas: Graha[] = [
     english: 'Rahu',
     x: 460,
     y: 140,
-    tone: '#A69B99',
+    tone: '#718096',
     shadow: true,
     glyph: '☊',
   },
@@ -50,7 +50,7 @@ const grahas: Graha[] = [
     english: 'Budh',
     x: 220,
     y: 526,
-    tone: '#91AAA0',
+    tone: '#27965A',
   },
   {
     n: 6,
@@ -58,7 +58,7 @@ const grahas: Graha[] = [
     english: 'Shukra',
     x: 382,
     y: 526,
-    tone: '#CEB49C',
+    tone: '#FFF4E0',
   },
   {
     n: 7,
@@ -66,7 +66,7 @@ const grahas: Graha[] = [
     english: 'Ketu',
     x: 140,
     y: 460,
-    tone: '#A69B99',
+    tone: '#A87955',
     shadow: true,
     glyph: '☋',
   },
@@ -76,7 +76,7 @@ const grahas: Graha[] = [
     english: 'Shani',
     x: 524,
     y: 296,
-    tone: '#AD9A80',
+    tone: '#354A91',
   },
   {
     n: 9,
@@ -84,7 +84,7 @@ const grahas: Graha[] = [
     english: 'Mangal',
     x: 460,
     y: 460,
-    tone: '#B77C70',
+    tone: '#D94732',
   },
 ]
 
@@ -111,6 +111,11 @@ export default function GrahaArtwork() {
         </desc>
 
         <defs>
+          <radialGradient id="js-colour-shading" cx="30%" cy="25%" r="80%">
+            <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.48" />
+            <stop offset="45%" stopColor="#FFFFFF" stopOpacity="0" />
+            <stop offset="100%" stopColor="#000000" stopOpacity="0.38" />
+          </radialGradient>
           <radialGradient id="js-soft-backdrop">
             <stop stopColor="#773449" stopOpacity="0.26" />
             <stop
@@ -257,7 +262,7 @@ export default function GrahaArtwork() {
                   cx={graha.x}
                   cy={graha.y}
                   r="26"
-                  fill="#493A48"
+                  fill={graha.tone}
                   fillOpacity="0.38"
                   stroke="#D9B778"
                   strokeWidth="1.2"
@@ -279,7 +284,7 @@ export default function GrahaArtwork() {
                   x={graha.x}
                   y={graha.y + 19}
                   textAnchor="middle"
-                  fill="#FFF2D6"
+                  fill={graha.shadow || [5, 8, 9].includes(graha.n) ? "#FFF4E0" : "#382432"}
                   fontSize="19"
                   fontFamily="serif"
                 >
@@ -292,19 +297,14 @@ export default function GrahaArtwork() {
                   cx={graha.x}
                   cy={graha.y}
                   r="26"
-                  fill={
-                    graha.n === 1
-                      ? 'url(#js-sun-soft)'
-                      : 'url(#js-sphere)'
-                  }
+                  fill={graha.tone}
                 />
 
                 <circle
                   cx={graha.x}
                   cy={graha.y}
                   r="26"
-                  fill={graha.tone}
-                  opacity="0.3"
+                  fill="url(#js-colour-shading)"
                 />
 
                 {graha.n === 8 && (
@@ -325,7 +325,7 @@ export default function GrahaArtwork() {
                   x={graha.x}
                   y={graha.y + 8}
                   textAnchor="middle"
-                  fill="#362334"
+                  fill={graha.shadow || [5, 8, 9].includes(graha.n) ? "#FFF4E0" : "#382432"}
                   fontSize="24"
                   fontFamily="serif"
                 >
