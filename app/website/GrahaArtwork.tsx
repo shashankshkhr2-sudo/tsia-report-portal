@@ -16,7 +16,7 @@ const grahas: Graha[] = [
     english: 'Surya',
     x: 300,
     y: 74,
-    tone: '#EF9A32',
+    tone: '#E87524',
   },
   {
     n: 2,
@@ -32,7 +32,7 @@ const grahas: Graha[] = [
     english: 'Guru',
     x: 76,
     y: 296,
-    tone: '#E8BD35',
+    tone: '#F2D348',
   },
   {
     n: 4,
