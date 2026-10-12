@@ -826,3 +826,127 @@ export default function JeevanSutraHomePage() {
                 development of Jeevan Sutra, including the
                 study of global numerological traditions,
                 selection of traditional Vedic astrology
+                sources and development of structured
+                digital guidance systems.
+              </p>
+            </article>
+
+            <article className="rounded-2xl border border-[#E8DCCD] bg-[#FAF7F0] p-8 md:p-10">
+              <p className="text-xs uppercase tracking-widest text-[#A17B42]">
+                Principal Numerologist
+              </p>
+
+              <h3 className="mt-4 font-serif text-3xl text-[#64263B]">
+                Pranita Ghode
+              </h3>
+
+              <p className="mt-2 font-medium text-[#A17B42]">
+                Founder, The Swastik Indian Art
+              </p>
+
+              <p className="mt-5 leading-8 text-[#665B55]">
+                Serves as Principal Numerologist of
+                Jeevan Sutra and The Swastik Indian Art,
+                contributing specialist numerology guidance
+                and practitioner expertise.
+              </p>
+            </article>
+          </div>
+
+          <p className="mx-auto mt-10 max-w-4xl text-center leading-8 text-[#665B55]">
+            Jeevan Sutra is developing a collaborative
+            network of numerologists, astrologers,
+            artists and other specialist practitioners.
+          </p>
+
+          <div className="mt-6 text-center">
+            <Link
+              href="/website/join"
+              className="inline-flex items-center gap-3 font-medium text-[#64263B] underline underline-offset-4"
+            >
+              Join Our Practitioner Network
+              <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* FINAL CUSTOMER CTA */}
+      <section className="bg-gradient-to-br from-[#64263B] to-[#3D1329] px-5 py-20 text-center text-white md:px-10">
+        <div className="mx-auto max-w-4xl">
+          <p className="text-xs uppercase tracking-[0.22em] text-[#EAD8AD]">
+            Your Discovery Begins Here
+          </p>
+
+          <h2 className="mt-6 font-serif text-4xl font-normal leading-tight md:text-5xl">
+            Every Name Has a Number.
+            <span className="mt-3 block text-[#EAD8AD]">
+              Every Journey Has a Beginning.
+            </span>
+          </h2>
+
+          <p className="mx-auto mt-7 max-w-3xl text-lg leading-9 text-[#F1E1D8]">
+            Begin exploring your personal numerology
+            through your name and date of birth.
+          </p>
+
+          <Link
+            href="/website/register"
+            className="mt-9 inline-flex items-center rounded-full bg-[#EAD8AD] px-9 py-4 font-medium text-[#64263B]"
+          >
+            Discover My Numbers — Free
+            <span className="ml-3" aria-hidden="true">→</span>
+          </Link>
+        </div>
+      </section>
+
+      {/* DISCLAIMER */}
+      <section className="bg-[#FAF7F0] px-5 py-10 md:px-10">
+        <p className="mx-auto max-w-5xl text-center text-sm leading-7 text-[#756C6E]">
+          Jeevan Sutra provides interpretive and reflective
+          guidance based on traditional numerology and astrology.
+          These services do not replace professional medical,
+          legal, psychological or financial advice.
+          Individual outcomes cannot be guaranteed.
+        </p>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="border-t border-[#E6D8C7] bg-[#FFF9F0] px-5 py-10 md:px-10">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 md:flex-row">
+          <div className="text-center md:text-left">
+            <p className="font-serif text-2xl tracking-wide text-[#64263B]">
+              JEEVAN SUTRA
+            </p>
+
+            <p className="mt-2 text-[10px] tracking-[0.15em] text-[#A17B42]">
+              THE COMPLETE GUIDANCE EXPERIENCE
+            </p>
+          </div>
+
+          <nav
+            aria-label="Footer navigation"
+            className="flex flex-wrap justify-center gap-6 text-sm text-[#665B55]"
+          >
+            <Link href="/website">Home</Link>
+            <a href="#about">About</a>
+            <a href="#free-discovery">Free Discovery</a>
+            <a href="#services">Services</a>
+            <Link href="/website/register">Register</Link>
+            <Link
+              href="/website/join"
+              className="font-medium text-[#64263B]"
+            >
+              Join Jeevan Sutra
+            </Link>
+          </nav>
+        </div>
+
+        <div className="mx-auto mt-8 max-w-7xl border-t border-[#E6D8C7] pt-6 text-center text-sm text-[#756C6E]">
+          © {new Date().getFullYear()} Jeevan Sutra.
+          All rights reserved.
+        </div>
+      </footer>
+    </main>
+  )
+}
