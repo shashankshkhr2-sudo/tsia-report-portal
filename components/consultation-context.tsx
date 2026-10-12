@@ -6,6 +6,8 @@ import {
   Check,
 } from 'lucide-react'
 
+import { PractitionerPreviews } from '@/components/website/practitioner-previews'
+
 import { Button } from '@/components/ui/button'
 
 import type {
@@ -100,6 +102,8 @@ export function ConsultationContext({
             ID: {consultationId}
           </p>
         </div>
+
+        <PractitionerPreviews clientId={client.id} />
 
         <div className="mt-4 rounded-2xl bg-white p-5 shadow-sm">
 

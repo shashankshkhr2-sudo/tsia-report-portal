@@ -1,816 +1,952 @@
-"use client";
+import Link from 'next/link'
+import GrahaArtwork from './GrahaArtwork'
 
-import { useEffect, useState } from "react";
+const benefits = [
+  {
+    symbol: '✦',
+    title: 'Personal Strengths',
+    detail: 'Explore the qualities associated with your numbers.',
+  },
+  {
+    symbol: '◇',
+    title: 'Career Guidance',
+    detail: 'Reflect on professional direction and working style.',
+  },
+  {
+    symbol: '♡',
+    title: 'Relationships',
+    detail: 'Explore patterns of connection and communication.',
+  },
+  {
+    symbol: '◎',
+    title: 'Money & Opportunities',
+    detail: 'Consider traditional themes around planning and opportunity.',
+  },
+  {
+    symbol: '❋',
+    title: 'Personal Growth',
+    detail: 'Build greater self-awareness through guided reflection.',
+  },
+]
 
 const services = [
   {
-    title: "Personal Numerology",
-    subtitle: "Discover Your Strengths. Understand Your Numbers.",
+    number: '01',
+    title: 'Detailed Numerology Reports',
     description:
-      "Explore your Mulank, Bhagyank, Lo Shu Grid, name numerology and personal strengths.",
+      'Personalized analysis of Mulank, Bhagyank, Lo Shu, Graha associations and name numbers.',
   },
   {
-    title: "Premium Life Path",
-    subtitle: "Understand Your Life. Find Your Direction.",
+    number: '02',
+    title: 'Birth Name & Current Name Analysis',
     description:
-      "An integrated guidance experience combining numerology and traditional Vedic astrology.",
+      'Explore Chaldean name numbers and interpretations of different name spellings.',
   },
   {
-    title: "Professional Guidance",
-    subtitle: "Clarity for Your Challenges.",
+    number: '03',
+    title: 'Career & Professional Direction',
     description:
-      "Thoughtful guidance for career, business and important personal decisions.",
+      'Reflect on strengths, working preferences and career-related numerology themes.',
   },
   {
-    title: "Ambition Support",
-    subtitle: "Your Ambition Matters.",
+    number: '04',
+    title: 'Relationships & Family Guidance',
     description:
-      "Explore your aspirations and develop practical steps toward meaningful goals.",
+      'Explore communication, relationships and family dynamics through a structured framework.',
   },
   {
-    title: "Manifestation Support",
-    subtitle: "Turn Intentions into Action.",
+    number: '05',
+    title: 'Premium Life Path & Vedic Astrology',
     description:
-      "Build supportive routines, set meaningful intentions and focus on progress.",
+      'In-depth guidance with optional birth-chart analysis when accurate birth details are available.',
   },
   {
-    title: "Action & Progress Support",
-    subtitle: "Every Step Counts.",
+    number: '06',
+    title: 'Grahapurti Yantram & Personalized Art',
     description:
-      "Review your goals, understand your progress and plan your next steps.",
+      'Mathematical yantras and individually developed traditional artwork with specialist artists.',
   },
-];
+]
 
-export default function JeevanSutraWebsite() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [remaining, setRemaining] = useState("");
+const navigation = [
+  ['Home', '/website'],
+  ['About', '#about'],
+  ['Free Discovery', '#free-discovery'],
+  ['How It Works', '#how-it-works'],
+  ['Services', '#services'],
+  ['Leadership', '#leadership'],
+  ['Join Jeevan Sutra', '/website/join'],
+]
 
-  useEffect(() => {
-    const target = new Date("2026-10-20T14:19:00+05:30").getTime();
-
-    function updateCountdown() {
-      const difference = target - Date.now();
-
-      if (difference <= 0) {
-        setRemaining("Our launch date has arrived");
-        return;
-      }
-
-      const seconds = Math.floor(difference / 1000);
-      const days = Math.floor(seconds / 86400);
-      const hours = Math.floor((seconds % 86400) / 3600);
-      const minutes = Math.floor((seconds % 3600) / 60);
-
-      setRemaining(
-        `${days} Days · ${hours} Hours · ${minutes} Minutes`
-      );
-    }
-
-    updateCountdown();
-    const timer = window.setInterval(updateCountdown, 60000);
-
-    return () => window.clearInterval(timer);
-  }, []);
-
+function Brand() {
   return (
-    <div className="js-site">
-      <header className="js-header">
-        <a href="#home" className="js-brand">
+    <Link
+      href="/website"
+      aria-label="Jeevan Sutra homepage"
+      className="flex min-w-0 items-center gap-3"
+    >
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#D8B475] font-serif text-xl text-[#EAD8AD] sm:h-13 sm:w-13">
+        JS
+      </span>
+
+      <span className="min-w-0">
+        <span className="block whitespace-nowrap font-serif text-[17px] tracking-[0.04em] text-[#F5E2BA] sm:text-2xl">
           JEEVAN SUTRA
-        </a>
+        </span>
 
-        <button
-          type="button"
-          className="js-menu-button"
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Toggle navigation"
-          aria-expanded={menuOpen}
-        >
-          ☰
-        </button>
+        <span className="mt-1 block text-[7px] tracking-[0.06em] text-[#EAD8AD] sm:text-[10px]">
+          THE COMPLETE GUIDANCE EXPERIENCE
+        </span>
+      </span>
+    </Link>
+  )
+}
 
-        <nav className={menuOpen ? "js-nav open" : "js-nav"}>
-          <a href="#home" onClick={() => setMenuOpen(false)}>
-            Home
-          </a>
-          <a href="#services" onClick={() => setMenuOpen(false)}>
-            Services
-          </a>
-          <a href="#consultation" onClick={() => setMenuOpen(false)}>
-            Free Consultation
-          </a>
-          <a href="#about" onClick={() => setMenuOpen(false)}>
-            About Us
-          </a>
-          <a href="/login" className="js-login">
-            Login
-          </a>
-          <a href="#registration" className="js-register">
-            Register Now
-          </a>
-        </nav>
-      </header>
+export default function JeevanSutraHomePage() {
+  return (
+    <main className="min-h-screen bg-[#FAF7F0] text-[#42353A]">
+      {/* HEADER */}
+      <header className="relative z-20 border-b border-[#C5A15A]/30 bg-[#64263B]">
+        <div className="mx-auto max-w-7xl px-5 md:px-10">
+          <div className="hidden items-center justify-between gap-4 py-5 xl:flex">
+            <Brand />
 
-      <main>
-        <section id="home" className="js-hero">
-          <div className="js-hero-inner">
-            <img
-              src="/logo.png"
-              alt="Jeevan Sutra original logo"
-              className="js-logo"
-            />
+            <nav
+              aria-label="Main navigation"
+              className="flex items-center gap-4"
+            >
+              {navigation.map(([label, href]) => (
+                <Link
+                  key={label}
+                  href={href}
+                  className={
+                    label === 'Join Jeevan Sutra'
+                      ? 'whitespace-nowrap rounded-full border border-[#D8B475]/70 px-4 py-2 text-sm font-medium text-[#EAD8AD] hover:bg-white/10'
+                      : 'whitespace-nowrap text-sm text-[#F4E7D7] hover:text-[#EAD8AD]'
+                  }
+                >
+                  {label}
+                </Link>
+              ))}
 
-            <p className="js-eyebrow">
-              THE COMPLETE GUIDANCE EXPERIENCE
-            </p>
-
-            <h1>
-              Wisdom for
-              <br />
-              <em>Your Life&apos;s Journey.</em>
-            </h1>
-
-            <p className="js-intro">
-              Discover a thoughtful guidance experience
-              bringing together Indian wisdom, numerology,
-              Vedic astrology and practical support for
-              your personal journey.
-            </p>
-
-            <div className="js-buttons">
-              <a href="#registration" className="js-primary">
-                REGISTER NOW
-              </a>
-              <a href="#services" className="js-secondary">
-                EXPLORE SERVICES
-              </a>
-            </div>
+              <Link
+                href="/website/register"
+                className="rounded-full bg-[#EAD8AD] px-5 py-3 text-sm font-medium text-[#64263B]"
+              >
+                Register
+              </Link>
+            </nav>
           </div>
-        </section>
 
-        <section id="consultation" className="js-section js-light">
-          <div className="js-container js-center">
-            <p className="js-eyebrow js-dark-gold">
-              BEGIN YOUR JOURNEY
-            </p>
+          {/* MOBILE AND TABLET MENU */}
+          <details className="group xl:hidden">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 py-4 [&::-webkit-details-marker]:hidden">
+              <span className="flex min-w-0 items-center gap-2">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#D8B475] font-serif text-xl text-[#EAD8AD]">
+                  JS
+                </span>
 
-            <h2>Start with a Free Consultation</h2>
-
-            <p className="js-description">
-              Begin discovering your personal numerology
-              with an introductory consultation from
-              the Jeevan Sutra team.
-            </p>
-
-            <p className="js-description">
-              Our Free Consultation Team is led by
-              Pranita Ghode, Principal Numerologist,
-              who supervises training and consultation quality.
-            </p>
-
-            <a href="#registration" className="js-primary">
-              REGISTER FOR FREE CONSULTATION
-            </a>
-          </div>
-        </section>
-
-        <section id="services" className="js-section">
-          <div className="js-container">
-            <div className="js-center">
-              <p className="js-eyebrow">
-                THE JEEVAN SUTRA EXPERIENCE
-              </p>
-
-              <h2>Guidance for Every Dimension of Life</h2>
-
-              <p className="js-description">
-                Explore our developing collection of
-                personalized guidance experiences.
-              </p>
-            </div>
-
-            <div className="js-grid">
-              {services.map((service, index) => (
-                <article className="js-card" key={service.title}>
-                  <span className="js-card-number">
-                    {String(index + 1).padStart(2, "0")}
+                <span className="min-w-0">
+                  <span className="block whitespace-nowrap font-serif text-[17px] text-[#F5E2BA]">
+                    JEEVAN SUTRA
                   </span>
 
-                  <h3>{service.title}</h3>
-                  <strong>{service.subtitle}</strong>
-                  <p>{service.description}</p>
+                  <span className="block text-[7px] tracking-[0.05em] text-[#EAD8AD]">
+                    THE COMPLETE GUIDANCE EXPERIENCE
+                  </span>
+                </span>
+              </span>
 
-                  <a href="#registration">
-                    EXPLORE THIS SERVICE →
-                  </a>
+              <span className="rounded-full border border-[#C5A15A]/60 p-3 text-[#EAD8AD]">
+                <span className="sr-only">Open navigation menu</span>
+
+                <svg
+                  width="19"
+                  height="19"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  aria-hidden="true"
+                >
+                  <path d="M4 7h16M4 12h16M4 17h16" />
+                </svg>
+              </span>
+            </summary>
+
+            <nav
+              aria-label="Mobile navigation"
+              className="grid gap-1 border-t border-[#C5A15A]/30 pb-5 pt-3"
+            >
+              {navigation.map(([label, href]) => (
+                <Link
+                  key={label}
+                  href={href}
+                  className={
+                    label === 'Join Jeevan Sutra'
+                      ? 'mt-2 rounded-lg border border-[#D8B475]/60 px-4 py-3 text-sm font-medium text-[#EAD8AD] hover:bg-white/10'
+                      : 'rounded-lg px-4 py-3 text-sm text-[#F4E7D7] hover:bg-white/10'
+                  }
+                >
+                  {label}
+                </Link>
+              ))}
+
+              <Link
+                href="/website/register"
+                className="mt-2 rounded-lg bg-[#EAD8AD] px-4 py-3 text-center text-sm font-medium text-[#64263B]"
+              >
+                Register
+              </Link>
+            </nav>
+          </details>
+        </div>
+      </header>
+
+      {/* HERO */}
+      <section className="bg-gradient-to-br from-[#64263B] via-[#551F35] to-[#351020] text-white">
+        <div className="mx-auto grid max-w-7xl items-center gap-9 px-5 pb-14 pt-12 md:grid-cols-2 md:gap-5 md:px-10 md:py-16">
+          <div className="min-w-0">
+            <p className="mb-6 text-[11px] uppercase tracking-[0.22em] text-[#EAD8AD]">
+              Your Personal Numerology Journey
+            </p>
+
+            <h1 className="font-serif text-[clamp(1.9rem,6vw,3.4rem)] font-normal leading-[1.18] text-[#FFF8EB]">
+              <span className="block">Your Name.</span>
+              <span className="block">Your Date of Birth.</span>
+              <span className="block">Your Personal Discovery.</span>
+            </h1>
+
+            <div className="my-7 h-px w-28 bg-[#C5A15A]" />
+
+            <div
+              lang="hi"
+              className="font-serif text-[clamp(1.45rem,4.5vw,2.3rem)] font-normal leading-[1.55] text-[#EAD8AD]"
+            >
+              <p>आपका नाम।</p>
+              <p>आपकी जन्म तिथि।</p>
+              <p>आपकी व्यक्तिगत खोज।</p>
+            </div>
+
+            <p className="mt-6 max-w-xl text-base leading-8 text-[#F0E4E5]">
+              Discover your personal numbers, explore your
+              strengths and begin a thoughtful journey through
+              traditional numerology. Your name and date of
+              birth are enough to get started.
+            </p>
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <Link
+                href="/website/register"
+                className="inline-flex items-center justify-center rounded-full bg-[#EAD8AD] px-7 py-4 text-center font-medium text-[#64263B] hover:bg-[#FFF0CA]"
+              >
+                Discover My Numbers — Free
+                <span className="ml-3" aria-hidden="true">→</span>
+              </Link>
+
+              <a
+                href="#free-discovery"
+                className="inline-flex items-center justify-center rounded-full border border-[#D7B57B] px-7 py-4 text-center font-medium text-[#FAF1E1] hover:bg-white/10"
+              >
+                What Will I Discover?
+              </a>
+            </div>
+
+            <p className="mt-6 text-sm leading-7 text-[#EAD8AD]">
+              ✓ No birth time required
+              <span className="mx-2">•</span>
+              ✓ Free personal discovery
+            </p>
+
+            <div className="mt-7 border-t border-[#D8B475]/30 pt-5">
+              <p className="text-sm leading-7 text-[#F0E4E5]">
+                Are you an astrologer or numerologist?
+              </p>
+
+              <Link
+                href="/website/join"
+                className="mt-2 inline-flex items-center gap-3 font-medium text-[#EAD8AD] underline underline-offset-4 hover:text-[#FFF0CA]"
+              >
+                Join Jeevan Sutra — Free
+                <span aria-hidden="true">→</span>
+              </Link>
+            </div>
+          </div>
+
+          <div className="mx-auto w-full max-w-[600px]">
+            <GrahaArtwork />
+          </div>
+        </div>
+      </section>
+
+      {/* BENEFITS */}
+      <section className="bg-[#FAF7F0] px-5 py-16 md:px-10">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-10 text-center">
+            <p className="text-xs uppercase tracking-[0.22em] text-[#A17B42]">
+              Discover Your Potential
+            </p>
+
+            <h2 className="mt-4 font-serif text-3xl font-normal text-[#64263B] md:text-5xl">
+              Explore Different Aspects of Your Life
+            </h2>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+            {benefits.map((item) => (
+              <article
+                key={item.title}
+                className="rounded-2xl border border-[#E7D8C4] bg-white px-5 py-8 text-center shadow-sm"
+              >
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-[#D8B475] bg-[#FAF3E8] font-serif text-3xl text-[#9E753E]">
+                  {item.symbol}
+                </div>
+
+                <h3 className="mt-5 font-serif text-xl text-[#64263B]">
+                  {item.title}
+                </h3>
+
+                <p className="mt-3 text-sm leading-7 text-[#665B55]">
+                  {item.detail}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FREE DISCOVERY */}
+      <section
+        id="free-discovery"
+        className="scroll-mt-20 bg-[#F1E9DD] px-5 py-20 md:px-10"
+      >
+        <div className="mx-auto max-w-7xl">
+          <div className="mx-auto max-w-4xl text-center">
+            <p className="text-xs uppercase tracking-[0.22em] text-[#A17B42]">
+              Complimentary Personal Discovery
+            </p>
+
+            <h2 className="mt-5 font-serif text-4xl font-normal text-[#64263B] md:text-5xl">
+              What Will Your Free Numerology Reveal?
+            </h2>
+
+            <p className="mt-6 text-lg leading-8 text-[#665B55]">
+              Begin with your birth name, current name and date
+              of birth. Jeevan Sutra uses defined numerological
+              calculations to prepare your personalized
+              introductory discovery.
+            </p>
+          </div>
+
+          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                number: '01',
+                title: 'Mulank — Birth Number',
+                description:
+                  'Explore traditional qualities associated with your reduced birth-day number.',
+              },
+              {
+                number: '02',
+                title: 'Bhagyank — Life Path Number',
+                description:
+                  'Discover your number calculated from your complete date of birth.',
+              },
+              {
+                number: '03',
+                title: 'Personal Lo Shu Grid',
+                description:
+                  'Explore number repetitions, missing numbers and important patterns.',
+              },
+              {
+                number: '04',
+                title: 'Birth Name Number',
+                description:
+                  'Discover the Chaldean number associated with your original birth name.',
+              },
+              {
+                number: '05',
+                title: 'Current Name Number',
+                description:
+                  'Compare traditional interpretations of your birth and current names.',
+              },
+              {
+                number: '06',
+                title: 'Strengths & Personal Insights',
+                description:
+                  'Explore strengths, development areas and reflective suggestions.',
+              },
+            ].map((item) => (
+              <article
+                key={item.number}
+                className="rounded-2xl border border-[#E4D5C2] bg-[#FFFCF7] p-7 shadow-sm"
+              >
+                <span className="font-serif text-3xl text-[#B18A53]">
+                  {item.number}
+                </span>
+
+                <h3 className="mt-4 font-serif text-2xl text-[#64263B]">
+                  {item.title}
+                </h3>
+
+                <p className="mt-4 leading-8 text-[#665B55]">
+                  {item.description}
+                </p>
+              </article>
+            ))}
+          </div>
+
+          {/* LO SHU REFERENCE */}
+          <div className="mt-12 grid items-center gap-10 rounded-3xl border border-[#E0CDAE] bg-white p-7 md:grid-cols-2 md:p-12">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-[#A17B42]">
+                Traditional Numerology
+              </p>
+
+              <h3 className="mt-4 font-serif text-3xl text-[#64263B]">
+                Your Personal Lo Shu Grid
+              </h3>
+
+              <p className="mt-5 leading-8 text-[#665B55]">
+                The Lo Shu grid is a traditional numerical
+                arrangement used in numerological interpretation.
+              </p>
+
+              <p className="mt-4 leading-8 text-[#665B55]">
+                Your personal grid will be calculated from the
+                non-zero digits of your date of birth, together
+                with your final Mulank and Bhagyank.
+              </p>
+
+              <p className="mt-4 leading-8 text-[#665B55]">
+                Present numbers, repetitions, missing numbers,
+                rows, columns and Rajyog combinations are
+                interpreted individually.
+              </p>
+            </div>
+
+            <div className="mx-auto w-full max-w-[350px]">
+              <p className="mb-5 text-center font-serif text-xl text-[#64263B]">
+                Standard Lo Shu Reference
+              </p>
+
+              <div className="grid grid-cols-3 gap-2">
+                {[4, 9, 2, 3, 5, 7, 8, 1, 6].map((n) => (
+                  <div
+                    key={n}
+                    className="flex aspect-square items-center justify-center rounded-lg border border-[#C5A15A] bg-[#FAF3E8] font-serif text-4xl text-[#64263B]"
+                  >
+                    {n}
+                  </div>
+                ))}
+              </div>
+
+              <p className="mt-5 text-center text-sm leading-6 text-[#756C6E]">
+                Reference grid only. Your personal grid will
+                use your own calculated numbers.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-12 text-center">
+            <Link
+              href="/website/register"
+              className="inline-flex items-center rounded-full bg-[#64263B] px-9 py-4 font-medium text-white hover:bg-[#4D1930]"
+            >
+              Discover My Numbers — Free
+              <span className="ml-3" aria-hidden="true">→</span>
+            </Link>
+
+            <p className="mt-4 text-sm text-[#665B55]">
+              No birth time or place required for introductory numerology.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section
+        id="how-it-works"
+        className="scroll-mt-20 bg-[#FAF7F0] px-5 py-20 md:px-10"
+      >
+        <div className="mx-auto max-w-7xl">
+          <div className="text-center">
+            <p className="text-xs uppercase tracking-[0.22em] text-[#A17B42]">
+              Simple Personal Discovery
+            </p>
+
+            <h2 className="mt-4 font-serif text-4xl text-[#64263B] md:text-5xl">
+              How Jeevan Sutra Works
+            </h2>
+          </div>
+
+          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                step: '01',
+                title: 'Enter Your Details',
+                description:
+                  'Provide your birth name, current name and date of birth.',
+              },
+              {
+                step: '02',
+                title: 'Verify Your Account',
+                description:
+                  'Complete verification using an email OTP. Mobile verification is planned for a later release.',
+              },
+              {
+                step: '03',
+                title: 'Discover Your Numbers',
+                description:
+                  'Explore calculated numerology numbers, Lo Shu and personalized explanations.',
+              },
+              {
+                step: '04',
+                title: 'Explore Deeper Guidance',
+                description:
+                  'Discover optional reports, consultations and other services.',
+              },
+            ].map((item) => (
+              <article
+                key={item.step}
+                className="rounded-2xl border border-[#E6D8C7] bg-white p-7 text-center"
+              >
+                <div className="mx-auto flex h-15 w-15 items-center justify-center rounded-full bg-[#64263B] font-serif text-2xl text-[#EAD8AD]">
+                  {item.step}
+                </div>
+
+                <h3 className="mt-6 font-serif text-2xl text-[#64263B]">
+                  {item.title}
+                </h3>
+
+                <p className="mt-4 leading-8 text-[#665B55]">
+                  {item.description}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* NAME DISCOVERY */}
+      <section className="bg-[#64263B] px-5 py-20 text-white md:px-10">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 md:grid-cols-2">
+          <div>
+            <p className="text-xs uppercase tracking-[0.22em] text-[#EAD8AD]">
+              The Power of a Name
+            </p>
+
+            <h2 className="mt-5 font-serif text-4xl font-normal leading-tight md:text-5xl">
+              Why Do Some Celebrities Change Their Names?
+            </h2>
+
+            <p className="mt-6 text-lg leading-9 text-[#F1E1D8]">
+              Names and spelling changes have long attracted
+              interest in numerology. Jeevan Sutra helps you
+              explore the traditional number associations
+              of your birth name and current name.
+            </p>
+
+            <p className="mt-5 leading-8 text-[#EAD8AD]">
+              A name number is a traditional interpretation,
+              not a guarantee of success or a prediction.
+            </p>
+          </div>
+
+          <div className="rounded-3xl border border-[#D8B475]/50 bg-[#FFF9EF] p-8 text-center text-[#64263B] md:p-12">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-[#C5A15A] font-serif text-4xl">
+              5
+            </div>
+
+            <h3 className="mt-6 font-serif text-3xl">
+              Your Name Has a Number
+            </h3>
+
+            <p className="mt-5 leading-8 text-[#665B55]">
+              Discover how the Chaldean system assigns
+              numerical values to letters and how different
+              names can produce different results.
+            </p>
+
+            <div className="mt-8 border-t border-[#E4D4BD] pt-7">
+              <Link
+                href="/website/register"
+                className="inline-block rounded-full bg-[#64263B] px-7 py-4 font-medium text-white"
+              >
+                Explore My Name Number
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* PREMIUM SERVICES */}
+      <section
+        id="services"
+        className="scroll-mt-20 bg-[#FAF7F0] px-5 py-20 md:px-10"
+      >
+        <div className="mx-auto max-w-7xl">
+          <div className="mx-auto max-w-4xl text-center">
+            <p className="text-xs uppercase tracking-[0.22em] text-[#A17B42]">
+              Beyond Your Free Discovery
+            </p>
+
+            <h2 className="mt-5 font-serif text-4xl text-[#64263B] md:text-5xl">
+              Explore Premium Guidance
+            </h2>
+
+            <p className="mt-6 text-lg leading-8 text-[#665B55]">
+              Your free numerology discovery is just the
+              beginning. Explore additional personalized
+              services whenever you are ready.
+            </p>
+          </div>
+
+          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {services.map((service) => (
+              <article
+                key={service.number}
+                className="flex flex-col rounded-2xl border border-[#E6D8C7] bg-white p-8 shadow-sm"
+              >
+                <span className="font-serif text-3xl text-[#B18A53]">
+                  {service.number}
+                </span>
+
+                <h3 className="mt-5 font-serif text-2xl text-[#64263B]">
+                  {service.title}
+                </h3>
+
+                <p className="mt-4 flex-1 leading-8 text-[#665B55]">
+                  {service.description}
+                </p>
+
+                <Link
+                  href="/website/register"
+                  className="mt-7 font-medium text-[#64263B] underline underline-offset-4"
+                >
+                  Register Your Interest
+                </Link>
+              </article>
+            ))}
+          </div>
+
+          <p className="mx-auto mt-8 max-w-3xl text-center text-sm leading-7 text-[#756C6E]">
+            Premium services are being developed.
+            Availability, pricing and delivery will be
+            confirmed before purchase.
+          </p>
+        </div>
+      </section>
+
+      {/* PRACTITIONER RECRUITMENT */}
+      <section
+        id="join-jeevan-sutra"
+        className="scroll-mt-20 border-y border-[#D8B475]/40 bg-[#F1E9DD] px-5 py-16 md:px-10 md:py-20"
+      >
+        <div className="mx-auto max-w-7xl">
+          <div className="grid items-center gap-10 lg:grid-cols-2">
+            <div>
+              <p className="text-xs uppercase tracking-[0.22em] text-[#A17B42]">
+                For Astrologers & Numerologists
+              </p>
+
+              <h2 className="mt-5 font-serif text-4xl leading-tight text-[#64263B] md:text-5xl">
+                Join Jeevan Sutra
+              </h2>
+
+              <p className="mt-5 font-serif text-2xl leading-9 text-[#64263B]">
+                Bring your knowledge.
+                <br />
+                Build your practice. Reach more people.
+              </p>
+
+              <p className="mt-6 text-base leading-8 text-[#665B55]">
+                Whether you have guided clients for years or are
+                beginning your professional journey, explore a
+                platform being built to help you understand clients
+                better, deliver thoughtful guidance and create
+                more opportunities to earn.
+              </p>
+
+              <Link
+                href="/website/join"
+                className="mt-8 inline-flex items-center justify-center gap-3 rounded-full bg-[#64263B] px-8 py-4 font-medium text-white hover:bg-[#4D1930]"
+              >
+                Apply to Join — Free
+                <span aria-hidden="true">→</span>
+              </Link>
+
+              <p className="mt-4 text-sm leading-7 text-[#665B55]">
+                No registration or practitioner subscription fee.
+                Continue your independent practice.
+              </p>
+            </div>
+
+            <div className="grid gap-4">
+              {[
+                {
+                  number: '01',
+                  title: 'A Fuller Understanding of Your Clients',
+                  description:
+                    'Organized client information, reports and consultation history to support better preparation and more personal guidance.',
+                },
+                {
+                  number: '02',
+                  title: 'Paid Consultation Opportunities',
+                  description:
+                    'Approved practitioners can be considered for assignments matched to their expertise, languages and availability.',
+                },
+                {
+                  number: '03',
+                  title: 'Experience and Emerging Talent Welcome',
+                  description:
+                    'We welcome established practitioners and promising beginners who can demonstrate knowledge, clear communication and responsible guidance.',
+                },
+              ].map((item) => (
+                <article
+                  key={item.number}
+                  className="rounded-2xl border border-[#E4D5C2] bg-[#FFFCF7] p-6 sm:p-7"
+                >
+                  <div className="flex items-start gap-4">
+                    <span className="font-serif text-2xl text-[#B18A53]">
+                      {item.number}
+                    </span>
+
+                    <div>
+                      <h3 className="font-serif text-xl leading-7 text-[#64263B]">
+                        {item.title}
+                      </h3>
+
+                      <p className="mt-3 text-sm leading-7 text-[#665B55]">
+                        {item.description}
+                      </p>
+                    </div>
+                  </div>
                 </article>
               ))}
             </div>
           </div>
-        </section>
 
-        <section className="js-section js-light">
-          <div className="js-container js-center">
-            <p className="js-eyebrow js-dark-gold">
-              HOW JEEVAN SUTRA WORKS
-            </p>
+          <p className="mt-8 text-sm leading-7 text-[#756C6E]">
+            Applications are reviewed before approval. Assignments
+            and earnings depend on suitability, customer demand,
+            availability and agreed payment terms.
+          </p>
+        </div>
+      </section>
 
-            <h2>Your Guidance Journey</h2>
+      {/* ABOUT */}
+      <section
+        id="about"
+        className="scroll-mt-20 bg-[#F1E9DD] px-5 py-20 md:px-10"
+      >
+        <div className="mx-auto max-w-5xl text-center">
+          <p className="text-xs uppercase tracking-[0.22em] text-[#A17B42]">
+            Our Vision
+          </p>
 
-            <div className="js-steps">
-              <div>
-                <span>01</span>
-                <h3>Register</h3>
-                <p>Create your Jeevan Sutra client profile.</p>
+          <h2 className="mt-5 font-serif text-4xl text-[#64263B] md:text-5xl">
+            About Jeevan Sutra
+          </h2>
+
+          <p className="mt-8 text-lg leading-9 text-[#665B55]">
+            Jeevan Sutra is an independent personal guidance
+            platform bringing together traditional numerology,
+            Vedic astrology, structured interpretation and
+            modern technology.
+          </p>
+
+          <p className="mt-5 text-lg leading-9 text-[#665B55]">
+            We aim to make personalized guidance more accessible
+            through clear explanations, defined calculation
+            methods, responsible interpretation and collaboration
+            with experienced practitioners.
+          </p>
+
+          <div className="mt-10 grid gap-5 md:grid-cols-3">
+            {[
+              {
+                title: 'Personalized',
+                description: 'Guidance based on individual information.',
+              },
+              {
+                title: 'Structured',
+                description: 'Defined methods and calculation checks.',
+              },
+              {
+                title: 'Respectful',
+                description: 'Privacy, personal beliefs and individual choice.',
+              },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="rounded-2xl border border-[#E4D5C2] bg-white p-7"
+              >
+                <h3 className="font-serif text-2xl text-[#64263B]">
+                  {item.title}
+                </h3>
+
+                <p className="mt-4 leading-7 text-[#665B55]">
+                  {item.description}
+                </p>
               </div>
-
-              <div>
-                <span>02</span>
-                <h3>Select Service</h3>
-                <p>Choose free consultation or another service.</p>
-              </div>
-
-              <div>
-                <span>03</span>
-                <h3>Connect</h3>
-                <p>Connect with an authorized professional.</p>
-              </div>
-
-              <div>
-                <span>04</span>
-                <h3>Receive Guidance</h3>
-                <p>Access your guidance and next steps.</p>
-              </div>
-            </div>
+            ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section id="registration" className="js-section js-register-section">
-          <div className="js-container js-center">
-            <p className="js-eyebrow">
-              ONE PROFILE · MULTIPLE SERVICES
+      {/* LEADERSHIP */}
+      <section
+        id="leadership"
+        className="scroll-mt-20 bg-[#FFF9F0] px-5 py-20 md:px-10"
+      >
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-12 text-center">
+            <p className="text-xs uppercase tracking-[0.22em] text-[#A17B42]">
+              Leadership
             </p>
 
-            <h2>Join Jeevan Sutra</h2>
-
-            <p className="js-description">
-              Our unified registration will allow you
-              to select either Free Consultation or
-              Other Services using one client profile.
-            </p>
-
-            <div className="js-registration-options">
-              <div>
-                <h3>Free Consultation</h3>
-                <p>Register for introductory numerology guidance.</p>
-              </div>
-
-              <div>
-                <h3>Other Services</h3>
-                <p>Explore our personalized reports and guidance.</p>
-              </div>
-            </div>
-
-            <p className="js-note">
-              Online registration is being developed.
-              This preview does not collect personal information.
-            </p>
+            <h2 className="mt-4 font-serif text-4xl text-[#64263B] md:text-5xl">
+              The People Behind Jeevan Sutra
+            </h2>
           </div>
-        </section>
 
-        <section className="js-section js-launch">
-          <div className="js-container js-center">
-            <p className="js-eyebrow">
-              JEEVAN SUTRA · GRAND LAUNCH
-            </p>
-
-            <h2>The Grand Unveiling</h2>
-
-            <div className="js-launch-date">
-              20 October 2026
-            </div>
-
-            <p>2:19 PM IST · INDIA</p>
-
-            <div className="js-countdown" aria-live="off">
-              {remaining || "Preparing countdown..."}
-            </div>
-
-            <h3>100 Lucky Winners</h3>
-
-            <p className="js-description">
-              Complimentary personal numerology
-              prediction sessions as part of
-              our launch celebration.
-            </p>
-
-            <a
-              className="js-primary"
-              href="https://wa.me/919960096018?text=Congratulations%20on%20the%20launch%20of%20Jeevan%20Sutra!"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              SEND YOUR CONGRATULATIONS
-            </a>
-
-            <p className="js-note">
-              No purchase necessary. Eligibility,
-              deadlines and winner-selection details
-              will be announced separately.
-            </p>
-          </div>
-        </section>
-
-        <section id="about" className="js-section">
-          <div className="js-container">
-            <div className="js-center">
-              <p className="js-eyebrow">
-                THE PEOPLE & PURPOSE
+          <div className="grid gap-8 md:grid-cols-2">
+            <article className="rounded-2xl border border-[#E8DCCD] bg-[#FAF7F0] p-8 md:p-10">
+              <p className="text-xs uppercase tracking-widest text-[#A17B42]">
+                Founder, Jeevan Sutra
               </p>
 
-              <h2>Vision, Research & Guidance</h2>
-            </div>
+              <h3 className="mt-4 font-serif text-3xl text-[#64263B]">
+                Shashank Shekhar
+              </h3>
 
-            <div className="js-grid js-two">
-              <article className="js-card">
-                <span className="js-card-number">
-                  FOUNDER · JEEVAN SUTRA
-                </span>
+              <p className="mt-5 leading-8 text-[#665B55]">
+                Leads the vision, research and technology
+                development of Jeevan Sutra, including the
+                study of global numerological traditions,
+                selection of traditional Vedic astrology
+                sources and development of structured
+                digital guidance systems.
+              </p>
+            </article>
 
-                <h3>Shashank Shekhar</h3>
+            <article className="rounded-2xl border border-[#E8DCCD] bg-[#FAF7F0] p-8 md:p-10">
+              <p className="text-xs uppercase tracking-widest text-[#A17B42]">
+                Principal Numerologist
+              </p>
 
-                <p>
-                  Leading the vision, research and
-                  technology development of Jeevan Sutra.
-                  His work explores global numerological
-                  traditions and respected sources of
-                  ancient Vedic astrology.
-                </p>
-              </article>
+              <h3 className="mt-4 font-serif text-3xl text-[#64263B]">
+                Pranita Ghode
+              </h3>
 
-              <article className="js-card">
-                <span className="js-card-number">
-                  PRINCIPAL NUMEROLOGIST
-                </span>
+              <p className="mt-2 font-medium text-[#A17B42]">
+                Founder, The Swastik Indian Art
+              </p>
 
-                <h3>Pranita Ghode</h3>
-
-                <p>
-                  Principal Numerologist, Jeevan Sutra.
-                  Head of the Free Consultation Team,
-                  responsible for professional training,
-                  supervision and consultation quality.
-                </p>
-
-                <p>
-                  Founder, The Swastik Indian Art.
-                </p>
-              </article>
-            </div>
+              <p className="mt-5 leading-8 text-[#665B55]">
+                Serves as Principal Numerologist of
+                Jeevan Sutra and The Swastik Indian Art,
+                contributing specialist numerology guidance
+                and practitioner expertise.
+              </p>
+            </article>
           </div>
-        </section>
 
-        <section className="js-section js-light">
-          <div className="js-container js-center">
-            <p className="js-eyebrow js-dark-gold">
-              REMEDY PRODUCTS PARTNER
-            </p>
+          <p className="mx-auto mt-10 max-w-4xl text-center leading-8 text-[#665B55]">
+            Jeevan Sutra is developing a collaborative
+            network of numerologists, astrologers,
+            artists and other specialist practitioners.
+          </p>
 
-            <h2>The Swastik Indian Art</h2>
-
-            <p className="js-description">
-              Jeevan Sutra collaborates with
-              The Swastik Indian Art for selected
-              numerology artwork, yantras and
-              traditional remedy products.
-            </p>
-
-            <p className="js-description">
-              The Swastik Indian Art is an
-              independent partner brand.
-            </p>
+          <div className="mt-6 text-center">
+            <Link
+              href="/website/join"
+              className="inline-flex items-center gap-3 font-medium text-[#64263B] underline underline-offset-4"
+            >
+              Join Our Practitioner Network
+              <span aria-hidden="true">→</span>
+            </Link>
           </div>
-        </section>
-      </main>
+        </div>
+      </section>
 
-      <footer className="js-footer">
-        <h2>JEEVAN SUTRA</h2>
-        <p>THE COMPLETE GUIDANCE EXPERIENCE</p>
-        <p>jeevansutra.co.in</p>
-        <p>
-          © 2026 Jeevan Sutra. Guidance is intended
-          to support thoughtful decisions, not
-          guarantee outcomes.
+      {/* FINAL CUSTOMER CTA */}
+      <section className="bg-gradient-to-br from-[#64263B] to-[#3D1329] px-5 py-20 text-center text-white md:px-10">
+        <div className="mx-auto max-w-4xl">
+          <p className="text-xs uppercase tracking-[0.22em] text-[#EAD8AD]">
+            Your Discovery Begins Here
+          </p>
+
+          <h2 className="mt-6 font-serif text-4xl font-normal leading-tight md:text-5xl">
+            Every Name Has a Number.
+            <span className="mt-3 block text-[#EAD8AD]">
+              Every Journey Has a Beginning.
+            </span>
+          </h2>
+
+          <p className="mx-auto mt-7 max-w-3xl text-lg leading-9 text-[#F1E1D8]">
+            Begin exploring your personal numerology
+            through your name and date of birth.
+          </p>
+
+          <Link
+            href="/website/register"
+            className="mt-9 inline-flex items-center rounded-full bg-[#EAD8AD] px-9 py-4 font-medium text-[#64263B]"
+          >
+            Discover My Numbers — Free
+            <span className="ml-3" aria-hidden="true">→</span>
+          </Link>
+        </div>
+      </section>
+
+      {/* DISCLAIMER */}
+      <section className="bg-[#FAF7F0] px-5 py-10 md:px-10">
+        <p className="mx-auto max-w-5xl text-center text-sm leading-7 text-[#756C6E]">
+          Jeevan Sutra provides interpretive and reflective
+          guidance based on traditional numerology and astrology.
+          These services do not replace professional medical,
+          legal, psychological or financial advice.
+          Individual outcomes cannot be guaranteed.
         </p>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="border-t border-[#E6D8C7] bg-[#FFF9F0] px-5 py-10 md:px-10">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 md:flex-row">
+          <div className="text-center md:text-left">
+            <p className="font-serif text-2xl tracking-wide text-[#64263B]">
+              JEEVAN SUTRA
+            </p>
+
+            <p className="mt-2 text-[10px] tracking-[0.15em] text-[#A17B42]">
+              THE COMPLETE GUIDANCE EXPERIENCE
+            </p>
+          </div>
+
+          <nav
+            aria-label="Footer navigation"
+            className="flex flex-wrap justify-center gap-6 text-sm text-[#665B55]"
+          >
+            <Link href="/website">Home</Link>
+            <a href="#about">About</a>
+            <a href="#free-discovery">Free Discovery</a>
+            <a href="#services">Services</a>
+            <Link href="/website/register">Register</Link>
+            <Link
+              href="/website/join"
+              className="font-medium text-[#64263B]"
+            >
+              Join Jeevan Sutra
+            </Link>
+          </nav>
+        </div>
+
+        <div className="mx-auto mt-8 max-w-7xl border-t border-[#E6D8C7] pt-6 text-center text-sm text-[#756C6E]">
+          © {new Date().getFullYear()} Jeevan Sutra.
+          All rights reserved.
+        </div>
       </footer>
-
-      <style jsx global>{`
-        .js-site {
-          --burgundy: #260c19;
-          --burgundy-light: #401729;
-          --gold: #dcb77c;
-          --ivory: #f8eddf;
-          --muted: #ddc8ce;
-          background: var(--burgundy);
-          color: var(--ivory);
-          min-height: 100vh;
-          font-family: Arial, Helvetica, sans-serif;
-        }
-
-        .js-site * {
-          box-sizing: border-box;
-        }
-
-        .js-site a {
-          text-decoration: none;
-        }
-
-        .js-site h1,
-        .js-site h2,
-        .js-site h3 {
-          font-family: Georgia, "Times New Roman", serif;
-          font-weight: normal;
-        }
-
-        .js-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 20px 5%;
-          background: #200a15;
-          position: relative;
-          z-index: 10;
-        }
-
-        .js-brand {
-          color: var(--gold);
-          font-family: Georgia, serif;
-          font-size: 22px;
-          letter-spacing: 2px;
-        }
-
-        .js-nav {
-          display: flex;
-          align-items: center;
-          gap: 22px;
-        }
-
-        .js-nav a {
-          color: var(--ivory);
-          font-size: 13px;
-        }
-
-        .js-nav .js-register,
-        .js-primary {
-          background: var(--gold);
-          color: #30101e;
-          padding: 15px 23px;
-          border-radius: 4px;
-          font-size: 13px;
-          font-weight: bold;
-          display: inline-block;
-        }
-
-        .js-menu-button {
-          display: none;
-          background: transparent;
-          color: var(--gold);
-          border: 0;
-          font-size: 28px;
-          cursor: pointer;
-        }
-
-        .js-hero {
-          text-align: center;
-          padding: 65px 20px 100px;
-          background: radial-gradient(
-            ellipse at 50% 20%,
-            #572337,
-            #260c19 75%
-          );
-        }
-
-        .js-hero-inner {
-          max-width: 850px;
-          margin: auto;
-        }
-
-        .js-logo {
-          display: block;
-          width: min(100%, 400px);
-          height: auto;
-          margin: 0 auto 30px;
-          border: 0;
-          box-shadow: none;
-          background: transparent;
-        }
-
-        .js-eyebrow {
-          color: var(--gold);
-          letter-spacing: 3px;
-          font-size: 12px;
-          font-weight: bold;
-          line-height: 1.8;
-        }
-
-        .js-hero h1 {
-          font-size: clamp(43px, 7vw, 78px);
-          line-height: 1.15;
-          margin: 22px 0;
-        }
-
-        .js-hero h1 em {
-          color: var(--gold);
-        }
-
-        .js-intro,
-        .js-description {
-          max-width: 690px;
-          margin: 20px auto 32px;
-          line-height: 1.9;
-          font-size: 16px;
-          color: var(--muted);
-        }
-
-        .js-buttons {
-          display: flex;
-          justify-content: center;
-          gap: 15px;
-          flex-wrap: wrap;
-          margin-top: 30px;
-        }
-
-        .js-secondary {
-          border: 1px solid var(--gold);
-          color: var(--ivory);
-          padding: 15px 23px;
-          border-radius: 4px;
-          font-size: 13px;
-          font-weight: bold;
-        }
-
-        .js-section {
-          padding: 85px 20px;
-        }
-
-        .js-container {
-          max-width: 1150px;
-          margin: auto;
-        }
-
-        .js-center {
-          text-align: center;
-        }
-
-        .js-section h2 {
-          font-size: clamp(36px, 5vw, 58px);
-          line-height: 1.18;
-          margin: 15px 0 25px;
-        }
-
-        .js-light {
-          background: #f8eee2;
-          color: #361623;
-        }
-
-        .js-light .js-description {
-          color: #6f5760;
-        }
-
-        .js-dark-gold {
-          color: #98682f;
-        }
-
-        .js-grid {
-          display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 20px;
-          margin-top: 45px;
-        }
-
-        .js-two {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .js-card {
-          background: var(--burgundy-light);
-          border-radius: 7px;
-          padding: 30px;
-          min-height: 280px;
-        }
-
-        .js-card-number {
-          color: var(--gold);
-          font-size: 12px;
-          letter-spacing: 2px;
-        }
-
-        .js-card h3 {
-          color: #f2d2a0;
-          font-size: 29px;
-          margin: 18px 0;
-        }
-
-        .js-card strong {
-          color: #f7e7d7;
-          font-size: 14px;
-          line-height: 1.7;
-        }
-
-        .js-card p {
-          color: #e0cbd0;
-          font-size: 14px;
-          line-height: 1.85;
-        }
-
-        .js-card a {
-          color: var(--gold);
-          font-size: 12px;
-          font-weight: bold;
-          display: inline-block;
-          margin-top: 18px;
-        }
-
-        .js-steps {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 20px;
-          margin-top: 45px;
-        }
-
-        .js-steps div {
-          padding: 25px 15px;
-          background: #fff9f2;
-          border-radius: 5px;
-        }
-
-        .js-steps span {
-          color: #9b682d;
-          font-size: 25px;
-          font-family: Georgia, serif;
-        }
-
-        .js-steps h3 {
-          font-size: 24px;
-        }
-
-        .js-steps p {
-          font-size: 14px;
-          line-height: 1.7;
-          color: #6f5760;
-        }
-
-        .js-register-section {
-          background: linear-gradient(130deg, #451629, #260c19);
-        }
-
-        .js-registration-options {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 20px;
-          max-width: 800px;
-          margin: 35px auto;
-          text-align: left;
-        }
-
-        .js-registration-options div {
-          border: 1px solid #926c59;
-          border-radius: 6px;
-          padding: 25px;
-        }
-
-        .js-registration-options h3 {
-          color: var(--gold);
-          font-size: 25px;
-        }
-
-        .js-registration-options p {
-          line-height: 1.8;
-          color: var(--muted);
-        }
-
-        .js-note {
-          color: var(--muted);
-          font-size: 12px;
-          line-height: 1.8;
-          margin-top: 25px;
-        }
-
-        .js-launch {
-          background: linear-gradient(140deg, #421426, #200b16);
-          text-align: center;
-        }
-
-        .js-launch-date {
-          font-family: Georgia, serif;
-          font-size: clamp(35px, 6vw, 60px);
-          color: var(--gold);
-          margin: 30px 0 15px;
-        }
-
-        .js-countdown {
-          display: inline-block;
-          background: #ffffff0c;
-          border: 1px solid #795263;
-          padding: 20px 30px;
-          margin: 30px 0;
-          color: var(--gold);
-          font-size: 20px;
-        }
-
-        .js-launch h3 {
-          color: var(--gold);
-          font-size: 35px;
-          margin-top: 35px;
-        }
-
-        .js-footer {
-          background: #1b0912;
-          text-align: center;
-          padding: 50px 20px;
-        }
-
-        .js-footer h2 {
-          font-size: 29px;
-          letter-spacing: 3px;
-          color: var(--gold);
-        }
-
-        .js-footer p {
-          color: var(--muted);
-          font-size: 12px;
-          line-height: 1.8;
-        }
-
-        @media (max-width: 900px) {
-          .js-menu-button {
-            display: block;
-          }
-
-          .js-nav {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: #200a15;
-            flex-direction: column;
-            align-items: stretch;
-            padding: 22px;
-            gap: 20px;
-          }
-
-          .js-nav.open {
-            display: flex;
-          }
-
-          .js-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
-
-          .js-steps {
-            grid-template-columns: repeat(2, 1fr);
-          }
-        }
-
-        @media (max-width: 600px) {
-          .js-header {
-            padding: 18px;
-          }
-
-          .js-brand {
-            font-size: 18px;
-          }
-
-          .js-hero {
-            padding: 35px 18px 70px;
-          }
-
-          .js-section {
-            padding: 65px 20px;
-          }
-
-          .js-grid,
-          .js-two,
-          .js-steps,
-          .js-registration-options {
-            grid-template-columns: 1fr;
-          }
-
-          .js-card {
-            min-height: 0;
-          }
-
-          .js-logo {
-            max-width: 330px;
-          }
-
-          .js-countdown {
-            font-size: 16px;
-            padding: 17px;
-          }
-        }
-      `}</style>
-    </div>
-  );
+    </main>
+  )
 }

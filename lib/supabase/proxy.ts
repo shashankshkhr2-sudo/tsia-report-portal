@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-const PUBLIC_PATHS = ['/login']
+const PUBLIC_PATHS = ['/login', '/website', '/api/website']
 
 function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`))
@@ -18,6 +18,12 @@ function redirectWithCookies(request: NextRequest, source: NextResponse, pathnam
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request })
+  const path = request.nextUrl.pathname
+  // Customer API validates its isolated bearer session; employee cookies stay separate.
+  if (path === '/website' || path.startsWith('/website/') || path.startsWith('/api/website/')) {
+    response.headers.set('Cache-Control', 'private, no-store')
+    return response
+  }
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
