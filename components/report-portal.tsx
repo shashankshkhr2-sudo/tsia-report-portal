@@ -103,12 +103,14 @@ function Sidebar({
   open,
   setOpen,
   fullName,
+  isAdmin = false,
 }: {
   view: View
   setView: (view: View) => void
   open: boolean
   setOpen: (open: boolean) => void
   fullName: string
+  isAdmin?: boolean
 }) {
   const [
     signingOut,
@@ -197,6 +199,17 @@ function Sidebar({
                 {label}
               </button>
             )
+          )}
+
+          {isAdmin && (
+            <a
+              href="/applications"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-[#6d665d] hover:bg-[#f0e9de]"
+            >
+              <Users className="size-[18px]" />
+              Practitioner Applications
+            </a>
           )}
         </nav>
 
@@ -2454,12 +2467,14 @@ const titles: Record<
 
 export function ReportPortal({
   fullName,
+  isAdmin = false,
   reports,
   clients,
   clientSources,
   employees,
 }: {
   fullName: string
+  isAdmin?: boolean
   reports: Report[]
   clients: Client[]
   clientSources:
@@ -2564,6 +2579,7 @@ export function ReportPortal({
     <div className="min-h-screen bg-[#f7f3ed] text-[#3e3a35]">
       <div className="flex min-h-screen">
         <Sidebar
+          isAdmin={isAdmin}
           view={view}
           setView={
             changeView

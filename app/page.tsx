@@ -16,9 +16,9 @@ export default async function Page() {
 
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('full_name')
+    .select('full_name, role, is_active')
     .eq('id', user.id)
-    .maybeSingle<{ full_name: string | null }>()
+    .maybeSingle<{ full_name: string | null; role: string | null; is_active: boolean | null }>()
 
   if (error) {
     console.error('[profile] lookup failed', {
@@ -28,7 +28,7 @@ export default async function Page() {
 
   const fullName = profile?.full_name?.trim()
 
-  if (!fullName) {
+  if (error || !fullName || !profile?.role || profile.role === 'customer' || profile.is_active !== true) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#f7f3ed] p-6 text-center">
         <div className="max-w-sm rounded-2xl border border-[#e8dfd3] bg-white p-8">
@@ -55,6 +55,7 @@ export default async function Page() {
   return (
     <ReportPortal
       fullName={fullName}
+      isAdmin={profile.role === 'admin'}
       reports={reports}
       clients={clients}
       clientSources={clientSources}
