@@ -74,6 +74,21 @@ export default async function ApplicationsPage({
     redirect('/')
   }
 
+  const organizationId = 'd7e678c2-2d43-4fd9-9ef4-48a791b6a5ba'
+  const { data: canReview, error: accessError } = await supabase
+    .rpc('can_review_js_applications', {
+      p_organization_id: organizationId,
+    })
+
+  if (accessError) {
+    console.error('[applications] access check failed', {
+      code: accessError.code,
+    })
+    throw new Error('Unable to check application access.')
+  }
+
+  if (canReview !== true) redirect('/')
+
   const params = await searchParams
   const requestedPage = Number(params.page || '1')
   const page = Number.isInteger(requestedPage) &&
@@ -90,7 +105,7 @@ export default async function ApplicationsPage({
       'id, full_name, mobile, email, city, state_region, country, expertise, methods, experience, languages, guidance_areas, qualification_type, qualification_details, consultation_mode, availability, introduction, portfolio_url, application_status, review_notes, created_at',
       { count: 'exact' }
     )
-    .eq('organization_id', profile.organization_id)
+    .eq('organization_id', organizationId)
     .order('created_at', { ascending: false })
     .order('id', { ascending: false })
     .range(start, start + pageSize - 1)
