@@ -7,12 +7,14 @@ import { ClientCard } from '@/components/client-card'
 
 type Props = {
   fullName: string
+  isAdmin?: boolean
   reports: Report[]
   clients: Client[]
 }
 
 export function ReportPortal({
   fullName,
+  isAdmin = false,
   reports,
   clients,
 }: Props) {
@@ -89,7 +91,7 @@ export function ReportPortal({
             <nav className="mt-5 space-y-3">
 
               <MenuItem
-                href="/"
+                href="/employee"
                 label="Dashboard"
                 active
               />
@@ -103,6 +105,13 @@ export function ReportPortal({
                 href="/reports"
                 label="Reports"
               />
+
+              {isAdmin && (
+                <MenuItem
+                  href="/employee/applications"
+                  label="Applications"
+                />
+              )}
 
             </nav>
 
