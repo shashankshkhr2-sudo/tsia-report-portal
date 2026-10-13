@@ -254,7 +254,14 @@ export async function POST(request: NextRequest) {
       rateLimitHashSecret.length < 32
     ) {
       console.error(
-        'Jeevan Sutra registration configuration missing'
+        'Jeevan Sutra registration configuration missing',
+        {
+          missingSupabaseUrl: !supabaseUrl,
+          missingSupabaseSecret: !supabaseSecret,
+          missingRateLimitHashSecret: !rateLimitHashSecret,
+          rateLimitHashSecretTooShort:
+            Boolean(rateLimitHashSecret && rateLimitHashSecret.length < 32),
+        }
       )
 
       return reply(
