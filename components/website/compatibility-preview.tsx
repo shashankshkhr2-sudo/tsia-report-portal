@@ -7,6 +7,10 @@ import { calculateNumerologyV2 } from '@/lib/numerology/calculations'
 type Person = { name: string; dob: string }
 type Profile = { name: string; nameNumber: number; mulank?: number; bhagyank?: number }
 const field = 'mt-2 w-full rounded-xl border border-[#eadfd4] bg-white p-3'
+function formatDob(value: string): string {
+ const digits = value.replace(/\D/g, '').slice(0, 8)
+ return [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 8)].filter(Boolean).join('/')
+}
 function profile(person: Person): Profile {
  const name = person.name.trim()
  if (!/^[A-Za-z]+(?:[ '\-][A-Za-z]+)*$/.test(name) || name.length > 120) throw new Error('Enter each name in English letters, using spaces, apostrophes or hyphens only.')
@@ -25,7 +29,7 @@ export function CompatibilityPreview() {
  const [error, setError] = useState('')
  const [result, setResult] = useState<{ kind: string; profiles: Profile[] } | null>(null)
  function update(index: number, key: keyof Person, value: string) {
-  setPeople(previous => previous.map((person, i) => i === index ? { ...person, [key]: value } : person))
+  setPeople(previous => previous.map((person, i) => i === index ? { ...person, [key]: key === 'dob' ? formatDob(value) : value } : person))
   setResult(null); setError('')
  }
  function submit(event: FormEvent) {
@@ -40,7 +44,7 @@ export function CompatibilityPreview() {
   <p className="mt-3 leading-7">See your numbers side by side. Enter dates of birth when available. Your details stay in this page and clear when you reload.</p>
   <form onSubmit={submit} className="mt-5">
    <label className="block">Relationship type<select className={field} value={kind} onChange={event => { setKind(event.target.value); setResult(null) }}><option>Personal</option><option>Professional</option></select></label>
-   <div className="mt-5 grid gap-6 sm:grid-cols-2">{people.map((person, index) => <fieldset key={index} className="min-w-0"><legend className="font-semibold">{index === 0 ? 'Your details' : 'Other person’s details'}</legend><label className="mt-3 block">Name in English<input required maxLength={120} autoComplete="off" className={field} value={person.name} onChange={event => update(index, 'name', event.target.value)} /></label><label className="mt-3 block">Date of birth (optional)<input inputMode="numeric" maxLength={10} placeholder="DD/MM/YYYY" className={field} value={person.dob} onChange={event => update(index, 'dob', event.target.value)} /></label></fieldset>)}</div>
+   <div className="mt-5 grid gap-6 sm:grid-cols-2">{people.map((person, index) => <fieldset key={index} className="min-w-0"><legend className="font-semibold">{index === 0 ? 'Your details' : 'Other person’s details'}</legend><label className="mt-3 block">Name in English<input required maxLength={120} autoComplete="off" className={field} value={person.name} onChange={event => update(index, 'name', event.target.value)} /></label><label className="mt-3 block">Date of birth — DD/MM/YYYY (optional)<input inputMode="numeric" maxLength={10} aria-label={index === 0 ? "Your date of birth in DD/MM/YYYY" : "Other person’s date of birth in DD/MM/YYYY"} placeholder="DD/MM/YYYY" className={field} value={person.dob} onChange={event => update(index, 'dob', event.target.value)} /></label></fieldset>)}</div>
    <label className="mt-5 flex items-start gap-3"><input type="checkbox" required checked={permission} onChange={event => { setPermission(event.target.checked); setResult(null) }} className="mt-1" />I have permission to use the other person’s details for this preview.</label>
    {error && <p role="alert" className="mt-4 text-[#762b40]">{error}</p>}
    <button className="mt-5 rounded-xl bg-[#762b40] px-5 py-3 font-semibold text-white" type="submit">Show free preview</button>
