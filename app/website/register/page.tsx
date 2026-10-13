@@ -41,13 +41,13 @@ function normalizeMobile(value: string): string {
 }
 
 function validDob(value: string): boolean {
-  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value)
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
 
   if (!match) return false
 
-  const day = Number(match[1])
+  const year = Number(match[1])
   const month = Number(match[2])
-  const year = Number(match[3])
+  const day = Number(match[3])
   const now = new Date()
   const date = new Date(Date.UTC(year, month - 1, day))
 
@@ -218,7 +218,7 @@ export default function RegisterPage() {
       body: JSON.stringify({
         birthName: birthName.trim(),
         currentName: currentName.trim(),
-        dob,
+        dob: dob.split('-').reverse().join('/'),
         gender,
         mobile: normalizeMobile(mobile),
         email: sentEmail,
