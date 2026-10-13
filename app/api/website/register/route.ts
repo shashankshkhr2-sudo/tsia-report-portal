@@ -237,6 +237,7 @@ function isDuplicateError(data: unknown): boolean {
 }
 
 export async function POST(request: NextRequest) {
+  let stage = 'configuration'
   try {
     const supabaseUrl =
       process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -323,6 +324,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    stage = 'verify-account'
     const authResponse = await fetch(
       new URL('/auth/v1/user', supabaseUrl),
       {
@@ -400,6 +402,7 @@ export async function POST(request: NextRequest) {
     /*
       READ AND PARSE REQUEST
     */
+    stage = 'read-request'
     const rawBody = await request.text()
 
     if (
@@ -543,6 +546,7 @@ export async function POST(request: NextRequest) {
     /*
       DATABASE-BACKED RATE LIMIT
     */
+    stage = 'rate-limit'
     const allowed = await checkRateLimit(
       supabaseUrl,
       supabaseSecret,
@@ -572,6 +576,7 @@ export async function POST(request: NextRequest) {
       Retries for the same Auth user return
       the existing linked client.
     */
+    stage = 'save-registration'
     const result = await callSupabase(
       supabaseUrl,
       supabaseSecret,
@@ -658,6 +663,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    stage = 'guidance-access'
     if (process.env.JS_CUSTOMER_GUIDANCE_ENABLED === 'true') {
       const access = await database('js_customer_access?on_conflict=auth_user_id', {
         method: 'POST', headers: { Prefer: 'resolution=ignore-duplicates' },
@@ -695,13 +701,22 @@ export async function POST(request: NextRequest) {
         },
       }
     )
-  } catch {
+  } catch (error) {
     /*
       Avoid logging submitted details,
       credentials or access tokens.
     */
     console.error(
-      'Jeevan Sutra registration request failed'
+      'Jeevan Sutra registration request failed',
+      {
+        stage,
+        errorType: error instanceof Error ? error.name : 'Unknown',
+        reason: error instanceof Error && [
+          'Trusted client address unavailable',
+          'Registration rate-limit check failed',
+          'Unexpected rate-limit response',
+        ].includes(error.message) ? error.message : 'Unexpected exception',
+      }
     )
 
     return reply(
