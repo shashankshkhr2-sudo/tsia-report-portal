@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { customerGuidanceCopy } from '@/lib/jeevansutra/customer-copy'
 import { createHmac } from 'node:crypto'
 import { customerIdentity, database, JS_ORGANIZATION_ID } from '@/lib/jeevansutra/customer-server'
 import { guidanceTopics, validateIntake, describeIntake, type GuidanceTopic } from '@/lib/jeevansutra/intake'
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
   const intelligence = runNumerologyV3FromCalculation(calculation)
   // Goal dates and income aspirations are discussion context, not future-timing requests.
   const guidance = buildUniversalNumerologyIntelligence({ topic: input.topic as GuidanceTopic, clientConcern: intake.obstacle, calculation, conclusions: intelligence.conclusions })
-  const preview = { version: 'JS_FREE_PREVIEW_1', scope: guidance.scope.employeeExplanation, insights: guidance.scope.canProvideNumerologyGuidance ? guidance.relevantQualities.slice(0, 2).map(item => ({ title: item.title, explanation: item.interpretation, basis: item.verificationStatus })) : [], question: guidance.suggestedQuestions[0] || 'What would you most like to understand?', action: guidance.scope.canProvideNumerologyGuidance ? guidance.behaviouralDevelopment[0]?.practicalImprovement || '' : '', limitation: 'Traditional numerology-based reflection; not a prediction of earnings, events or other people’s feelings.' }
+  const preview = { version: 'JS_FREE_PREVIEW_2', scope: customerGuidanceCopy(guidance.scope.suggestedResponse), insights: guidance.scope.canProvideNumerologyGuidance ? guidance.relevantQualities.slice(0, 2).map(item => ({ title: item.title, explanation: customerGuidanceCopy(item.interpretation), basis: item.verificationStatus })) : [], question: guidance.suggestedQuestions[0] || 'What would you most like to understand?', action: guidance.scope.canProvideNumerologyGuidance ? guidance.behaviouralDevelopment[0]?.practicalImprovement || '' : '', limitation: 'Traditional numerology-based reflection; not a prediction of earnings, events or other people’s feelings.' }
   const saved = await database('js_guidance_snapshots?on_conflict=auth_user_id,request_id', { method: 'POST', headers: { Prefer: 'resolution=ignore-duplicates,return=representation' }, body: JSON.stringify({ auth_user_id: identity.userId, client_id: identity.client.id, organization_id: JS_ORGANIZATION_ID, request_id: input.requestId, topic: input.topic, intake, preview, practitioner_context: { intakeSummary: describeIntake(intake), calculation, guidance, engineVersion: intelligence.engineVersion } }) })
   if (!saved.ok) return reply({ error: 'Your preview could not be saved. Please try again.' }, 503)
   const rows = await saved.json()
