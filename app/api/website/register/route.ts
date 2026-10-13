@@ -208,6 +208,16 @@ async function checkRateLimit(
   )
 
   if (!result.ok) {
+    const errorData = result.data && typeof result.data === 'object'
+      && !Array.isArray(result.data)
+      ? result.data as Record<string, unknown> : null
+    const code = typeof errorData?.code === 'string'
+      && /^[A-Za-z0-9_]{1,40}$/.test(errorData.code)
+      ? errorData.code : 'unavailable'
+    console.error('Jeevan Sutra rate-limit RPC rejected', {
+      status: result.status,
+      code,
+    })
     throw new Error(
       'Registration rate-limit check failed'
     )
