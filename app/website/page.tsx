@@ -73,7 +73,8 @@ const navigation = [
   ['About', '#about'],
   ['Free Discovery', '#free-discovery'],
   ['How It Works', '#how-it-works'],
-  ['Services', '#services'],
+  ['Services', '/website/services'],
+  ['Compatibility', '/website/compatibility'],
   ['Leadership', '#leadership'],
   ['Join Jeevan Sutra', '/website/join'],
 ]
@@ -931,7 +932,8 @@ export default function JeevanSutraHomePage() {
             <Link href="/website">Home</Link>
             <a href="#about">About</a>
             <a href="#free-discovery">Free Discovery</a>
-            <a href="#services">Services</a>
+            <Link href="/website/services">Services</Link>
+            <Link href="/website/compatibility">Compatibility</Link>
             <Link href="/website/register">Register</Link>
             <Link
               href="/website/join"
