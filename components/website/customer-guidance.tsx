@@ -11,7 +11,7 @@ const labels: Record<string, string> = { career: 'Career & professional life', b
 const button = 'rounded-xl bg-[#762b40] px-5 py-3 font-semibold text-white disabled:opacity-50'
 const input = 'mt-2 w-full rounded-xl border border-[#ded4cb] bg-white p-3 text-base text-[#392e30]'
 const humanLabel = (value: string) => value.replaceAll('_', ' ').replace(/^./, c => c.toUpperCase())
-export function CustomerGuidance() {
+export function CustomerGuidance({ demo }: { demo?: { profile: Profile; previews: Record<GuidanceTopic, Preview> } }) {
  const [profile, setProfile] = useState<Profile | null>(null)
  const [email, setEmail] = useState(''); const [code, setCode] = useState(''); const [sentEmail, setSentEmail] = useState('')
  const [busy, setBusy] = useState(false); const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [cooldown, setCooldown] = useState(0)
@@ -20,6 +20,7 @@ export function CustomerGuidance() {
  const questions = questionsFor(topic, answers); const question = questions[step]
  useEffect(() => { if (!cooldown) return; const t = setTimeout(() => setCooldown(c => c - 1), 1000); return () => clearTimeout(t) }, [cooldown])
  async function load() {
+  if (demo) { setProfile(demo.profile); setLoading(false); return }
   setLoading(true)
   try {
    const client = customerClient(); const session = await client?.auth.getSession()
@@ -50,6 +51,12 @@ export function CustomerGuidance() {
   } catch { setError('Unable to sign in. Please try again.') } finally { setBusy(false) }
  }
  async function savePreview() {
+  if (demo) {
+   const result = demo.previews[topic]
+   setPreview(result)
+   setProfile(current => current ? { ...current, history: [{ id: crypto.randomUUID(), topic, intake: { ...answers }, preview: result, created_at: new Date().toISOString() }, ...current.history] } : current)
+   return
+  }
   setBusy(true); setError('')
   try {
    const session = await customerClient()?.auth.getSession(); const token = session?.data.session?.access_token
@@ -72,7 +79,7 @@ export function CustomerGuidance() {
    {sentEmail && <button className="ml-4 underline" disabled={busy || cooldown > 0} onClick={() => { setSentEmail(''); setCode('') }}>{cooldown ? `Request another code in ${cooldown}s` : 'Use another email or resend'}</button>}
   </div> : <>
    <div className="rounded-3xl border border-[#eadfd4] bg-white p-6">
-    <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-sm text-[#a57a40]">YOUR SAVED PROFILE</p><h2 className="font-serif text-3xl">Welcome, {profile.profile.name}</h2><p className="mt-2">Date of birth: {profile.profile.dob}</p></div><button className="text-sm underline" onClick={async () => { await customerClient()?.auth.signOut({ scope: 'local' }); setProfile(null); reset() }}>Sign out</button></div>
+    <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-sm text-[#a57a40]">{demo ? 'FICTIONAL TEST PROFILE' : 'YOUR SAVED PROFILE'}</p><h2 className="font-serif text-3xl">Welcome, {profile.profile.name}</h2><p className="mt-2">Date of birth: {profile.profile.dob}</p></div><button hidden={Boolean(demo)} className="text-sm underline" onClick={async () => { await customerClient()?.auth.signOut({ scope: 'local' }); setProfile(null); reset() }}>Sign out</button></div>
     <div className="mt-6 grid grid-cols-3 gap-3">{[['Mulank', profile.calculation.mulank.final], ['Bhagyank', profile.calculation.bhagyank.final], ['Name number', profile.calculation.nameNumber.finalNumber]].map(([label, number]) => <div key={label} className="rounded-xl bg-[#f9f5ef] p-3 text-center"><p className="text-sm">{label}</p><p className="mt-2 font-serif text-3xl">{number}</p></div>)}</div>
     <details className="mt-5"><summary className="cursor-pointer font-semibold">Explore your Lo Shu grid</summary><div className="mt-4 grid grid-cols-2 gap-4">{['Standard', 'Personal'].map(title => <div key={title}><p className="mb-2 text-center">{title} Lo Shu</p><div className="grid grid-cols-3 gap-1">{[4,9,2,3,5,7,8,1,6].map(n => <div key={n} className="flex aspect-square items-center justify-center border border-[#d8c7ae] bg-[#f9f5ef] text-lg font-semibold">{title === 'Standard' ? n : String(n).repeat(profile.calculation.loShu.counts[n as keyof typeof profile.calculation.loShu.counts])}</div>)}</div></div>)}</div></details>
     <p className="mt-4 text-sm text-[#766b67]">These calculations follow traditional numerology. Your experiences and choices matter when interpreting them.</p>
@@ -80,12 +87,12 @@ export function CustomerGuidance() {
    <div className="mt-6 rounded-3xl border border-[#eadfd4] bg-white p-6">
     <h2 className="font-serif text-3xl">What matters to you today?</h2>
     <div className="mt-4 flex flex-wrap gap-2">{Object.entries(labels).map(([id,label]) => <button key={id} aria-pressed={topic===id} className={`rounded-full border px-4 py-2 ${topic===id ? 'bg-[#762b40] text-white' : ''}`} onClick={() => { setTopic(id as GuidanceTopic); reset() }}>{label}</button>)}</div>
-    {preview ? <div className="mt-6" aria-live="polite"><p className="text-sm text-[#a57a40]">YOUR FREE PREVIEW · SAVED TO YOUR ACCOUNT</p><p className="mt-3">{preview.scope}</p>{preview.insights.map((insight,index) => <article key={index} className="mt-4 rounded-xl bg-[#f9f5ef] p-4"><h3 className="font-serif text-xl">{insight.title}</h3><p className="mt-2 leading-7">{insight.explanation}</p><p className="mt-2 text-xs">{insight.basis === 'V3_SUPPORTED' ? 'Supported by the numerology engine’s rules' : 'Traditional association to reflect on'}</p></article>)}<p className="mt-5 font-semibold">A question to reflect on</p><p>{preview.question}</p>{preview.action && <><p className="mt-4 font-semibold">One practical next step</p><p>{preview.action}</p></>}<p className="mt-5 text-sm text-[#766b67]">{preview.limitation}</p><button className={`${button} mt-5`} onClick={reset}>Explore another concern</button></div> : <div className="mt-6">
+    {preview ? <div className="mt-6" aria-live="polite"><p className="text-sm text-[#a57a40]">{demo ? 'DEMO PREVIEW · NOT SAVED TO DATABASE' : 'YOUR FREE PREVIEW · SAVED TO YOUR ACCOUNT'}</p><p className="mt-3">{preview.scope}</p>{preview.insights.map((insight,index) => <article key={index} className="mt-4 rounded-xl bg-[#f9f5ef] p-4"><h3 className="font-serif text-xl">{insight.title}</h3><p className="mt-2 leading-7">{insight.explanation}</p><p className="mt-2 text-xs">{insight.basis === 'V3_SUPPORTED' ? 'Supported by the numerology engine’s rules' : 'Traditional association to reflect on'}</p></article>)}<p className="mt-5 font-semibold">A question to reflect on</p><p>{preview.question}</p>{preview.action && <><p className="mt-4 font-semibold">One practical next step</p><p>{preview.action}</p></>}<p className="mt-5 text-sm text-[#766b67]">{preview.limitation}</p><button className={`${button} mt-5`} onClick={reset}>Explore another concern</button></div> : <div className="mt-6">
      <p className="text-sm text-[#a57a40]">Question {step+1} of {questions.length}</p><label className="mt-3 block font-semibold">{question.label}{question.options ? <select className={input} value={answers[question.id] || ''} onChange={e => { setAnswers(a => ({ ...a, [question.id]: e.target.value })); setRequestId('') }}><option value="">Choose an option</option>{question.options.map(option => <option key={option} value={option}>{humanLabel(option)}</option>)}</select> : <textarea className={input} rows={3} maxLength={800} value={answers[question.id] || ''} onChange={e => { setAnswers(a => ({ ...a, [question.id]: e.target.value })); setRequestId('') }} />}</label>
-     {question.help && <p className="mt-2 text-sm text-[#766b67]">{question.help}</p>}<div className="mt-5 flex gap-3">{step>0 && <button disabled={busy} className="rounded-xl border px-5 py-3" onClick={() => setStep(s=>s-1)}>Back</button>}<button className={button} disabled={busy || (!question.optional && !answers[question.id]?.trim())} onClick={() => step < questions.length-1 ? setStep(s=>s+1) : void savePreview()}>{busy ? 'Saving your preview…' : step===questions.length-1 ? 'Show & save my free preview' : question.optional && !answers[question.id] ? 'Skip' : 'Continue'}</button></div>
+     {question.help && <p className="mt-2 text-sm text-[#766b67]">{question.help}</p>}<div className="mt-5 flex gap-3">{step>0 && <button disabled={busy} className="rounded-xl border px-5 py-3" onClick={() => setStep(s=>s-1)}>Back</button>}<button className={button} disabled={busy || (!question.optional && !answers[question.id]?.trim())} onClick={() => step < questions.length-1 ? setStep(s=>s+1) : void savePreview()}>{busy ? 'Saving your preview…' : step===questions.length-1 ? (demo ? 'Show demo preview' : 'Show & save my free preview') : question.optional && !answers[question.id] ? 'Skip' : 'Continue'}</button></div>
     </div>}
    </div>
-   {profile.history.length>0 && <div className="mt-6 rounded-3xl border border-[#eadfd4] bg-white p-6"><h2 className="font-serif text-2xl">My saved previews</h2>{profile.history.map(item => <button key={item.id} className="mt-3 block w-full rounded-xl border p-4 text-left" onClick={() => { setTopic(item.topic as GuidanceTopic); setAnswers(item.intake); setPreview(item.preview); setRequestId('') }}>{labels[item.topic]} · {new Date(item.created_at).toLocaleDateString('en-IN')}</button>)}</div>}
+   {profile.history.length>0 && <div className="mt-6 rounded-3xl border border-[#eadfd4] bg-white p-6"><h2 className="font-serif text-2xl">{demo ? 'Previews from this demo visit' : 'My saved previews'}</h2>{profile.history.map(item => <button key={item.id} className="mt-3 block w-full rounded-xl border p-4 text-left" onClick={() => { setTopic(item.topic as GuidanceTopic); setAnswers(item.intake); setPreview(item.preview); setRequestId('') }}>{labels[item.topic]} · {new Date(item.created_at).toLocaleDateString('en-IN')}</button>)}</div>}
   </>}
  </section>
 }
