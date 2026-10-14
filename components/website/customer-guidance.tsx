@@ -1,4 +1,5 @@
 'use client'
+import { ProfileLoShuGrid } from './profile-loshu-grid'
 import { useEffect, useState } from 'react'
 import { BasicNumerologyProfile } from './basic-numerology-profile'
 import { LockedGuidanceServices } from './locked-guidance-services'
@@ -31,18 +32,18 @@ export function CustomerGuidance({ demo }: { demo?: { profile: Profile; previews
  }
  useEffect(() => { void load() }, [])
  function reset() { setError('') }
- return <section className="mx-auto max-w-4xl px-5 py-10">
+ return <section className="mx-auto max-w-5xl px-4 py-7 sm:px-6">
   {error && <p role="alert" className="mb-5 rounded-xl bg-red-50 p-4 text-red-800">{error}</p>}
-  {loading ? <p role="status">Loading your saved profile…</p> : !profile ? <div className="rounded-3xl border border-[#eadfd4] bg-white p-6">
+  {loading ? <p role="status">Loading your saved profile…</p> : !profile ? <div className="rounded-2xl border border-[#eadfd4] bg-white p-5 sm:p-7">
    <h2 className="font-serif text-3xl">Your personal profile starts here</h2><p className="mt-3">Verify your email to open your saved profile or create a new one.</p><Link href="/website/start" className={`${button} mt-5 inline-block`}>Start with Email / Sign in</Link>
   </div> : <>
-   <div className="rounded-3xl border border-[#eadfd4] bg-white p-6">
+   <div className="rounded-2xl border border-[#eadfd4] bg-white p-5 sm:p-7">
     <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-sm text-[#a57a40]">{demo ? 'FICTIONAL TEST PROFILE' : 'YOUR SAVED PROFILE'}</p><h2 className="font-serif text-3xl">Welcome, {profile.profile.name}</h2><p className="mt-2">Date of birth: {profile.profile.dob}</p></div><button hidden={Boolean(demo)} className="text-sm underline" onClick={async () => { await customerClient()?.auth.signOut({ scope: 'local' }); setProfile(null); reset() }}>Sign out</button></div>
-    <div className="mt-6 grid grid-cols-3 gap-3">{[['Mulank', profile.calculation.mulank.final], ['Bhagyank', profile.calculation.bhagyank.final], ['Name number', profile.calculation.nameNumber.finalNumber]].map(([label, number]) => <div key={label} className="rounded-xl bg-[#f9f5ef] p-3 text-center"><p className="text-sm">{label}</p><p className="mt-2 font-serif text-3xl">{number}</p></div>)}</div>
-    <details className="mt-5"><summary className="cursor-pointer font-semibold">Explore your Lo Shu grid</summary><div className="mt-4 grid grid-cols-2 gap-4">{['Standard', 'Personal'].map(title => <div key={title}><p className="mb-2 text-center">{title} Lo Shu</p><div className="grid grid-cols-3 gap-1">{[4,9,2,3,5,7,8,1,6].map(n => <div key={n} className="flex aspect-square items-center justify-center border border-[#d8c7ae] bg-[#f9f5ef] text-lg font-semibold">{title === 'Standard' ? n : String(n).repeat(profile.calculation.loShu.counts[n as keyof typeof profile.calculation.loShu.counts])}</div>)}</div></div>)}</div></details>
+    <nav aria-label="Profile sections" className="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-[#64263B]">{[['#your-numbers','Your numbers'],['#grid-patterns','Rajyogs & grid'],['#combined-reading','Your reading']].map(([href,label])=><a key={href} href={href} className="rounded-full border border-[#ded4cb] px-3 py-2 hover:bg-[#FAF7F0]">{label}</a>)}</nav>
+    <ProfileLoShuGrid calculation={profile.calculation} />
     <p className="mt-4 text-sm text-[#766b67]">These calculations follow traditional numerology. Your experiences and choices matter when interpreting them.</p>
    </div>
-   <div className="mt-6 rounded-3xl border border-[#eadfd4] bg-white p-6"><BasicNumerologyProfile calculation={profile.calculation} /></div>
+   <div className="mt-6 rounded-2xl border border-[#eadfd4] bg-white p-5 sm:p-7"><BasicNumerologyProfile calculation={profile.calculation} /></div>
    <Link href="/website/compatibility" className="mt-6 inline-block rounded-xl bg-[#762b40] px-5 py-3 font-semibold text-white">Explore my three complimentary compatibility previews</Link>
    <LockedGuidanceServices />
   </>}
