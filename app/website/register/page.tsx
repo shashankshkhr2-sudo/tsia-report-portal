@@ -355,13 +355,14 @@ export default function RegisterPage() {
 
   return (
     <main className="min-h-screen bg-[#faf6ef] text-[#392c30]">
-      <header className="flex items-center justify-between gap-4 border-b border-[#e9ddcf] bg-white px-5 py-5">
+      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-[#e9ddcf] bg-white px-5 py-5">
         <Link href="/website" className="font-serif text-2xl font-bold text-[#81243f]">
           JEEVAN SUTRA
         </Link>
-        <Link href="/website" className="text-sm text-[#81243f]">
-          Home
-        </Link>
+        <nav aria-label="Customer navigation" className="flex flex-wrap gap-4 text-sm text-[#81243f]">
+          <Link href="/website">Home</Link>
+          <Link href="/website/welcome">Already registered? Sign in</Link>
+        </nav>
       </header>
 
       <section className="bg-[#81243f] px-6 py-12 text-center text-white">
