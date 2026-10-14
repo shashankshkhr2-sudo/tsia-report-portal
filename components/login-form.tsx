@@ -43,6 +43,15 @@ export function LoginForm() {
             <Button type="submit" disabled={pending} className="mt-2 h-12 rounded-xl bg-[#24354c] text-white hover:bg-[#30445f]">{pending ? 'Signing in…' : 'Sign in'} <ArrowRight data-icon="inline-end" /></Button>
             <p role="alert" aria-live="polite" className="text-sm text-[#a55f46] empty:hidden">{state.error}</p>
           </form>
+          <a
+            href="/website"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-6 flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[#ded4cb] px-4 py-3 text-center text-sm font-semibold text-[#762b40] transition hover:bg-[#f9f5ef] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#762b40]"
+          >
+            Visit Jeevan Sutra Website <ArrowRight aria-hidden="true" className="size-4" />
+            <span className="sr-only"> (opens in a new tab)</span>
+          </a>
           <p className="mt-10 text-center text-[11px] leading-5 text-[#aa9c8c]">This is a private workspace for authorized TSIA team members.<br />Need access? Contact your administrator.</p>
         </div>
       </div>
