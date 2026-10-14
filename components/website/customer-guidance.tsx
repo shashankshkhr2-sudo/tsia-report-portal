@@ -1,4 +1,5 @@
 'use client'
+import { ProfileDob } from './profile-dob'
 import { ProfileLoShuGrid } from './profile-loshu-grid'
 import { useEffect, useState } from 'react'
 import { BasicNumerologyProfile } from './basic-numerology-profile'
@@ -38,7 +39,7 @@ export function CustomerGuidance({ demo }: { demo?: { profile: Profile; previews
    <h2 className="font-serif text-3xl">Your personal profile starts here</h2><p className="mt-3">Verify your email to open your saved profile or create a new one.</p><Link href="/website/start" className={`${button} mt-5 inline-block`}>Start with Email / Sign in</Link>
   </div> : <>
    <div className="rounded-2xl border border-[#eadfd4] bg-white p-5 sm:p-7">
-    <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-sm text-[#a57a40]">{demo ? 'FICTIONAL TEST PROFILE' : 'YOUR SAVED PROFILE'}</p><h2 className="font-serif text-3xl">Welcome, {profile.profile.name}</h2><p className="mt-2">Date of birth: {profile.profile.dob}</p></div><button hidden={Boolean(demo)} className="text-sm underline" onClick={async () => { await customerClient()?.auth.signOut({ scope: 'local' }); setProfile(null); reset() }}>Sign out</button></div>
+    <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-sm text-[#a57a40]">{demo ? 'FICTIONAL TEST PROFILE' : 'YOUR SAVED PROFILE'}</p><h2 className="font-serif text-3xl">Welcome, {profile.profile.name}</h2><ProfileDob dob={profile.profile.dob} /></div><button hidden={Boolean(demo)} className="text-sm underline" onClick={async () => { await customerClient()?.auth.signOut({ scope: 'local' }); setProfile(null); reset() }}>Sign out</button></div>
     <nav aria-label="Profile sections" className="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-[#64263B]">{[['#your-numbers','Your numbers'],['#grid-patterns','Rajyogs & grid'],['#combined-reading','Your reading']].map(([href,label])=><a key={href} href={href} className="rounded-full border border-[#ded4cb] px-3 py-2 hover:bg-[#FAF7F0]">{label}</a>)}</nav>
     <ProfileLoShuGrid calculation={profile.calculation} />
     <p className="mt-4 text-sm text-[#766b67]">These calculations follow traditional numerology. Your experiences and choices matter when interpreting them.</p>
