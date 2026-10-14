@@ -1,5 +1,6 @@
 import type { NumerologyCalculationResult } from '@/lib/numerology/types'
 import { runNumerologyV3FromCalculation } from '@/lib/numerology-intelligence/engine'
+import { approvedRepetitionContext } from '@/lib/numerology-intelligence/repetition-approved'
 import { FUNCTIONAL_QUALITIES } from '@/lib/numerology-intelligence/functionalqualities'
 
 /** Free CORE-only projection. Draft repetition rules are never imported. */
@@ -18,5 +19,6 @@ export function freeV3Profile(c: NumerologyCalculationResult) {
  .slice(0,3)
  const selected = findings.map(n=>n.conclusion.functionalQualityId)
  const combinations = result.crossQuality.resolutions.filter(r=>r.status==='RESOLVED' && r.ruleStatus==='PROVISIONAL_APPROVED' && (r.relationship==='COMPLEMENT' || r.relationship==='MODERATE') && r.allowedDomains.includes('CORE') && selected.includes(r.qualityA) && selected.includes(r.qualityB))
- return {engineVersion:result.engineVersion,findings,combinations}
+ const repetitions = approvedRepetitionContext(c)
+ return {engineVersion:result.engineVersion,findings,combinations,repetitions}
 }
