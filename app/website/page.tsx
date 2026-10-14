@@ -214,9 +214,8 @@ export default function JeevanSutraHomePage() {
             </p>
 
             <h1 className="font-serif text-[clamp(1.9rem,6vw,3.4rem)] font-normal leading-[1.18] text-[#FFF8EB]">
-              <span className="block">Your Name.</span>
-              <span className="block">Your Date of Birth.</span>
-              <span className="block">Your Personal Discovery.</span>
+              <span className="block">Understand yourself.</span>
+              <span className="block">Explore your connections.</span>
             </h1>
 
             <div className="my-7 h-px w-28 bg-[#C5A15A]" />
@@ -225,16 +224,15 @@ export default function JeevanSutraHomePage() {
               lang="hi"
               className="font-serif text-[clamp(1.45rem,4.5vw,2.3rem)] font-normal leading-[1.55] text-[#EAD8AD]"
             >
-              <p>आपका नाम।</p>
-              <p>आपकी जन्म तिथि।</p>
-              <p>आपकी व्यक्तिगत खोज।</p>
+              <p>खुद को समझें।</p>
+              <p>अपने रिश्तों को जानें।</p>
             </div>
 
             <p className="mt-6 max-w-xl text-base leading-8 text-[#F0E4E5]">
-              Discover your personal numbers, explore your
-              strengths and begin a thoughtful journey through
-              traditional numerology. Your name and date of
-              birth are enough to get started.
+              Explore your strengths and personal patterns through
+              traditional numerology, with three complimentary
+              compatibility previews. Your name and date of birth
+              are enough to get started.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -242,7 +240,7 @@ export default function JeevanSutraHomePage() {
                 href="/website/register"
                 className="inline-flex items-center justify-center rounded-full bg-[#EAD8AD] px-7 py-4 text-center font-medium text-[#64263B] hover:bg-[#FFF0CA]"
               >
-                Discover My Numbers — Free
+                Get My Free Personal Guidance
                 <span className="ml-3" aria-hidden="true">→</span>
               </Link>
 
@@ -257,7 +255,8 @@ export default function JeevanSutraHomePage() {
             <p className="mt-6 text-sm leading-7 text-[#EAD8AD]">
               ✓ No birth time required
               <span className="mx-2">•</span>
-              ✓ Free personal discovery
+              ✓ Free personal guidance
+              <span className="mt-2 block">Includes three complimentary compatibility previews.</span>
             </p>
 
             <div className="mt-7 border-t border-[#D8B475]/30 pt-5">
@@ -269,7 +268,7 @@ export default function JeevanSutraHomePage() {
                 href="/website/join"
                 className="mt-2 inline-flex items-center gap-3 font-medium text-[#EAD8AD] underline underline-offset-4 hover:text-[#FFF0CA]"
               >
-                Join Jeevan Sutra — Free
+                Join Jeevan Sutra
                 <span aria-hidden="true">→</span>
               </Link>
             </div>
@@ -455,7 +454,7 @@ export default function JeevanSutraHomePage() {
               href="/website/register"
               className="inline-flex items-center rounded-full bg-[#64263B] px-9 py-4 font-medium text-white hover:bg-[#4D1930]"
             >
-              Discover My Numbers — Free
+              Get My Free Personal Guidance
               <span className="ml-3" aria-hidden="true">→</span>
             </Link>
 
@@ -896,7 +895,7 @@ export default function JeevanSutraHomePage() {
             href="/website/register"
             className="mt-9 inline-flex items-center rounded-full bg-[#EAD8AD] px-9 py-4 font-medium text-[#64263B]"
           >
-            Discover My Numbers — Free
+            Get My Free Personal Guidance
             <span className="ml-3" aria-hidden="true">→</span>
           </Link>
         </div>
