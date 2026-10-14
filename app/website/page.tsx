@@ -74,7 +74,7 @@ const navigation = [
   ['Free Discovery', '#free-discovery'],
   ['How It Works', '#how-it-works'],
   ['Services', '/website/services'],
-  ['Sign in / My guidance', '/website/welcome'],
+  ['Sign in / My Profile', '/website/welcome'],
   ['Compatibility', '/website/compatibility'],
   ['Leadership', '#leadership'],
   ['Join Jeevan Sutra', '/website/join'],
@@ -132,7 +132,7 @@ export default function JeevanSutraHomePage() {
               ))}
 
               <Link
-                href="/website/register"
+                href="/website/start"
                 className="rounded-full bg-[#EAD8AD] px-5 py-3 text-sm font-medium text-[#64263B]"
               >
                 Register
@@ -195,7 +195,7 @@ export default function JeevanSutraHomePage() {
               ))}
 
               <Link
-                href="/website/register"
+                href="/website/start"
                 className="mt-2 rounded-lg bg-[#EAD8AD] px-4 py-3 text-center text-sm font-medium text-[#64263B]"
               >
                 Register
@@ -237,7 +237,7 @@ export default function JeevanSutraHomePage() {
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link
-                href="/website/register"
+                href="/website/start"
                 className="inline-flex items-center justify-center rounded-full bg-[#EAD8AD] px-7 py-4 text-center font-medium text-[#64263B] hover:bg-[#FFF0CA]"
               >
                 Discover My Free Numerology Profile
@@ -451,7 +451,7 @@ export default function JeevanSutraHomePage() {
 
           <div className="mt-12 text-center">
             <Link
-              href="/website/register"
+              href="/website/start"
               className="inline-flex items-center rounded-full bg-[#64263B] px-9 py-4 font-medium text-white hover:bg-[#4D1930]"
             >
               Discover My Free Numerology Profile
@@ -571,7 +571,7 @@ export default function JeevanSutraHomePage() {
 
             <div className="mt-8 border-t border-[#E4D4BD] pt-7">
               <Link
-                href="/website/register"
+                href="/website/start"
                 className="inline-block rounded-full bg-[#64263B] px-7 py-4 font-medium text-white"
               >
                 Explore My Name Number
@@ -622,7 +622,7 @@ export default function JeevanSutraHomePage() {
                 </p>
 
                 <Link
-                  href="/website/register"
+                  href="/website/start"
                   className="mt-7 font-medium text-[#64263B] underline underline-offset-4"
                 >
                   Register Your Interest
@@ -892,7 +892,7 @@ export default function JeevanSutraHomePage() {
           </p>
 
           <Link
-            href="/website/register"
+            href="/website/start"
             className="mt-9 inline-flex items-center rounded-full bg-[#EAD8AD] px-9 py-4 font-medium text-[#64263B]"
           >
             Discover My Free Numerology Profile
@@ -934,8 +934,8 @@ export default function JeevanSutraHomePage() {
             <a href="#free-discovery">Free Discovery</a>
             <Link href="/website/services">Services</Link>
             <Link href="/website/compatibility">Compatibility</Link>
-            <Link href="/website/register">Register</Link>
-            <Link href="/website/welcome">Sign in / My guidance</Link>
+            <Link href="/website/start">Start with Email</Link>
+            <Link href="/website/welcome">Sign in / My Profile</Link>
             <Link
               href="/website/join"
               className="font-medium text-[#64263B]"

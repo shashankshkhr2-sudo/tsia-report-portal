@@ -40,7 +40,7 @@ export function CompatibilityPreview() {
   <h2 className="font-serif text-3xl">Your launch gift</h2>
   <p className="mt-3 leading-7">Explore three complimentary compatibility previews with your verified account. Your details come from your saved profile. Reopening saved previews is free.</p>
   {error && <p role="alert" className="mt-4 text-red-800">{error}</p>}
-  {loading ? <p role="status" className="mt-4">Loading your previews…</p> : !signedIn ? <div className="mt-5 flex flex-wrap gap-5"><Link href="/website/welcome" className="underline">Sign in / My guidance</Link><Link href="/website/register" className="underline">Create my profile</Link></div> : <>
+  {loading ? <p role="status" className="mt-4">Loading your previews…</p> : !signedIn ? <div className="mt-5 flex flex-wrap gap-5"><Link href="/website/welcome" className="underline">Sign in / My Profile</Link><Link href="/website/start" className="underline">Start with Email</Link></div> : <>
    <p role="status" className="mt-4 font-semibold">{remaining} of 3 complimentary previews remaining</p>
    {remaining > 0 && <form onSubmit={submit} className="mt-5">
     <label className="block">Comparison type<select className={field} value={kind} onChange={e => setKind(e.target.value)}>{launchKinds.map(item => <option key={item}>{item}</option>)}</select></label>

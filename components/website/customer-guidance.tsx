@@ -4,7 +4,7 @@ import { BasicNumerologyProfile } from './basic-numerology-profile'
 import { LockedGuidanceServices } from './locked-guidance-services'
 import Link from 'next/link'
 import { customerClient } from '@/lib/jeevansutra/customer-client'
-import { questionsFor, type Intake, type GuidanceTopic } from '@/lib/jeevansutra/intake'
+import { type Intake, type GuidanceTopic } from '@/lib/jeevansutra/intake'
 import type { NumerologyCalculationResult } from '@/lib/numerology/types'
 type Preview = { scope: string; insights: { title: string; explanation: string; basis: string }[]; question: string; action: string; limitation: string }
 type Saved = { id: string; topic: string; intake: Intake; preview: Preview; created_at: string }
@@ -15,9 +15,7 @@ const input = 'mt-2 w-full rounded-xl border border-[#ded4cb] bg-white p-3 text-
 const humanLabel = (value: string) => value.replaceAll('_', ' ').replace(/^./, c => c.toUpperCase())
 export function CustomerGuidance({ demo }: { demo?: { profile: Profile; previews: Record<GuidanceTopic, Preview> } }) {
  const [profile, setProfile] = useState<Profile | null>(null)
- const [email, setEmail] = useState(''); const [code, setCode] = useState(''); const [sentEmail, setSentEmail] = useState('')
- const [busy, setBusy] = useState(false); const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [cooldown, setCooldown] = useState(0)
- useEffect(() => { if (!cooldown) return; const t = setTimeout(() => setCooldown(c => c - 1), 1000); return () => clearTimeout(t) }, [cooldown])
+ const [loading, setLoading] = useState(true); const [error, setError] = useState('')
  async function load() {
   if (demo) { setProfile(demo.profile); setLoading(false); return }
   setLoading(true)
@@ -32,32 +30,11 @@ export function CustomerGuidance({ demo }: { demo?: { profile: Profile; previews
   } catch { setError('Unable to connect. Please try again.') } finally { setLoading(false) }
  }
  useEffect(() => { void load() }, [])
- async function signIn() {
-  const client = customerClient(); if (!client) { setError('Sign-in is unavailable.'); return }
-  setBusy(true); setError('')
-  try {
-   if (!sentEmail) {
-    const address = email.trim().toLowerCase()
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) { setError('Enter a valid email.'); return }
-    const { error } = await client.auth.signInWithOtp({ email: address, options: { shouldCreateUser: false } })
-    if (error) { setError('Unable to send a code. Check your email or register first.'); return }
-    setSentEmail(address); setCooldown(60)
-   } else {
-    const { error } = await client.auth.verifyOtp({ email: sentEmail, token: code.trim(), type: 'email' })
-    if (error) { setError('The code is invalid or expired.'); return }
-    await load()
-   }
-  } catch { setError('Unable to sign in. Please try again.') } finally { setBusy(false) }
- }
  function reset() { setError('') }
  return <section className="mx-auto max-w-4xl px-5 py-10">
   {error && <p role="alert" className="mb-5 rounded-xl bg-red-50 p-4 text-red-800">{error}</p>}
   {loading ? <p role="status">Loading your saved profile…</p> : !profile ? <div className="rounded-3xl border border-[#eadfd4] bg-white p-6">
-   <h2 className="font-serif text-3xl">Your personal guidance starts here</h2><p className="mt-3">Sign in with your registered email. New here? <Link className="underline" href="/website/register">Create your profile</Link>.</p>
-   <label className="mt-5 block">Email address<input className={input} type="email" autoComplete="email" value={email} disabled={Boolean(sentEmail)} onChange={e => setEmail(e.target.value)} /></label>
-   {sentEmail && <label className="mt-4 block">Email verification code<input className={input} inputMode="numeric" autoComplete="one-time-code" value={code} onChange={e => setCode(e.target.value)} /></label>}
-   <button className={`${button} mt-5`} disabled={busy} onClick={() => void signIn()}>{busy ? 'Please wait…' : sentEmail ? 'Verify & continue' : 'Send sign-in code'}</button>
-   {sentEmail && <button className="ml-4 underline" disabled={busy || cooldown > 0} onClick={() => { setSentEmail(''); setCode('') }}>{cooldown ? `Request another code in ${cooldown}s` : 'Use another email or resend'}</button>}
+   <h2 className="font-serif text-3xl">Your personal profile starts here</h2><p className="mt-3">Verify your email to open your saved profile or create a new one.</p><Link href="/website/start" className={`${button} mt-5 inline-block`}>Start with Email / Sign in</Link>
   </div> : <>
    <div className="rounded-3xl border border-[#eadfd4] bg-white p-6">
     <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-sm text-[#a57a40]">{demo ? 'FICTIONAL TEST PROFILE' : 'YOUR SAVED PROFILE'}</p><h2 className="font-serif text-3xl">Welcome, {profile.profile.name}</h2><p className="mt-2">Date of birth: {profile.profile.dob}</p></div><button hidden={Boolean(demo)} className="text-sm underline" onClick={async () => { await customerClient()?.auth.signOut({ scope: 'local' }); setProfile(null); reset() }}>Sign out</button></div>
