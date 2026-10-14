@@ -1,3 +1,4 @@
+import { NameDiscoveryFeature } from '@/components/website/name-discovery-feature'
 import Link from 'next/link'
 import GrahaArtwork from './GrahaArtwork'
 
@@ -333,6 +334,8 @@ export default function JeevanSutraHomePage() {
         </div>
       </section>
 
+      <NameDiscoveryFeature />
+
       {/* HOW IT WORKS */}
       <section
         id="how-it-works"
@@ -393,58 +396,6 @@ export default function JeevanSutraHomePage() {
                 </p>
               </article>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* NAME DISCOVERY */}
-      <section className="bg-[#64263B] px-5 py-20 text-white md:px-10">
-        <div className="mx-auto grid max-w-7xl items-center gap-10 md:grid-cols-2">
-          <div>
-            <p className="text-xs uppercase tracking-[0.22em] text-[#EAD8AD]">
-              The Power of a Name
-            </p>
-
-            <h2 className="mt-5 font-serif text-4xl font-normal leading-tight md:text-5xl">
-              Why Do Some Celebrities Change Their Names?
-            </h2>
-
-            <p className="mt-6 text-lg leading-9 text-[#F1E1D8]">
-              Names and spelling changes have long attracted
-              interest in numerology. Jeevan Sutra helps you
-              explore the traditional number associations
-              of your birth name and current name.
-            </p>
-
-            <p className="mt-5 leading-8 text-[#EAD8AD]">
-              A name number is a traditional interpretation,
-              not a guarantee of success or a prediction.
-            </p>
-          </div>
-
-          <div className="rounded-3xl border border-[#D8B475]/50 bg-[#FFF9EF] p-8 text-center text-[#64263B] md:p-12">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-[#C5A15A] font-serif text-4xl">
-              5
-            </div>
-
-            <h3 className="mt-6 font-serif text-3xl">
-              Your Name Has a Number
-            </h3>
-
-            <p className="mt-5 leading-8 text-[#665B55]">
-              Discover how the Chaldean system assigns
-              numerical values to letters and how different
-              names can produce different results.
-            </p>
-
-            <div className="mt-8 border-t border-[#E4D4BD] pt-7">
-              <Link
-                href="/website/start"
-                className="inline-block rounded-full bg-[#64263B] px-7 py-4 font-medium text-white"
-              >
-                Explore My Name Number
-              </Link>
-            </div>
           </div>
         </div>
       </section>
