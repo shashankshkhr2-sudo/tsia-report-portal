@@ -1,60 +1,49 @@
 'use client'
 
-import { useActionState } from 'react'
-import { ArrowRight, Fingerprint } from 'lucide-react'
+import { useActionState, useState } from 'react'
+import { ArrowRight, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Logo } from '@/components/portal-logo'
 import { signIn, type AuthActionState } from '@/app/actions/auth'
 
 const initialState: AuthActionState = { error: null }
 
+function Brand({ desktop = false }: { desktop?: boolean }) {
+  return <img src="/images/jeevansutra-approved-logo.png" alt="Jeevan Sutra — The Complete Guidance Experience. Your life at the centre." width={1145} height={1374} className={desktop ? 'h-auto w-full max-w-[420px]' : 'h-auto w-[210px] max-w-full'} />
+}
+
 export function LoginForm() {
   const [state, formAction, pending] = useActionState(signIn, initialState)
-
-  return (
-    <main className="flex min-h-screen bg-[#24354c]">
-      <div className="hidden flex-1 flex-col justify-between overflow-hidden p-10 lg:flex">
-        <Logo compact={false} />
-        <div className="relative max-w-lg pb-10">
-          <div className="absolute -left-24 -top-32 size-96 rounded-full border border-[#d6b47b]/20" />
-          <div className="absolute -bottom-20 -right-24 size-72 rounded-full border border-[#d6b47b]/15" />
-          <p className="mb-5 text-xs uppercase tracking-[0.25em] text-[#d6b47b]">The Swastik Indian Art</p>
-          <h1 className="font-serif text-6xl leading-[1.05] text-[#fffdf9]">Insights<br /><span className="text-[#d6b47b]">with intention.</span></h1>
-          <p className="mt-6 max-w-sm text-sm leading-7 text-[#bdc5cd]">A considered space for creating meaningful numerology reports for every client story.</p>
-        </div>
-        <p className="text-[10px] uppercase tracking-[0.18em] text-[#8997a6]">© 2024 TSIA · Private workspace</p>
-      </div>
-      <div className="flex w-full items-center justify-center bg-[#fffdf9] px-6 py-10 sm:px-12 lg:max-w-[520px]">
-        <div className="w-full max-w-[360px]">
-          <div className="mb-12 lg:hidden"><Logo /></div>
-          <div className="mb-9">
-            <div className="mb-5 flex size-12 items-center justify-center rounded-2xl bg-[#f3eadc] text-[#ad7b40]"><Fingerprint className="size-6" /></div>
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#ad7b40]">Welcome back</p>
-            <h2 className="font-serif text-3xl font-semibold text-[#24354c]">Sign in to your portal</h2>
-            <p className="mt-3 text-sm leading-6 text-[#81776b]">Use your TSIA team credentials to continue.</p>
+  const [showPassword, setShowPassword] = useState(false)
+  const field = 'h-12 w-full rounded-xl border border-[#ded4cb] bg-white px-4 text-base font-normal text-[#392e30] outline-none focus:ring-2 focus:ring-[#C5A15A]'
+  return <main className="min-h-screen bg-[#FAF7F0] lg:flex">
+    <aside className="hidden min-h-screen flex-1 flex-col items-center justify-center bg-[#64263B] px-10 py-12 lg:flex">
+      <Brand desktop />
+      <p className="mt-8 max-w-sm text-center text-sm leading-7 text-[#EAD8AD]">A thoughtful space for our team to support each person’s journey with clarity and care.</p>
+    </aside>
+    <div className="flex w-full flex-col lg:max-w-[560px] lg:justify-center">
+      <header className="flex h-[280px] shrink-0 items-center justify-center bg-[#64263B] px-6 py-3 lg:hidden"><Brand /></header>
+      <div className="mx-auto w-full max-w-[440px] px-6 py-7 sm:px-8 lg:py-12">
+        <h1 className="font-serif text-3xl font-semibold text-[#64263B]">Welcome back</h1>
+        <p className="mt-3 text-sm leading-6 text-[#81776b]">Sign in to your Jeevan Sutra team workspace.</p>
+        <form action={formAction} className="mt-6 flex flex-col gap-5">
+          <label className="flex flex-col gap-2 text-sm font-semibold text-[#64263B]">Email address<input required type="email" name="email" autoComplete="email" maxLength={254} placeholder="Your work email address" className={field} /></label>
+          <label className="flex flex-col gap-2 text-sm font-semibold text-[#64263B]" htmlFor="employee-password">Password</label>
+          <div className="relative -mt-3">
+            <input id="employee-password" required name="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" maxLength={256} placeholder="Enter your password" className={`${field} pr-14`} />
+            <button type="button" aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword} onClick={() => setShowPassword(v => !v)} className="absolute right-1 top-1 flex size-10 items-center justify-center rounded-lg text-[#81776b] hover:bg-[#FAF7F0] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#64263B]">{showPassword ? <EyeOff aria-hidden="true" className="size-5" /> : <Eye aria-hidden="true" className="size-5" />}</button>
           </div>
-          <form action={formAction} className="flex flex-col gap-5">
-            <label className="flex flex-col gap-2 text-xs font-semibold text-[#5f574d]">Email address<input required type="email" name="email" autoComplete="email" maxLength={254} placeholder="you@tsia.in" className="h-12 rounded-xl border border-[#e8dfd3] bg-white px-4 text-sm font-normal outline-none focus:ring-2 focus:ring-[#d6b47b]" /></label>
-            <label className="flex flex-col gap-2 text-xs font-semibold text-[#5f574d]">Password<input required name="password" type="password" autoComplete="current-password" maxLength={256} placeholder="Enter your password" className="h-12 rounded-xl border border-[#e8dfd3] bg-white px-4 text-sm font-normal outline-none focus:ring-2 focus:ring-[#d6b47b]" /></label>
-            <div className="flex items-center justify-between text-xs">
-              <label className="flex cursor-not-allowed items-center gap-2 text-[#81776b] opacity-50" title="Not available yet"><input type="checkbox" disabled className="accent-[#24354c]" /> Remember me</label>
-              <button type="button" disabled title="Not available yet — contact your administrator" className="font-semibold text-[#ad7b40] disabled:cursor-not-allowed disabled:opacity-50">Forgot password?</button>
-            </div>
-            <Button type="submit" disabled={pending} className="mt-2 h-12 rounded-xl bg-[#24354c] text-white hover:bg-[#30445f]">{pending ? 'Signing in…' : 'Sign in'} <ArrowRight data-icon="inline-end" /></Button>
-            <p role="alert" aria-live="polite" className="text-sm text-[#a55f46] empty:hidden">{state.error}</p>
-          </form>
-          <a
-            href="/website"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-6 flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[#ded4cb] px-4 py-3 text-center text-sm font-semibold text-[#762b40] transition hover:bg-[#f9f5ef] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#762b40]"
-          >
-            Visit Jeevan Sutra Website <ArrowRight aria-hidden="true" className="size-4" />
-            <span className="sr-only"> (opens in a new tab)</span>
-          </a>
-          <p className="mt-10 text-center text-[11px] leading-5 text-[#aa9c8c]">This is a private workspace for authorized TSIA team members.<br />Need access? Contact your administrator.</p>
-        </div>
+          <Button type="submit" disabled={pending} className="h-12 rounded-xl bg-[#64263B] text-base text-white hover:bg-[#522033]">{pending ? 'Signing in…' : 'Sign in'} <ArrowRight aria-hidden="true" data-icon="inline-end" /></Button>
+          <p role="alert" aria-live="polite" className="text-sm text-red-800 empty:hidden">{state.error}</p>
+        </form>
+        <a href="/website" target="_blank" rel="noopener noreferrer" className="group mt-6 block rounded-2xl border border-[#C5A15A]/60 bg-[#F8F1E5] p-5 text-[#64263B] transition hover:bg-[#F3E9D8] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#64263B]">
+          <span className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-[#977237]">Discover Jeevan Sutra</span>
+          <span className="mt-2 block font-serif text-2xl">Your journey starts here.</span>
+          <span className="mt-2 block text-sm leading-6 text-[#766b67]">Explore your personal numbers and connections.</span>
+          <span className="mt-4 flex items-center gap-3 text-sm font-semibold">Explore Website <ArrowRight aria-hidden="true" className="size-4 transition-transform group-hover:translate-x-1" /></span>
+          <span className="sr-only"> (opens in a new tab)</span>
+        </a>
+        <p className="mt-6 border-t border-[#ded4cb] pt-5 text-center text-xs leading-6 text-[#81776b]">Private workspace for the Jeevan Sutra team.<br />Need access? Contact your administrator.</p>
       </div>
-    </main>
-  )
+    </div>
+  </main>
 }
