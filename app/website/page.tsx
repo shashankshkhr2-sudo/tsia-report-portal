@@ -107,10 +107,10 @@ export default function JeevanSutraHomePage() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link
                 href="/website/start"
-                className="inline-flex items-center justify-center rounded-full bg-[#EAD8AD] px-7 py-4 text-center font-medium text-[#64263B] hover:bg-[#FFF0CA]"
+                className="group inline-flex min-h-16 w-full items-center justify-between gap-3 rounded-2xl border border-[#F6E6BB] bg-gradient-to-br from-[#F4E4BD] to-[#EAD8AD] px-5 py-4 text-center text-base font-bold text-[#64263B] shadow-[0_6px_20px_rgba(0,0,0,0.12)] transition-colors hover:from-[#FFF0CA] hover:to-[#F4E4BD] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#EAD8AD] sm:w-auto sm:gap-5 sm:px-7"
               >
-                Discover My Free Numerology Profile
-                <span className="ml-3" aria-hidden="true">→</span>
+                <span className="flex-1">Discover Your Free Profile</span>
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-[#64263B]/20 text-xl" aria-hidden="true">→</span>
               </Link>
 
               <a
@@ -121,12 +121,11 @@ export default function JeevanSutraHomePage() {
               </a>
             </div>
 
-            <p className="mt-6 text-sm leading-7 text-[#EAD8AD]">
-              ✓ No birth time required
-              <span className="mx-2">•</span>
-              ✓ Free basic numerology profile
-              <span className="mt-2 block">Includes three complimentary compatibility previews.</span>
-            </p>
+            <ul aria-label="Your complimentary profile includes" className="mt-6 space-y-3 text-base font-bold leading-6 text-[#EAD8AD]">
+              {['No birth time required', 'Your basic numerology profile is free', 'Includes 3 complimentary compatibility previews'].map(text => (
+                <li key={text} className="flex items-start gap-3"><span aria-hidden="true" className="shrink-0">✓</span><span>{text}</span></li>
+              ))}
+            </ul>
 
             <div className="mt-7 border-t border-[#D8B475]/30 pt-5">
               <p className="text-sm leading-7 text-[#F0E4E5]">
@@ -323,7 +322,7 @@ export default function JeevanSutraHomePage() {
               href="/website/start"
               className="inline-flex items-center rounded-full bg-[#64263B] px-9 py-4 font-medium text-white hover:bg-[#4D1930]"
             >
-              Discover My Free Numerology Profile
+              Discover Your Free Profile
               <span className="ml-3" aria-hidden="true">→</span>
             </Link>
 
@@ -764,7 +763,7 @@ export default function JeevanSutraHomePage() {
             href="/website/start"
             className="mt-9 inline-flex items-center rounded-full bg-[#EAD8AD] px-9 py-4 font-medium text-[#64263B]"
           >
-            Discover My Free Numerology Profile
+            Discover Your Free Profile
             <span className="ml-3" aria-hidden="true">→</span>
           </Link>
         </div>
