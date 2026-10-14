@@ -1,3 +1,4 @@
+import { CombinedProfile } from './combined-profile'
 import type { NumerologyCalculationResult, NumerologyDigit } from '@/lib/numerology/types'
 const strengths: Record<NumerologyDigit, { title: string; description: string }> = {
   1: { title: 'You like finding your own way', description: 'You may enjoy taking the first step and trying your own ideas. Having space to make your own choices can feel important to you.' },
@@ -12,7 +13,8 @@ const strengths: Record<NumerologyDigit, { title: string; description: string }>
 }
 export function BasicNumerologyProfile({ calculation: c }: { calculation: NumerologyCalculationResult }) {
   return <section className="mt-6 space-y-5">
-    <h3 className="font-serif text-2xl">Get to know your strengths</h3>
+    <CombinedProfile calculation={c} key={`${c.nameNumber.normalizedName}:${c.birthDay}:${c.bhagyank.compound}:${JSON.stringify(c.loShu.counts)}`} />
+    <h3 className="font-serif text-2xl">Get to know your numbers</h3>
     <p>Your name and date of birth offer a starting point for exploring yourself through traditional numerology. See which descriptions feel familiar to you.</p>
     <div className="space-y-4">{[
       { title: 'Your birthday number · Mulank', value: c.mulank.final, detail: `Your birth day ${c.birthDay} gives you the number ${c.mulank.final}.` },
