@@ -240,7 +240,7 @@ export default function JeevanSutraHomePage() {
                 href="/website/register"
                 className="inline-flex items-center justify-center rounded-full bg-[#EAD8AD] px-7 py-4 text-center font-medium text-[#64263B] hover:bg-[#FFF0CA]"
               >
-                Get My Free Personal Guidance
+                Discover My Free Numerology Profile
                 <span className="ml-3" aria-hidden="true">→</span>
               </Link>
 
@@ -255,7 +255,7 @@ export default function JeevanSutraHomePage() {
             <p className="mt-6 text-sm leading-7 text-[#EAD8AD]">
               ✓ No birth time required
               <span className="mx-2">•</span>
-              ✓ Free personal guidance
+              ✓ Free basic numerology profile
               <span className="mt-2 block">Includes three complimentary compatibility previews.</span>
             </p>
 
@@ -454,7 +454,7 @@ export default function JeevanSutraHomePage() {
               href="/website/register"
               className="inline-flex items-center rounded-full bg-[#64263B] px-9 py-4 font-medium text-white hover:bg-[#4D1930]"
             >
-              Get My Free Personal Guidance
+              Discover My Free Numerology Profile
               <span className="ml-3" aria-hidden="true">→</span>
             </Link>
 
@@ -895,7 +895,7 @@ export default function JeevanSutraHomePage() {
             href="/website/register"
             className="mt-9 inline-flex items-center rounded-full bg-[#EAD8AD] px-9 py-4 font-medium text-[#64263B]"
           >
-            Get My Free Personal Guidance
+            Discover My Free Numerology Profile
             <span className="ml-3" aria-hidden="true">→</span>
           </Link>
         </div>
