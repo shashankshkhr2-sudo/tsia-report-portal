@@ -88,23 +88,7 @@ export default function JoinPage() {
 
   return (
     <main className="min-h-screen bg-[#faf6ef] text-[#392c30]">
-      <header className="border-b border-[#e9ddcf] bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-5">
-          <Link
-            href="/website"
-            className="font-serif text-xl font-bold tracking-wide text-[#81243f] sm:text-2xl"
-          >
-            JEEVAN SUTRA
-          </Link>
 
-          <Link
-            href="/website"
-            className="text-sm font-medium text-[#81243f]"
-          >
-            Home
-          </Link>
-        </div>
-      </header>
 
       <section className="bg-[#81243f] px-5 py-16 text-white sm:py-24">
         <div className="mx-auto max-w-4xl text-center">
