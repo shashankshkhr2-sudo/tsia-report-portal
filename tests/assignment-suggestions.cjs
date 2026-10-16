@@ -1,0 +1,11 @@
+const fs=require('fs'),ts=require('typescript'),Module=require('module'),assert=require('node:assert/strict');
+const filename=require('path').resolve(__dirname,'../lib/assignment-types.ts');
+const m=new Module(filename,module);m._compile(ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,filename);
+const {suggestedEmployees}=m.exports;
+const e=(id,workload,extra={})=>({id,workload,capacity:5,is_active:true,available:true,...extra});
+const original=[e('b',2),e('a',2),e('c',1),e('full',5),e('off',0,{available:false}),e('inactive',0,{is_active:false})];
+assert.deepEqual(suggestedEmployees(original).map(x=>x.id),['c','a','b']);
+assert.equal(original[0].id,'b');
+assert.deepEqual(suggestedEmployees([]),[]);
+assert.equal(suggestedEmployees([e('over',6)]).length,0);
+console.log('PASS: availability, active status, capacity, workload ordering, deterministic ties, empty results and input immutability');

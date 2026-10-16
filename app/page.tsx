@@ -55,7 +55,7 @@ export default async function Page() {
   return (
     <ReportPortal
       fullName={fullName}
-      isAdmin={profile.role === 'admin'}
+      isAdmin={['admin','superadmin'].includes(String(profile.role).trim().toLowerCase().replace(/[\s_-]+/g,''))}
       reports={reports}
       clients={clients}
       clientSources={clientSources}

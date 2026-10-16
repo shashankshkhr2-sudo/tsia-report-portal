@@ -152,6 +152,13 @@ export async function addClient(
     // belongs to the same organisation.
     // -----------------------------------------------------
 
+    const role = String(profile.role || '').trim().toLowerCase().replace(/[\s_-]+/g, '')
+    const management = ['admin', 'superadmin'].includes(role)
+    if (role === 'customer' || !role) return { error: 'Staff access required.', client: null }
+    if (!management && input.primary_employee_id && input.primary_employee_id !== user.id) {
+      return { error: 'Only an administrator can assign another employee.', client: null }
+    }
+
     let primaryEmployeeId =
       cleanOptional(input.primary_employee_id) || user.id
 

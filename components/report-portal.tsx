@@ -27,6 +27,8 @@ import {
   Button,
 } from '@/components/ui/button'
 
+import { AdminClientAssignments } from '@/components/admin-client-assignments'
+
 import { PortalDashboard } from '@/components/portal-dashboard'
 
 import { DobInput } from '@/components/dob-input'
@@ -2625,7 +2627,7 @@ export function ReportPortal({
 
             {view ===
               'clients' && (
-              <ClientsPage
+              isAdmin ? <AdminClientAssignments /> : <ClientsPage
                 clients={
                   clientList
                 }
@@ -2666,7 +2668,7 @@ export function ReportPortal({
                   clientSources
                 }
                 employees={
-                  employees
+                  isAdmin ? employees : []
                 }
               />
             )}
