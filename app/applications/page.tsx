@@ -1,3 +1,5 @@
+import ApplicationDocuments from '@/components/application-documents'
+import ReviewControls from './review-controls'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
@@ -6,6 +8,7 @@ export const dynamic = 'force-dynamic'
 
 type Application = {
   id: string
+  employee_id: string | null
   full_name: string
   mobile: string
   email: string
@@ -89,6 +92,8 @@ export default async function ApplicationsPage({
 
   if (canReview !== true) redirect('/')
 
+  const { data: locations } = await supabase.from('locations').select('id, name').eq('organization_id', organizationId).eq('is_active', true).order('name')
+
   const params = await searchParams
   const requestedPage = Number(params.page || '1')
   const page = Number.isInteger(requestedPage) &&
@@ -102,7 +107,7 @@ export default async function ApplicationsPage({
   const { data, error, count } = await supabase
     .from('jeevansutra_practitioner_applications')
     .select(
-      'id, full_name, mobile, email, city, state_region, country, expertise, methods, experience, languages, guidance_areas, qualification_type, qualification_details, consultation_mode, availability, introduction, portfolio_url, application_status, review_notes, created_at',
+      'id, employee_id, full_name, mobile, email, city, state_region, country, expertise, methods, experience, languages, guidance_areas, qualification_type, qualification_details, consultation_mode, availability, introduction, portfolio_url, application_status, review_notes, created_at',
       { count: 'exact' }
     )
     .eq('organization_id', organizationId)
@@ -114,6 +119,7 @@ export default async function ApplicationsPage({
     console.error('[applications] lookup failed', { code: error.code })
   }
 
+  const { data: history } = await supabase.from('js_practitioner_review_history').select('id, application_id, actor_id, action, notes, created_at').in('application_id', (data || []).map(item => item.id)).order('created_at', { ascending: false }).limit(100)
   const applications = (data || []) as Application[]
   const total = count || 0
 
@@ -134,7 +140,7 @@ export default async function ApplicationsPage({
 
         <p className="mt-3 text-sm leading-7 text-[#81776b]">
           Review numerologist and astrologer applications.
-          Application approval and employee access are separate.
+          Approve selected applicants, then share their private onboarding link. Employee access starts after verified onboarding.
         </p>
 
         {error ? (
@@ -216,6 +222,9 @@ export default async function ApplicationsPage({
                         Open professional portfolio ↗
                       </a>
                     )}
+                    <div className="mt-6"><h3 className="font-semibold">Recent Review & Interview History</h3>{(history || []).filter(item => item.application_id === application.id).map(item => <p key={item.id} className="mt-3 whitespace-pre-wrap text-sm leading-7">{new Date(item.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} · {item.action.replaceAll('_', ' ')} · {item.notes}</p>)}</div>
+                    <ApplicationDocuments applicationId={application.id} admin />
+                    <ReviewControls id={application.id} employeeId={application.employee_id} locations={locations || []} />
                   </details>
                 )
               })}

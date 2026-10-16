@@ -1,6 +1,8 @@
 'use client'
+import ContactVerification, { type VerifiedContact } from './contact-verification'
+import ApplicationDocuments from '@/components/application-documents'
 
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import {
   ArrowRight,
@@ -57,6 +59,8 @@ function TextField({
   required = false,
   placeholder,
   maxLength = 150,
+  defaultValue,
+  readOnly = false,
 }: {
   label: string
   name: string
@@ -64,12 +68,16 @@ function TextField({
   required?: boolean
   placeholder?: string
   maxLength?: number
+  defaultValue?: string
+  readOnly?: boolean
 }) {
   return (
     <label className={labelClass}>
       {label}
       {required && ' *'}
       <input
+        defaultValue={defaultValue}
+        readOnly={readOnly}
         name={name}
         type={type}
         required={required}
@@ -82,6 +90,25 @@ function TextField({
 }
 
 export default function JoinPage() {
+  const [contact, setContact] = useState<VerifiedContact | null>(null)
+  const [applicationId, setApplicationId] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (saving || !contact) return
+    const form = new FormData(event.currentTarget)
+    const body = { ...Object.fromEntries(form), guidanceAreas: form.getAll('guidanceAreas'), accuracyConsent: form.has('accuracyConsent'), contactConsent: form.has('contactConsent') }
+    setSaving(true); setError('')
+    try {
+      const response = await fetch('/api/website/practitioner-applications', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${contact.token}` }, body: JSON.stringify(body) })
+      const result = await response.json()
+      if (!response.ok || !result.success) throw new Error(result.error || 'Unable to submit. Please try again.')
+      setSuccess(result.message); setApplicationId(result.applicationId)
+    } catch (caught) { setError(caught instanceof Error ? caught.message : 'Unable to submit. Please try again.') }
+    finally { setSaving(false) }
+  }
   const [expertise, setExpertise] = useState('')
   const [qualificationType, setQualificationType] = useState('')
   const [introduction, setIntroduction] = useState('')
@@ -317,10 +344,13 @@ export default function JoinPage() {
           </p>
         </div>
 
-        <form
-          onSubmit={(event) => event.preventDefault()}
+        {!contact && <ContactVerification onVerified={setContact} />}
+        {contact && <form
+          onSubmit={submit}
           className="mt-8 rounded-3xl border border-[#e8dbce] bg-white p-6 shadow-sm sm:p-8"
         >
+          {success && <p role="status" className="mb-6 rounded-xl bg-green-50 p-5 text-green-900">{success}</p>}
+          <fieldset disabled={saving || Boolean(success)} className="min-w-0">
           <p className="text-xs leading-6 text-[#817875]">
             Fields marked * are required. Please do not include client
             names, personal client records or identity documents.
@@ -335,6 +365,7 @@ export default function JoinPage() {
               <TextField
                 label="Full Name"
                 name="fullName"
+                defaultValue={contact.fullName}
                 required
                 placeholder="Your full name"
               />
@@ -343,6 +374,7 @@ export default function JoinPage() {
             <TextField
               label="Mobile Number"
               name="mobile"
+              defaultValue={contact.mobile}
               type="tel"
               required
               maxLength={25}
@@ -352,6 +384,8 @@ export default function JoinPage() {
             <TextField
               label="Email Address"
               name="email"
+              defaultValue={contact.email}
+              readOnly
               type="email"
               required
               maxLength={254}
@@ -568,17 +602,20 @@ export default function JoinPage() {
 
           <button
             type="submit"
-            disabled
-            className="mt-8 w-full cursor-not-allowed rounded-xl bg-[#81243f] px-5 py-4 font-semibold text-white opacity-50"
+            disabled={saving || Boolean(success)}
+            className="mt-8 w-full rounded-xl bg-[#81243f] px-5 py-4 font-semibold text-white disabled:opacity-50"
           >
-            Applications Opening Soon
+            {saving ? 'Saving application…' : success ? 'Application Received' : 'Submit Application'}
           </button>
 
           <p className="mt-4 text-center text-xs leading-6 text-[#817875]">
-            Application submission is not available yet. Details
-            entered on this page are not saved.
+            Your application is saved only after a successful submission.
+            After saving, you can optionally attach degrees or certificates below. Employee access requires approval.
           </p>
-        </form>
+          </fieldset>
+          {error && <p role="alert" className="mt-5 text-red-700">{error}</p>}
+        </form>}
+        {contact && applicationId && <ApplicationDocuments applicationId={applicationId} token={contact.token} />}
       </section>
 
       <section className="border-t border-[#e9ddcf] bg-white px-5 py-12">
