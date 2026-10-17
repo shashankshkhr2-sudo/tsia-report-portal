@@ -203,6 +203,11 @@ function Sidebar({
             )
           )}
 
+          <a href="/practitioner/compatibility" onClick={() => setOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-[#6d665d] hover:bg-[#f0e9de]">
+            <Users className="size-[18px]" />
+            Client Compatibility
+          </a>
+
           {isAdmin && (
             <a
               href="/applications"

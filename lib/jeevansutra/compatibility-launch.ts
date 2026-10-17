@@ -1,3 +1,4 @@
+import 'server-only'
 import { calculateChaldeanName } from '@/lib/numerology/chaldean'
 import { calculateNumerologyV2 } from '@/lib/numerology/calculations'
 

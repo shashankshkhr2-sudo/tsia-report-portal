@@ -1,0 +1,25 @@
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import type { ReadingSection } from '@/lib/jeevansutra/compatibility-contract'
+export const dynamic = 'force-dynamic'
+type Row = { id: string; client_name: string; other_name: string; kind: string; relationship: string | null; created_at: string; has_guidance: boolean }
+type Detail = { id: string; client_name: string; preview: { people: { name: string }[]; sections?: ReadingSection[]; observations?: string[] }; practitioner: null | { status: string; methodVersion: string; roles: { self: string; other: string }; priorities: string[]; sections: ReadingSection[]; prompts: string[]; reviewNotes: string[] } }
+export default async function PractitionerCompatibility({ searchParams }: { searchParams: Promise<{ report?: string; page?: string }> }) {
+ const params = await searchParams
+ const supabase = await createClient()
+ const { data: { user } } = await supabase.auth.getUser()
+ if (!user) redirect('/login')
+ const page = Math.min(100000, Math.max(0, Number.parseInt(params.page || '0',10) || 0))
+ const report = params.report && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(params.report) ? params.report : null
+ // RPC repeats active-profile, organisation and assignment checks at the data boundary.
+ const { data, error } = await supabase.rpc('js_practitioner_compatibility', { p_preview_id: report, p_page: page })
+ const detail = report ? data as Detail | null : null
+ const rows = !report && Array.isArray(data) ? data as Row[] : []
+ return <main className="min-h-screen bg-[#FAF7F0] px-5 py-8 text-[#392e30]"><div className="mx-auto max-w-5xl"><Link href="/" className="text-sm text-[#64263B] underline">← Portal</Link><h1 className="mt-6 font-serif text-3xl text-[#64263B]">Client compatibility workspace</h1><p className="mt-3 text-sm leading-7">Private practitioner workspace. Access is limited to your organisation and assigned clients; authorised administrators can review across assignments.</p>
+ {error ? <p role="alert" className="mt-6 rounded-xl bg-red-50 p-4 text-red-800">Unable to load this workspace. Check your staff access and that the compatibility migration has been applied.</p> : report ? !detail ? <p className="mt-6">Reading unavailable or not assigned to you.</p> : <>
+ <Link href="/practitioner/compatibility" className="mt-5 inline-block underline">← All accessible readings</Link><h2 className="mt-6 font-serif text-2xl">{detail.preview.people.map(p => p.name).join(' & ')}</h2>
+ {detail.practitioner ? <><div className="mt-5 rounded-xl border border-amber-400 bg-amber-50 p-5"><strong>DRAFT — practitioner review required</strong><p className="mt-2 text-sm">System-generated discussion support, not a completed consultation or approved assessment. Confirm context with the client before using suggestions.</p><p className="mt-2 text-xs">Method: {detail.practitioner.methodVersion}</p></div><p className="mt-5 text-sm">Roles supplied: {detail.practitioner.roles.self} / {detail.practitioner.roles.other}</p><p className="mt-2 text-sm">Client priorities: {detail.practitioner.priorities.join(', ') || 'Not supplied'}</p>{detail.practitioner.sections.map(s => <section key={s.title} className="mt-4 rounded-2xl border border-[#DCC9A8] bg-white p-6"><h3 className="font-serif text-xl text-[#64263B]">{s.title}</h3><p className="mt-3 leading-7">{s.text}</p></section>)}<section className="mt-5 rounded-2xl bg-[#F4EBD9] p-6"><h3 className="font-serif text-xl">Confirm through conversation</h3><ul className="mt-3 list-disc space-y-2 pl-5">{detail.practitioner.prompts.map(p => <li key={p}>{p}</li>)}</ul><h3 className="mt-5 font-semibold">Internal rule-review limitations</h3><ul className="mt-3 list-disc space-y-2 pl-5 text-sm">{detail.practitioner.reviewNotes.map(p => <li key={p}>{p}</li>)}</ul></section></> : <><p className="mt-5 rounded-xl bg-white p-5">Legacy reading. The other person’s DOB and private guidance were not stored in the old format. No deeper report has been invented from incomplete inputs.</p>{detail.preview.observations?.map(p => <p key={p} className="mt-3 leading-7">{p}</p>)}</>}
+ </> : <><div className="mt-6 space-y-4">{rows.map(row => <Link key={row.id} href={`/practitioner/compatibility?report=${row.id}`} className="block rounded-2xl border border-[#DCC9A8] bg-white p-5"><h2 className="font-serif text-xl text-[#64263B]">{row.client_name} & {row.other_name}</h2><p className="mt-2 text-sm">{row.kind}{row.relationship ? ` · ${row.relationship}` : ''}</p><p className="mt-2 text-xs text-[#766b67]">{row.has_guidance ? 'Draft internal guidance available' : 'Legacy customer preview only'}</p></Link>)}{!rows.length && <p>No accessible comparisons on this page. Clients must be assigned before practitioners can view their readings.</p>}</div><nav aria-label="Reading pages" className="mt-6 flex gap-5">{page > 0 && <Link href={`?page=${page-1}`} className="underline">Previous</Link>}{rows.length === 50 && <Link href={`?page=${page+1}`} className="underline">Next</Link>}</nav></>}
+ </div></main>
+}
