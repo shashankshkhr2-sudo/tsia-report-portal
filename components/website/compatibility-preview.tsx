@@ -1,6 +1,8 @@
 'use client'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { compatibilitySignInPath } from '@/lib/jeevansutra/customer-destination'
 import { LaunchGift } from './launch-gift'
 import { customerClient } from '@/lib/jeevansutra/customer-client'
 import { compatibilityKinds, relationships, priorities, type CompatibilityKind, type CustomerReading } from '@/lib/jeevansutra/compatibility-contract'
@@ -8,6 +10,7 @@ const legacyKinds = ['Personal Relationship Compatibility', 'Business Partnershi
 type Saved = { id: string; preview: CustomerReading; created_at: string }
 const field = 'mt-2 min-h-12 w-full rounded-xl border border-[#ded4cb] bg-[#FFFDFA] p-3 text-base text-[#392e30] focus:outline-2 focus:outline-offset-2 focus:outline-[#C5A15A]'
 export function CompatibilityPreview() {
+ const router = useRouter()
  const [draft, setDraft] = useState(false)
  const [kind, setKind] = useState(legacyKinds[0]); const [relationship, setRelationship] = useState('Partners')
  const [selfRole, setSelfRole] = useState(''); const [otherRole, setOtherRole] = useState('')
@@ -23,10 +26,10 @@ export function CompatibilityPreview() {
  async function token() { return (await customerClient()?.auth.getSession())?.data.session?.access_token }
  async function load() {
   try {
-   const access = await token(); if (!access) { setSignedIn(false); return }
+   const access = await token(); if (!access) { setSignedIn(false); router.replace(compatibilitySignInPath); return }
    const response = await fetch('/api/website/compatibility', { headers: { Authorization: `Bearer ${access}` }, cache: 'no-store' })
    const data = await response.json()
-   if (!response.ok) { setError(data.error); return }
+   if (!response.ok) { if (response.status === 401) { setSignedIn(false); router.replace(compatibilitySignInPath); return } setError(data.error || 'Unable to load compatibility.'); return }
    setSignedIn(true); setHistory(data.history); setRemaining(data.remaining)
    setDraft(Boolean(data.draftEnabled)); setKind(current => data.draftEnabled ? (compatibilityKinds.includes(current as CompatibilityKind) ? current : compatibilityKinds[0]) : (legacyKinds.includes(current) ? current : legacyKinds[0]))
   } catch { setError('Unable to load your previews. Please reload to try again.') }
@@ -36,7 +39,7 @@ export function CompatibilityPreview() {
  async function submit(event: FormEvent) {
   event.preventDefault(); setError(''); setBusy(true)
   try {
-   const access = await token(); if (!access) { setSignedIn(false); setError('Please sign in again.'); return }
+   const access = await token(); if (!access) { setSignedIn(false); router.replace(compatibilitySignInPath); return }
    const response = await fetch('/api/website/compatibility', { method: 'POST', headers: { Authorization: `Bearer ${access}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ kind, name, dob, permission, ...(draft ? { relationship, selfRole, otherRole, priorities: selected } : {}) }) })
    const data = await response.json()
    if (!response.ok) { setError(data.error || 'Unable to save preview.'); return }
@@ -44,6 +47,9 @@ export function CompatibilityPreview() {
   } catch { setError('Unable to confirm the save. Retry with the same details to check without using an extra preview.') }
   finally { setBusy(false) }
  }
+ if (loading || !signedIn) return <section className="mt-8 rounded-3xl border border-[#eadfd4] bg-white p-6">
+  {error ? <><p role="alert" className="text-red-800">{error}</p><button type="button" className="mt-4 underline" onClick={() => { setError(''); setLoading(true); void load() }}>Try again</button></> : <p role="status">Checking your account and opening compatibility…</p>}
+ </section>
  return <section className="mt-8 rounded-3xl border border-[#eadfd4] bg-white p-5 sm:p-7">
   <LaunchGift showLink={false} />
   {draft && <p role="status" className="mt-5 rounded-xl border border-amber-400 bg-amber-50 p-4 text-sm text-amber-950">STAGING DRAFT — interpretation tables are under review. Not a final customer reading. Draft saves use this staging account’s existing launch allowance. Reopening preserves the original roles and priorities.</p>}
