@@ -1,31 +1,32 @@
 import { NameDiscoveryFeature } from '@/components/website/name-discovery-feature'
 import Link from 'next/link'
+import { Star, BriefcaseBusiness, Heart, Compass, Sprout } from 'lucide-react'
 import { LaunchGift } from '@/components/website/launch-gift'
 import GrahaArtwork from './GrahaArtwork'
 
 const benefits = [
   {
-    symbol: '✦',
+    icon: Star,
     title: 'Personal Strengths',
     detail: 'Explore the qualities associated with your numbers.',
   },
   {
-    symbol: '◇',
-    title: 'Career Guidance',
+    icon: BriefcaseBusiness,
+    title: 'Career & Work',
     detail: 'Reflect on professional direction and working style.',
   },
   {
-    symbol: '♡',
-    title: 'Relationships',
+    icon: Heart,
+    title: 'Love & Relationships',
     detail: 'Explore patterns of connection and communication.',
   },
   {
-    symbol: '◎',
+    icon: Compass,
     title: 'Money & Opportunities',
     detail: 'Consider traditional themes around planning and opportunity.',
   },
   {
-    symbol: '❋',
+    icon: Sprout,
     title: 'Personal Growth',
     detail: 'Build greater self-awareness through guided reflection.',
   },
@@ -162,27 +163,27 @@ export default function JeevanSutraHomePage() {
             </p>
 
             <h2 className="mt-4 font-serif text-3xl font-normal text-[#64263B] md:text-5xl">
-              Explore Different Aspects of Your Life
+              Discover Your Strengths & Connections
             </h2>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
-            {benefits.map((item) => (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {benefits.map(({ title, detail, icon: Icon }) => (
               <article
-                key={item.title}
-                className="rounded-2xl border border-[#E7D8C4] bg-white px-5 py-8 text-center shadow-sm"
+                key={title}
+                className="flex items-start gap-4 rounded-2xl border border-[#DCC9A8] bg-gradient-to-br from-white to-[#FFFAF0] p-5 shadow-[0_6px_20px_rgba(100,38,59,0.05)] sm:p-6"
               >
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-[#D8B475] bg-[#FAF3E8] font-serif text-3xl text-[#9E753E]">
-                  {item.symbol}
+                <div className="flex size-14 shrink-0 items-center justify-center rounded-full border border-[#C5A15A]/40 bg-[#64263B] text-[#EAD8AD] shadow-sm">
+                  <Icon size={26} strokeWidth={1.5} aria-hidden="true" />
                 </div>
 
-                <h3 className="mt-5 font-serif text-xl text-[#64263B]">
-                  {item.title}
+                <div className="min-w-0"><h3 className="font-serif text-xl leading-snug text-[#64263B]">
+                  {title}
                 </h3>
 
-                <p className="mt-3 text-sm leading-7 text-[#665B55]">
-                  {item.detail}
-                </p>
+                <p className="mt-2 text-sm leading-6 text-[#665B55]">
+                  {detail}
+                </p></div>
               </article>
             ))}
           </div>
