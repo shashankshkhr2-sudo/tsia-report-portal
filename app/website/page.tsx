@@ -1,5 +1,6 @@
 import { NameDiscoveryFeature } from '@/components/website/name-discovery-feature'
 import Link from 'next/link'
+import { LaunchGift } from '@/components/website/launch-gift'
 import GrahaArtwork from './GrahaArtwork'
 
 const benefits = [
@@ -120,7 +121,7 @@ export default function JeevanSutraHomePage() {
               >
                 What Will I Discover?
               </a>
-              <a href="/website/compatibility" className="inline-flex items-center justify-center rounded-full border border-[#D7B57B] px-7 py-4 text-center font-medium text-[#FAF1E1] hover:bg-white/10">Compatibility Test</a>
+
             </div>
 
             <ul aria-label="Your complimentary profile includes" className="mt-6 space-y-3 text-base font-bold leading-6 text-[#EAD8AD]">
@@ -128,6 +129,8 @@ export default function JeevanSutraHomePage() {
                 <li key={text} className="flex items-start gap-3"><span aria-hidden="true" className="shrink-0">✓</span><span>{text}</span></li>
               ))}
             </ul>
+
+            <div className="mt-7"><LaunchGift compact /></div>
 
             <div className="mt-7 border-t border-[#D8B475]/30 pt-5">
               <p className="text-sm leading-7 text-[#F0E4E5]">
@@ -427,7 +430,7 @@ export default function JeevanSutraHomePage() {
             {services.map((service) => (
               <article
                 key={service.number}
-                className="flex flex-col rounded-2xl border border-[#E6D8C7] bg-white p-8 shadow-sm"
+                className="group flex flex-col rounded-3xl border border-[#E6D8C7] bg-gradient-to-br from-white to-[#FBF5E9] p-7 shadow-[0_8px_28px_rgba(100,38,59,0.05)] transition-shadow hover:shadow-[0_14px_36px_rgba(100,38,59,0.12)]"
               >
                 <span className="font-serif text-3xl text-[#B18A53]">
                   {service.number}

@@ -1,10 +1,11 @@
 'use client'
 import { useEffect, useState, type FormEvent } from 'react'
 import Link from 'next/link'
+import { LaunchGift } from './launch-gift'
 import { customerClient } from '@/lib/jeevansutra/customer-client'
 import { launchKinds, type LaunchPreview } from '@/lib/jeevansutra/compatibility-launch'
 type Saved = { id: string; preview: LaunchPreview; created_at: string }
-const field = 'mt-2 w-full rounded-xl border border-[#eadfd4] bg-white p-3'
+const field = 'mt-2 min-h-12 w-full rounded-xl border border-[#ded4cb] bg-[#FFFDFA] p-3 text-base text-[#392e30] focus:border-[#A17B42] focus:outline-2 focus:outline-offset-2 focus:outline-[#C5A15A]'
 export function CompatibilityPreview() {
  const [kind, setKind] = useState<string>(launchKinds[0])
  const [name, setName] = useState(''); const [dob, setDob] = useState('')
@@ -37,17 +38,17 @@ export function CompatibilityPreview() {
   finally { setBusy(false) }
  }
  return <section className="mt-8 rounded-3xl border border-[#eadfd4] bg-white p-6">
-  <h2 className="font-serif text-3xl">Your launch gift</h2>
-  <p className="mt-3 leading-7">Explore three complimentary compatibility previews with your verified account. Your details come from your saved profile. Reopening saved previews is free.</p>
+  <LaunchGift showLink={false} />
+  <p className="mt-5 text-sm leading-7 text-[#766b67]">Your details come from your saved profile. Add someone you would like to understand better.</p>
   {error && <p role="alert" className="mt-4 text-red-800">{error}</p>}
   {loading ? <p role="status" className="mt-4">Loading your previews…</p> : !signedIn ? <div className="mt-5 flex flex-wrap gap-5"><Link href="/website/welcome" className="underline">Sign in / My Profile</Link><Link href="/website/start" className="underline">Start with Email</Link></div> : <>
-   <p role="status" className="mt-4 font-semibold">{remaining} of 3 complimentary previews remaining</p>
+   <p role="status" className="mt-5 rounded-xl border border-[#C5A15A]/40 bg-[#FAF5E9] px-4 py-3 text-sm font-semibold text-[#64263B]">{remaining} of 3 launch gift previews remaining</p>
    {remaining > 0 && <form onSubmit={submit} className="mt-5">
     <label className="block">Comparison type<select className={field} value={kind} onChange={e => setKind(e.target.value)}>{launchKinds.map(item => <option key={item}>{item}</option>)}</select></label>
     <label className="mt-4 block">Other person’s name in English<input required maxLength={120} className={field} value={name} onChange={e => setName(e.target.value)} /></label>
     <label className="mt-4 block">Other person’s DOB — DD/MM/YYYY (optional)<input inputMode="numeric" maxLength={10} placeholder="DD/MM/YYYY" className={field} value={dob} onChange={e => { const digits = e.target.value.replace(/\D/g, '').slice(0,8); setDob([digits.slice(0,2),digits.slice(2,4),digits.slice(4,8)].filter(Boolean).join('/')) }} /></label>
     <label className="mt-5 flex items-start gap-3"><input required type="checkbox" checked={permission} onChange={e => setPermission(e.target.checked)} className="mt-1" />I have permission to use and save the other person’s name and optional date of birth for this comparison.</label>
-    <button disabled={busy} className="mt-5 rounded-xl bg-[#762b40] px-5 py-3 font-semibold text-white disabled:opacity-50">{busy ? 'Saving…' : 'Use a complimentary preview'}</button>
+    <button disabled={busy} className="mt-5 rounded-xl bg-[#762b40] px-5 py-3 font-semibold text-white disabled:opacity-50">{busy ? 'Saving…' : 'Reveal My Compatibility Preview'}</button>
    </form>}
    <h3 className="mt-7 font-serif text-2xl">My saved compatibility previews</h3>
    {!history.length && <p className="mt-3">Your saved comparisons will appear here.</p>}

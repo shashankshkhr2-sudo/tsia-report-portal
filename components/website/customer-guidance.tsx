@@ -1,4 +1,5 @@
 'use client'
+import { LaunchGift } from './launch-gift'
 import { ProfileDob } from './profile-dob'
 import { ProfileLoShuGrid } from './profile-loshu-grid'
 import { useEffect, useState } from 'react'
@@ -45,7 +46,7 @@ export function CustomerGuidance({ demo }: { demo?: { profile: Profile; previews
     <p className="mt-4 text-sm text-[#766b67]">These calculations follow traditional numerology. Your experiences and choices matter when interpreting them.</p>
    </div>
    <div className="mt-6 rounded-2xl border border-[#eadfd4] bg-white p-5 sm:p-7"><BasicNumerologyProfile calculation={profile.calculation} /></div>
-   <Link href="/website/compatibility" className="mt-6 inline-block rounded-xl bg-[#762b40] px-5 py-3 font-semibold text-white">Check Compatibility</Link><p className="mt-3 text-sm font-medium text-[#64263B]">Launch offer: 3 complimentary compatibility previews.</p>
+   <div className="mt-6"><LaunchGift /></div>
    <LockedGuidanceServices />
   </>}
  </section>
