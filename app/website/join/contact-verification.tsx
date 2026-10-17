@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 export type VerifiedContact = { token: string; fullName: string; email: string; mobile: string }
 export default function ContactVerification({ onVerified }: { onVerified: (contact: VerifiedContact) => void }) {
@@ -7,6 +7,9 @@ export default function ContactVerification({ onVerified }: { onVerified: (conta
   const [name, setName] = useState(''); const [email, setEmail] = useState(''); const [mobile, setMobile] = useState('')
   const [sent, setSent] = useState(false); const [code, setCode] = useState(''); const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false); const [message, setMessage] = useState(''); const [retryAt, setRetryAt] = useState(0)
+  const [expiresAt, setExpiresAt] = useState(0); const [now, setNow] = useState(0)
+  const remaining = Math.max(0, Math.ceil((expiresAt - now) / 1000)); const resendWait = Math.max(0, Math.ceil((retryAt - now) / 1000))
+  useEffect(() => { if (!sent) return; const tick = () => setNow(Date.now()); tick(); const timer = setInterval(tick, 1000); return () => clearInterval(timer) }, [sent])
   const inputClass = 'mt-2 w-full rounded-xl border p-3'
   async function send() {
     if (Date.now() < retryAt) { setMessage('Please wait one minute before requesting another code.'); return }
@@ -16,11 +19,12 @@ export default function ContactVerification({ onVerified }: { onVerified: (conta
       if (!gate.ok || !config.enabled) throw new Error('closed')
       const { error } = await client.auth.signInWithOtp({ email: email.trim().toLowerCase(), options: { shouldCreateUser: true } })
       if (error) throw error
-      setSent(true); setRetryAt(Date.now() + 60000); setMessage('Check your email for the verification code. Enter it below. Employee access still requires approval.')
+      setNow(Date.now()); setExpiresAt(Date.now() + 180000); setCode(""); setSent(true); setRetryAt(Date.now() + 60000); setMessage('Check your email for the verification code. Enter it below. Employee access still requires approval.')
     } catch { setMessage('Unable to send a code. Applications may not be open yet; please check your email address or try again later.') }
     finally { setBusy(false) }
   }
   async function verify() {
+    if (Date.now() >= expiresAt) { setMessage("Your three-minute window has ended. Request a new code to continue."); return }
     setBusy(true); setMessage('')
     try {
       const { data, error } = await client.auth.verifyOtp({ email: email.trim().toLowerCase(), token: code.trim(), type: 'email' })
@@ -40,9 +44,9 @@ export default function ContactVerification({ onVerified }: { onVerified: (conta
     <label className="block text-sm">Full name<input required maxLength={150} readOnly={sent} value={name} onChange={e => setName(e.target.value)} className={inputClass} /></label>
     <label className="block text-sm">Email<input type="email" required maxLength={254} readOnly={sent} value={email} onChange={e => setEmail(e.target.value)} className={inputClass} /></label>
     <label className="block text-sm">Mobile number<input type="tel" required maxLength={25} pattern="[+0-9 ()-]{7,25}" readOnly={sent} value={mobile} onChange={e => setMobile(e.target.value)} className={inputClass} /></label>
-    {sent && <><label className="block text-sm">Email verification code<input required inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6,10}" maxLength={10} value={code} onChange={e => setCode(e.target.value)} className={inputClass} /></label><label className="block text-sm">Choose a password for your future employee login<input type="password" required autoComplete="new-password" minLength={12} maxLength={256} value={password} onChange={e => setPassword(e.target.value)} className={inputClass} /></label><p className="text-xs">Use at least 12 characters. It will work for employee access only after approval and activation.</p></>}
+    {sent && <><p className="text-sm font-semibold" role="timer">{remaining > 0 ? `Time to enter your code and create a password: ${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, "0")}` : "Time ended. Request a new code to continue."}</p><label className="block text-sm">Email verification code<input required inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6,10}" maxLength={10} value={code} onChange={e => setCode(e.target.value)} className={inputClass} /></label><label className="block text-sm">Create a password for your future employee login<input type="password" required autoComplete="new-password" minLength={12} maxLength={256} value={password} onChange={e => setPassword(e.target.value)} className={inputClass} /></label><p className="text-xs">Use at least 12 characters. It will work for employee access only after approval and activation.</p></>}
     <button disabled={busy} className="w-full rounded-xl bg-[#64263B] p-4 text-white disabled:opacity-50">{busy ? 'Please wait…' : sent ? 'Verify Email & Continue' : 'Send Email Code'}</button>
-    {sent && <div className="flex gap-5 text-sm"><button type="button" disabled={busy} onClick={send} className="underline">Resend code</button><button type="button" disabled={busy} onClick={() => { setSent(false); setCode(''); setMessage('') }} className="underline">Change contact details</button></div>}
+    {sent && <div className="flex gap-5 text-sm"><button type="button" disabled={busy || resendWait > 0} onClick={send} className="underline">{resendWait > 0 ? `Resend code in ${resendWait}s` : "Resend code"}</button><button type="button" disabled={busy} onClick={() => { setSent(false); setCode(''); setMessage('') }} className="underline">Change contact details</button></div>}
     {message && <p role="status" className="text-sm leading-7">{message}</p>}
   </form>
 }
