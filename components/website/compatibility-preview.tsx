@@ -78,7 +78,32 @@ export function CompatibilityPreview() {
    {preview && <article ref={report} tabIndex={-1} aria-label="Your compatibility reading" className="mt-7 scroll-mt-24 space-y-5 border-t border-[#eadfd4] pt-6 focus:outline-none" aria-live="polite">
     <div role="status" className="rounded-2xl border border-[#C5A15A]/50 bg-[#F4EBD9] p-4 text-sm leading-7 text-[#64263B]">{reportNotice}</div>
     <CompatibilityReading reading={preview} />
-    <div className="rounded-2xl border border-[#C5A15A]/50 bg-[#F4EBD9] p-5"><h4 className="font-serif text-xl text-[#64263B]">Explore your connection with a practitioner</h4><p className="mt-3 text-sm leading-7">Personalised guidance on how to communicate, support each other and work through difficulties belongs to a separate consultation. Consultation booking is coming soon.</p></div>
+    <section aria-label="Personal guidance with a Jeevan Sutra practitioner" className="overflow-hidden rounded-3xl border border-[#C5A15A]/50 bg-[#FAF7F0] text-[#463B3B] shadow-[0_12px_36px_rgba(100,38,59,0.08)]">
+     <div className="bg-gradient-to-br from-[#762B40] to-[#4D1D30] px-5 py-7 text-center sm:px-8 sm:py-9">
+      <div aria-hidden="true" className="mx-auto mb-4 h-px w-12 bg-[#C5A15A]" />
+      <h4 className="font-serif text-[1.65rem] leading-tight text-[#FFF8E9] sm:text-3xl">Jeevan Sutra Will Guide You</h4>
+      <p className="mx-auto mt-4 max-w-sm text-sm leading-7 text-[#EAD8AD]">Understand your connection.<br />Make thoughtful choices. Grow together.</p>
+     </div>
+     <div className="grid gap-4 p-4 sm:grid-cols-2 sm:gap-5 sm:p-6">
+      {[
+       ['Love & Marriage', 'Before you give your heart, take time to understand your connection. Explore your expectations, emotional needs and hopes for a life together.'],
+       ['Business & Work', 'Choose your partners thoughtfully. Understand how you can share responsibilities, make decisions and support each other’s ambitions.'],
+       ['Family', 'Care for your family bonds while making space for your own needs. Explore expectations, differences and boundaries with respect.'],
+       ['Friendship', 'Understand the bond you share. Explore how you support each other and where your expectations may differ.'],
+      ].map(([title, text], i) => <div key={title} className="min-w-0 overflow-hidden rounded-2xl border border-[#C5A15A]/35 bg-[#FFFDFA] shadow-[0_3px_12px_rgba(100,38,59,0.04)]">
+       <div aria-hidden="true" className="pointer-events-none relative mx-auto w-full max-w-xs overflow-hidden bg-[#FAF7F0]" style={{ aspectRatio: '1.95 / 1' }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/website/illustrations/connection-collection.webp" alt="" width={1536} height={1024} loading="lazy" decoding="async" className="absolute top-0 block h-auto max-w-none" style={{ width: '200%', left: i % 2 ? '-100%' : 0, transform: i >= 2 ? 'translateY(-50%)' : undefined }} />
+       </div>
+       <div className="p-5"><h5 className="font-serif text-[1.4rem] leading-snug text-[#64263B]">{title}</h5><div aria-hidden="true" className="mb-3 mt-3 h-px w-9 bg-[#C5A15A]/70" /><p className="text-sm leading-7">{text}</p></div>
+      </div>)}
+     </div>
+     <div className="mx-4 mb-5 rounded-2xl border border-[#C5A15A]/40 bg-gradient-to-br from-[#FFF9EC] to-[#F3E4C9] p-5 sm:mx-6 sm:mb-6 sm:p-6">
+      <h5 className="font-serif text-xl leading-snug text-[#64263B]">Your story deserves a personal conversation.</h5>
+      <p className="mt-3 text-sm leading-7">A Jeevan Sutra practitioner will listen to your concerns, explore your reading with you and offer personalised guidance on communicating, supporting each other and working through differences.</p>
+      <p className="mt-5 border-t border-[#C5A15A]/35 pt-4 text-xs font-semibold uppercase tracking-[0.08em] text-[#64263B]">Personal consultations — coming soon.</p>
+     </div>
+    </section>
    </article>}
   </>}
  </section>
