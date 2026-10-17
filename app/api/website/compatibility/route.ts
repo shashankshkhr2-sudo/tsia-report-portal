@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     if (!limit.ok) return reply({ error: 'Previews are temporarily unavailable.' }, 503)
     if (await limit.json() !== true) return reply({ error: 'Please wait before trying again.' }, 429)
     // Include the self profile snapshot so a changed DOB never silently reuses an incompatible report.
-    const key = createHmac('sha256', secret).update(JSON.stringify(draft ? ['v2-draft', input.kind, input.relationship, self.name.toLowerCase(), self.dob, other.name.toLowerCase(), other.dob] : [input.kind, other.name.toLowerCase(), other.dob])).digest('hex')
+    const key = createHmac('sha256', secret).update(JSON.stringify(draft ? ['v2-draft', input.kind, input.relationship, input.selfRole.trim().replace(/\s+/g, ' ').toLowerCase(), input.otherRole.trim().replace(/\s+/g, ' ').toLowerCase(), self.name.toLowerCase(), self.dob, other.name.toLowerCase(), other.dob] : [input.kind, other.name.toLowerCase(), other.dob])).digest('hex')
     const source = draft ? { self, other, kind: input.kind, relationship: input.relationship, selfRole: input.selfRole.trim(), otherRole: input.otherRole.trim(), priorities: input.priorities } : null
     const built = source ? buildCompatibility(source) : null
     const saved = await database(draft ? 'rpc/save_js_compatibility_v2_draft' : 'rpc/save_js_compatibility_preview', { method: 'POST', body: JSON.stringify({
