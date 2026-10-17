@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { compatibilityReadingCopy } from '@/lib/jeevansutra/compatibility-reading-copy'
 import { compatibilitySignInPath } from '@/lib/jeevansutra/customer-destination'
 import { LaunchGift } from './launch-gift'
 import { customerClient } from '@/lib/jeevansutra/customer-client'
@@ -78,7 +79,7 @@ export function CompatibilityPreview() {
     <div role="status" className="rounded-2xl border border-[#C5A15A]/50 bg-[#F4EBD9] p-4 text-sm leading-7 text-[#64263B]">{reportNotice}</div>
     <p className="text-xs font-semibold uppercase tracking-widest text-[#a57a40]">Saved compatibility reading</p>
     <h3 className="font-serif text-3xl text-[#64263B]">{preview.people.map(p => p.name).join(' & ')}</h3><p className="text-sm">{preview.kind}{'relationship' in preview ? ` · ${preview.relationship}` : ''}</p>
-    {'sections' in preview ? <><p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-950">Draft interpretation — internal staging review</p>{preview.sections.map(s => <section key={s.title} className="rounded-2xl border border-[#eadfd4] bg-[#FFFCF7] p-5"><h4 className="font-serif text-xl text-[#64263B]">{s.title}</h4><p className="mt-3 text-sm leading-7">{s.text}</p></section>)}</> : <><p className="text-sm text-[#766b67]">Earlier saved preview · created with the previous method</p>{preview.observations.map(item => <p key={item} className="leading-7">{item}</p>)}</>}
+    {'sections' in preview ? <><p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-950">Draft interpretation — internal staging review</p><p className="font-serif text-2xl text-[#64263B]">This is what your numbers say</p>{preview.sections.map(s => <section key={s.title} className="rounded-2xl border border-[#eadfd4] bg-[#FFFCF7] p-5"><h4 className="font-serif text-xl text-[#64263B]">{s.title}</h4><p className="mt-3 text-sm leading-7">{compatibilityReadingCopy(s.text)}</p></section>)}</> : <><p className="text-sm text-[#766b67]">Earlier saved preview · created with the previous method</p>{preview.observations.map(item => <p key={item} className="leading-7">{item}</p>)}</>}
     <p className="text-xs leading-6 text-[#766b67]">{preview.limitation}</p>
     <div className="rounded-2xl border border-[#C5A15A]/50 bg-[#F4EBD9] p-5"><h4 className="font-serif text-xl text-[#64263B]">Explore your connection with a practitioner</h4><p className="mt-3 text-sm leading-7">Personalised guidance on how to communicate, support each other and work through difficulties belongs to a separate consultation. Consultation booking is coming soon.</p></div>
    </article>}

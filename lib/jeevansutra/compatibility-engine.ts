@@ -1,4 +1,5 @@
 import 'server-only'
+import { compatibilityReadingCopy } from './compatibility-reading-copy'
 import { calculateNumerologyV2 } from '@/lib/numerology/calculations'
 import type { NumerologyDigit } from '@/lib/numerology/types'
 import type { CompatibilityKind, ReadingSection, StandardReading } from './compatibility-contract'
@@ -68,7 +69,7 @@ export function buildCompatibility(input: ReadingInput) {
   { title: 'What you may build together', text: newLine ? `Your combined pattern introduces a draft theme of ${newLine.theme}. This may offer a useful lens on ${context[input.kind]}; it does not guarantee harmony, financial success or a particular future.` : `Shared themes include ${shared.slice(0,2).join(' and ') || 'different approaches to common goals'}. Their constructive expression depends on the people and circumstances, rather than the calculation alone.` },
   { title: 'Where difficulties may arise', text: strong ? `A shared emphasis may also bring ${themes[strong].excess}. This is a discussion possibility, not a finding of conflict or a judgment about either person. Missing themes are not evidence of a personal defect.` : `Differences in ${context[input.kind]} may be worth exploring. No conflict is inferred merely because your numerical patterns differ.` },
  ]
- const standard: StandardReading = { version: methodVersion, status: 'draft', kind: input.kind, relationship: input.relationship, people: [{ name: input.self.name }, { name: input.other.name }], sections, limitation: 'Draft for staging review. Traditional numerology-based reflection, not a validated prediction of behaviour, relationship success or private intentions.' }
+ const standard: StandardReading = { version: methodVersion, status: 'draft', kind: input.kind, relationship: input.relationship, people: [{ name: input.self.name }, { name: input.other.name }], sections: sections.map(section => ({ ...section, text: compatibilityReadingCopy(section.text) })), limitation: 'A traditional numerology reading for reflection. Your choices, communication and everyday actions shape your relationship. Interpretation rules are still under review.' }
  const practitioner = {
   status: 'draft' as const, methodVersion, roles: { self: input.selfRole, other: input.otherRole }, priorities: input.priorities,
   sections: [...sections, { title: 'Behaviours to develop — consultation discussion', text: `${input.self.name}: consider whether it would help to ${themes[facts.a.mulank.final].habit}. ${input.other.name}: consider whether it would help to ${themes[facts.b.mulank.final].habit}. Shared practice: a regular check-in with one appreciation, one concern and one agreed next step. Ask both people whether these suggestions fit before using them.` }],
