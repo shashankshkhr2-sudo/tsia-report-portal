@@ -120,6 +120,7 @@ export default function JeevanSutraHomePage() {
               >
                 What Will I Discover?
               </a>
+              <a href="/website/compatibility" className="inline-flex items-center justify-center rounded-full border border-[#D7B57B] px-7 py-4 text-center font-medium text-[#FAF1E1] hover:bg-white/10">Compatibility Test</a>
             </div>
 
             <ul aria-label="Your complimentary profile includes" className="mt-6 space-y-3 text-base font-bold leading-6 text-[#EAD8AD]">
