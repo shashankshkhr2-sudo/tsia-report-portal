@@ -21,7 +21,8 @@ export function CompatibilityPreview() {
  const [busy, setBusy] = useState(false); const [error, setError] = useState('')
  const report = useRef<HTMLElement>(null); const [reportOpenCount, setReportOpenCount] = useState(0)
  const [preview, setPreview] = useState<CustomerReading | null>(null)
- function openReport(value: CustomerReading) { setPreview(value); setReportOpenCount(count => count + 1) }
+ const [reportNotice, setReportNotice] = useState('')
+ function openReport(value: CustomerReading, saved = true) { setReportNotice(saved ? 'You’ve already checked this compatibility. Your saved report is below. No additional test was used.' : 'Your compatibility report has been saved. You can reopen it anytime without using another test.'); setPreview(value); setReportOpenCount(count => count + 1) }
  useEffect(() => { if (reportOpenCount) { report.current?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); report.current?.focus({ preventScroll: true }) } }, [reportOpenCount])
  async function token() { return (await customerClient()?.auth.getSession())?.data.session?.access_token }
  async function load() {
@@ -43,7 +44,7 @@ export function CompatibilityPreview() {
    const response = await fetch('/api/website/compatibility', { method: 'POST', headers: { Authorization: `Bearer ${access}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ kind, name, dob, permission, ...(draft ? { relationship, selfRole, otherRole, priorities: selected } : {}) }) })
    const data = await response.json()
    if (!response.ok) { setError(data.error || 'Unable to save preview.'); return }
-   openReport(data.preview); setRemaining(data.remaining); await load()
+   openReport(data.preview, data.reused === true); setRemaining(data.remaining); await load()
   } catch { setError('Unable to confirm the save. Retry with the same details to check without using an extra preview.') }
   finally { setBusy(false) }
  }
@@ -70,13 +71,14 @@ export function CompatibilityPreview() {
     <button disabled={busy} className="mt-5 rounded-xl bg-[#762b40] px-5 py-3 font-semibold text-white disabled:opacity-50">{busy ? 'Saving…' : 'Check Compatibility'}</button>
     {remaining === 0 && <p className="mt-3 text-sm">Your launch allowance is used. You can still reopen a comparison by submitting the same details. Additional packages are coming soon.</p>}
    </form>
-   <h3 className="mt-7 font-serif text-2xl">My saved compatibility readings</h3>
+   <h3 id="saved-compatibility-readings" className="mt-7 scroll-mt-24 font-serif text-2xl">My saved compatibility readings</h3><p className="mt-2 text-sm leading-6 text-[#766b67]">Already checked a connection? Choose its saved report below. Reopening uses no additional test.</p>
    {!history.length && <p className="mt-3">Your saved comparisons will appear here.</p>}
    <div className="mt-3 space-y-3">{history.map(item => <button key={item.id} className="block w-full rounded-xl border border-[#eadfd4] p-4 text-left" onClick={() => openReport(item.preview)}>{item.preview.people[1]?.name} · {item.preview.kind}<span className="mt-1 block text-sm underline">Open saved reading — no credit used</span></button>)}</div>
    {preview && <article ref={report} tabIndex={-1} aria-label="Your compatibility reading" className="mt-7 scroll-mt-24 space-y-5 border-t border-[#eadfd4] pt-6 focus:outline-none" aria-live="polite">
+    <div role="status" className="rounded-2xl border border-[#C5A15A]/50 bg-[#F4EBD9] p-4 text-sm leading-7 text-[#64263B]">{reportNotice}</div>
     <p className="text-xs font-semibold uppercase tracking-widest text-[#a57a40]">Saved compatibility reading</p>
     <h3 className="font-serif text-3xl text-[#64263B]">{preview.people.map(p => p.name).join(' & ')}</h3><p className="text-sm">{preview.kind}{'relationship' in preview ? ` · ${preview.relationship}` : ''}</p>
-    {'sections' in preview ? <><p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-950">Draft interpretation — internal staging review</p>{preview.sections.map(s => <section key={s.title} className="rounded-2xl border border-[#eadfd4] bg-[#FFFCF7] p-5"><h4 className="font-serif text-xl text-[#64263B]">{s.title}</h4><p className="mt-3 text-sm leading-7">{s.text}</p></section>)}</> : <><p className="text-sm text-[#766b67]">Legacy preview · limited name-based scope</p>{preview.observations.map(item => <p key={item} className="leading-7">{item}</p>)}</>}
+    {'sections' in preview ? <><p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-950">Draft interpretation — internal staging review</p>{preview.sections.map(s => <section key={s.title} className="rounded-2xl border border-[#eadfd4] bg-[#FFFCF7] p-5"><h4 className="font-serif text-xl text-[#64263B]">{s.title}</h4><p className="mt-3 text-sm leading-7">{s.text}</p></section>)}</> : <><p className="text-sm text-[#766b67]">Earlier saved preview · created with the previous method</p>{preview.observations.map(item => <p key={item} className="leading-7">{item}</p>)}</>}
     <p className="text-xs leading-6 text-[#766b67]">{preview.limitation}</p>
     <div className="rounded-2xl border border-[#C5A15A]/50 bg-[#F4EBD9] p-5"><h4 className="font-serif text-xl text-[#64263B]">Explore your connection with a practitioner</h4><p className="mt-3 text-sm leading-7">Personalised guidance on how to communicate, support each other and work through difficulties belongs to a separate consultation. Consultation booking is coming soon.</p></div>
    </article>}
