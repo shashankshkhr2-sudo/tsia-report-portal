@@ -11,7 +11,7 @@ export const priorities = ['Respect & communication', 'Personal space', 'Family 
 export type ReadingSection = { title: string; text: string }
 export type StandardReading = {
  version: 'JS_COMPATIBILITY_V2_DRAFT_1'; status: 'draft'; kind: CompatibilityKind;
- relationship: string; people: { name: string }[]; sections: ReadingSection[];
+ relationship: string; roles?: { self: string; other: string }; people: { name: string }[]; sections: ReadingSection[];
  limitation: string;
 }
 export function validRelationship(kind: unknown, relationship: unknown): kind is CompatibilityKind {

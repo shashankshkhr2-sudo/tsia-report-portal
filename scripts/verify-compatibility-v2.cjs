@@ -29,7 +29,7 @@ const project=load(root+'/lib/jeevansutra/compatibility-customer-result.ts').cus
 for(const kind of contract.compatibilityKinds){
  const out=engine.buildCompatibility({...input,kind,relationship:contract.relationships[kind][0]});
  assert.equal(out.standard.sections.length,5);assert.equal(out.practitioner.sections.length,6);
- assert.deepEqual(Object.keys(project({...out.standard,combined:f.combined,source:input,practitioner:out.practitioner})).sort(),['version','status','kind','relationship','people','sections','limitation'].sort());
+ assert.deepEqual(Object.keys(project({...out.standard,combined:f.combined,source:input,practitioner:out.practitioner})).sort(),['version','status','kind','relationship','roles','people','sections','limitation'].sort());
  assert.equal(JSON.stringify(out.standard).includes('mulank'),false);assert.equal(JSON.stringify(out.standard).includes('loShu'),false);
  const swapped=engine.calculateCompatibility({...input,self:input.other,other:input.self});assert.deepEqual(swapped.combined,f.combined);
 }
