@@ -1,5 +1,5 @@
 'use client'
-import ContactVerification, { type VerifiedContact } from './contact-verification'
+import ContactVerification, { type SavedApplication, type VerifiedContact } from './contact-verification'
 import ApplicationDocuments from '@/components/application-documents'
 
 import { useState, type FormEvent } from 'react'
@@ -92,20 +92,34 @@ function TextField({
 export default function JoinPage() {
   const [contact, setContact] = useState<VerifiedContact | null>(null)
   const [applicationId, setApplicationId] = useState('')
+  const [application, setApplication] = useState<SavedApplication | null>(null)
+  const [editing, setEditing] = useState(false)
+  function receiveContact(value: VerifiedContact) {
+    setContact(value)
+    const saved = value.application
+    if (saved) {
+      setApplication(saved); setApplicationId(saved.id)
+      setExpertise(String(saved.expertise || '')); setQualificationType(String(saved.qualification_type || '')); setIntroduction(String(saved.introduction || ''))
+      setSuccess('You have already submitted an application. Your saved details and documents are below.')
+    }
+  }
+  const savedText = (key: string) => { const value = application?.[key]; return typeof value === 'string' ? value : undefined }
+  const savedArea = (area: string) => { const values = application?.guidance_areas; return Array.isArray(values) && values.includes(area) }
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (saving || !contact) return
+    if (saving || !contact || (application && !editing)) return
     const form = new FormData(event.currentTarget)
-    const body = { ...Object.fromEntries(form), guidanceAreas: form.getAll('guidanceAreas'), accuracyConsent: form.has('accuracyConsent'), contactConsent: form.has('contactConsent') }
+    const body = { ...Object.fromEntries(form), version: application?.updated_at, guidanceAreas: form.getAll('guidanceAreas'), accuracyConsent: form.has('accuracyConsent'), contactConsent: form.has('contactConsent') }
     setSaving(true); setError('')
     try {
-      const response = await fetch('/api/website/practitioner-applications', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${contact.token}` }, body: JSON.stringify(body) })
+      const response = await fetch('/api/website/practitioner-applications', { method: application ? 'PATCH' : 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${contact.token}` }, body: JSON.stringify(body) })
       const result = await response.json()
       if (!response.ok || !result.success) throw new Error(result.error || 'Unable to submit. Please try again.')
-      setSuccess(result.message); setApplicationId(result.applicationId)
+      setSuccess(result.message); setApplicationId(result.applicationId || applicationId)
+      if (result.application) { setApplication(result.application); setEditing(false); setExpertise(result.application.expertise); setQualificationType(result.application.qualification_type); setIntroduction(result.application.introduction) }
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'Unable to submit. Please try again.') }
     finally { setSaving(false) }
   }
@@ -344,13 +358,18 @@ export default function JoinPage() {
           </p>
         </div>
 
-        {!contact && <ContactVerification onVerified={setContact} />}
+        {!contact && <ContactVerification onVerified={receiveContact} />}
         {contact && <form
+          key={`${application?.updated_at || 'new'}:${editing}`}
           onSubmit={submit}
           className="mt-8 rounded-3xl border border-[#e8dbce] bg-white p-6 shadow-sm sm:p-8"
         >
           {success && <p role="status" className="mb-6 rounded-xl bg-green-50 p-5 text-green-900">{success}</p>}
-          <fieldset disabled={saving || Boolean(success)} className="min-w-0">
+          {application && <div className="mb-6 space-y-3">
+            <p>Application status: <strong>{application.application_status.replace(/_/g, ' ')}</strong></p>
+            {application.application_status === 'pending' ? <button type="button" disabled={saving} onClick={() => { setEditing(!editing); setError(''); setExpertise(String(application.expertise || '')); setQualificationType(String(application.qualification_type || '')); setIntroduction(String(application.introduction || '')) }} className="underline">{editing ? 'Cancel editing' : 'Edit My Application'}</button> : <p className="text-sm">Your application is being reviewed or has a decision. Contact our team for corrections.</p>}
+          </div>}
+          <fieldset disabled={saving || (application ? !editing : Boolean(success))} className="min-w-0">
           <p className="text-xs leading-6 text-[#817875]">
             Fields marked * are required. Please do not include client
             names, personal client records or identity documents.
@@ -365,7 +384,7 @@ export default function JoinPage() {
               <TextField
                 label="Full Name"
                 name="fullName"
-                defaultValue={contact.fullName}
+                defaultValue={savedText('full_name') || contact.fullName}
                 required
                 placeholder="Your full name"
               />
@@ -374,7 +393,7 @@ export default function JoinPage() {
             <TextField
               label="Mobile Number"
               name="mobile"
-              defaultValue={contact.mobile}
+              defaultValue={savedText('mobile') || contact.mobile}
               type="tel"
               required
               maxLength={25}
@@ -392,13 +411,13 @@ export default function JoinPage() {
               placeholder="Your email address"
             />
 
-            <TextField label="City" name="city" required />
-            <TextField label="State / Region" name="state" required />
+            <TextField label="City" name="city" defaultValue={savedText('city')} required />
+            <TextField label="State / Region" name="state" defaultValue={savedText('state_region')} required />
 
             <div className="sm:col-span-2">
               <TextField
                 label="Country"
-                name="country"
+                name="country" defaultValue={savedText('country')}
                 required
                 placeholder="India"
               />
@@ -428,7 +447,7 @@ export default function JoinPage() {
 
             <TextField
               label="Methods / Traditions You Practise"
-              name="methods"
+              name="methods" defaultValue={savedText('methods')}
               required
               maxLength={300}
               placeholder="For example: Chaldean numerology, Vedic astrology"
@@ -436,7 +455,7 @@ export default function JoinPage() {
 
             <label className={labelClass}>
               Professional Experience *
-              <select name="experience" required className={fieldClass}>
+              <select defaultValue={savedText('experience')} name="experience" required className={fieldClass}>
                 <option value="">Select your experience</option>
                 <option value="starting">Beginning my practice</option>
                 <option value="under_1">Less than 1 year</option>
@@ -449,7 +468,7 @@ export default function JoinPage() {
 
             <TextField
               label="Consultation Languages"
-              name="languages"
+              name="languages" defaultValue={savedText('languages')}
               required
               maxLength={300}
               placeholder="For example: Hindi, English, Marathi"
@@ -473,6 +492,7 @@ export default function JoinPage() {
                     <input
                       type="checkbox"
                       name="guidanceAreas"
+                      defaultChecked={savedArea(area)}
                       value={area}
                       className="mt-1 accent-[#81243f]"
                     />
@@ -511,7 +531,7 @@ export default function JoinPage() {
             <label className={labelClass}>
               Courses, Teachers & Qualifications *
               <textarea
-                name="qualificationDetails"
+                name="qualificationDetails" defaultValue={savedText('qualification_details')}
                 required
                 rows={4}
                 maxLength={1500}
@@ -528,7 +548,7 @@ export default function JoinPage() {
           <div className="mt-5 space-y-5">
             <label className={labelClass}>
               Preferred Consultation Mode *
-              <select name="consultationMode" required className={fieldClass}>
+              <select defaultValue={savedText('consultation_mode')} name="consultationMode" required className={fieldClass}>
                 <option value="">Select a mode</option>
                 <option value="online">Online</option>
                 <option value="in_person">In person</option>
@@ -538,7 +558,7 @@ export default function JoinPage() {
 
             <label className={labelClass}>
               Approximate Weekly Availability *
-              <select name="availability" required className={fieldClass}>
+              <select defaultValue={savedText('availability')} name="availability" required className={fieldClass}>
                 <option value="">Select availability</option>
                 <option value="under_5">Less than 5 hours</option>
                 <option value="5_10">5–10 hours</option>
@@ -570,17 +590,17 @@ export default function JoinPage() {
 
             <TextField
               label="Website / Professional Portfolio"
-              name="portfolioUrl"
-              type="url"
+              name="portfolioUrl" defaultValue={savedText('portfolio_url')}
+              type="text"
               maxLength={500}
-              placeholder="https://..."
+              placeholder="www.example.com"
             />
           </div>
 
           <label className="mt-7 flex items-start gap-3 text-sm leading-7">
             <input
               type="checkbox"
-              name="accuracyConsent"
+              name="accuracyConsent" defaultChecked={application?.accuracy_consent === true}
               required
               className="mt-2 accent-[#81243f]"
             />
@@ -592,7 +612,7 @@ export default function JoinPage() {
           <label className="mt-4 flex items-start gap-3 text-sm leading-7">
             <input
               type="checkbox"
-              name="contactConsent"
+              name="contactConsent" defaultChecked={application?.contact_consent === true}
               required
               className="mt-2 accent-[#81243f]"
             />
@@ -602,10 +622,10 @@ export default function JoinPage() {
 
           <button
             type="submit"
-            disabled={saving || Boolean(success)}
+            disabled={saving || (application ? !editing : Boolean(success))}
             className="mt-8 w-full rounded-xl bg-[#81243f] px-5 py-4 font-semibold text-white disabled:opacity-50"
           >
-            {saving ? 'Saving application…' : success ? 'Application Received' : 'Submit Application'}
+            {saving ? 'Saving application…' : application ? editing ? 'Save Changes' : 'Application Received' : success ? 'Application Received' : 'Submit Application'}
           </button>
 
           <p className="mt-4 text-center text-xs leading-6 text-[#817875]">

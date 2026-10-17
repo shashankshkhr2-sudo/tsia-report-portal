@@ -13,11 +13,12 @@ export function applicationInput(body: Record<string, unknown>) {
   const email = text('email', 254).toLowerCase()
   const mobile = text('mobile', 25).replace(/[\s()-]/g, '')
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !/^\+?[0-9]{7,15}$/.test(mobile)) throw new Error('Please enter a valid email and mobile number.')
-  const portfolio = text('portfolioUrl', 500, false)
+  let portfolio = text('portfolioUrl', 500, false)
+  if (portfolio && !/^[a-z][a-z0-9+.-]*:/i.test(portfolio)) portfolio = `https://${portfolio}`
   if (portfolio) {
     let url: URL
     try { url = new URL(portfolio) } catch { throw new Error('Please enter a valid portfolio URL.') }
-    if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password) throw new Error('Please enter an HTTP or HTTPS portfolio URL.')
+    if (!['https:', 'http:'].includes(url.protocol) || !url.hostname.includes('.') || url.username || url.password) throw new Error('Please enter an HTTP or HTTPS portfolio URL.')
   }
   if (body.accuracyConsent !== true || body.contactConsent !== true) throw new Error('Please confirm both consent statements.')
   if (!Array.isArray(body.guidanceAreas) || body.guidanceAreas.length > guidanceAreas.length || body.guidanceAreas.some(area => typeof area !== 'string' || !guidanceAreas.includes(area))) throw new Error('Please check your guidance areas.')
