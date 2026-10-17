@@ -255,7 +255,7 @@ export default function JeevanSutraHomePage() {
                 key={item.number}
                 className="rounded-2xl border border-[#E4D5C2] bg-[#FFFCF7] p-7 shadow-sm"
               >
-                <span className="font-serif text-3xl text-[#B18A53]">
+                <span className="inline-flex size-16 items-center justify-center rounded-full border border-[#C5A15A]/30 bg-[#64263B] font-serif text-3xl text-[#EAD8AD] shadow-sm">
                   {item.number}
                 </span>
 
@@ -432,7 +432,7 @@ export default function JeevanSutraHomePage() {
                 key={service.number}
                 className="group flex flex-col rounded-3xl border border-[#E6D8C7] bg-gradient-to-br from-white to-[#FBF5E9] p-7 shadow-[0_8px_28px_rgba(100,38,59,0.05)] transition-shadow hover:shadow-[0_14px_36px_rgba(100,38,59,0.12)]"
               >
-                <span className="font-serif text-3xl text-[#B18A53]">
+                <span className="inline-flex size-16 items-center justify-center rounded-full border border-[#C5A15A]/30 bg-[#64263B] font-serif text-3xl text-[#EAD8AD] shadow-sm">
                   {service.number}
                 </span>
 
