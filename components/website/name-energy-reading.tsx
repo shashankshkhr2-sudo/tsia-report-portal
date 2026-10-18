@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { ProfileDob } from './profile-dob'
 
@@ -15,7 +16,7 @@ const strengths: Record<number, { title: string; description: string }> = {
 
 const grahas: Record<number,string> = {1:'Surya',2:'Chandra',3:'Guru',4:'Rahu',5:'Budh',6:'Shukra',7:'Ketu',8:'Shani',9:'Mangal'}
 const themes: Record<number,string> = {1:'initiative and independence',2:'care and cooperation',3:'expression and learning',4:'structure and original thinking',5:'curiosity and adaptability',6:'care and responsibility',7:'reflection and deeper understanding',8:'patience and steady effort',9:'courage and purposeful action'}
-export function NameEnergyReading({name,dob,mulank,bhagyank,nameNumber,total,isChild = false}: {name:string;dob:string;mulank:number;bhagyank:number;nameNumber:number;total:number;isChild?:boolean}) {
+export function NameEnergyReading({name,dob,mulank,bhagyank,nameNumber,total,isChild = false,calculation}: {name:string;dob:string;mulank:number;bhagyank:number;nameNumber:number;total:number;isChild?:boolean;calculation?:ReactNode}) {
  const numbers = [mulank,bhagyank,nameNumber]
  const unique = [...new Set(numbers)]
  const repeated = unique.filter(number => numbers.filter(value => value === number).length > 1)
@@ -26,6 +27,7 @@ export function NameEnergyReading({name,dob,mulank,bhagyank,nameNumber,total,isC
    <ProfileDob dob={dob} />
    <p className="mt-4 max-w-2xl text-sm leading-6 text-[#766b67]">Three numbers. Different sides of your story. Explore what they say together.</p>
   </header>
+  {calculation}
   <div className="grid gap-4 md:grid-cols-3">{[
    {title:'Your birthday number · Mulank',number:mulank,label:'Your natural approach',detail:'From the day you were born.'},
    {title:'Your life path number · Bhagyank',number:bhagyank,label:'Your life-path theme',detail:'From your complete date of birth.'},
