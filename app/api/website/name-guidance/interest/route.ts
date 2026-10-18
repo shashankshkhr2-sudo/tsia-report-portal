@@ -11,6 +11,7 @@ function date(value: string) {
  const [y,m,d]=value.split('-').map(Number), parsed=new Date(Date.UTC(y,m-1,d))
  return y>=1900 && parsed.getUTCFullYear()===y && parsed.getUTCMonth()===m-1 && parsed.getUTCDate()===d && value<=new Date().toISOString().slice(0,10)
 }
+const nameTypes=['current','birth','nickname','after_marriage','professional','considering','other']
 const validName=(value:string)=>/[A-Za-z]/.test(value) && /^[A-Za-z .’'—–-]+$/.test(value)
 export async function POST(request:Request) {
  try {
@@ -28,16 +29,25 @@ export async function POST(request:Request) {
    service=text(input.service,20);action=service==='signature'?'design':text(input.action,20)
    if(!services.includes(service)||!['review','compare','new','design'].includes(action)||(service!=='signature'&&action==='design'))throw new Error('Choose a valid service and request type.')
    const personal=service==='personal'||service==='signature', human=personal||service==='child'
-   const name=text(input.name,120),alternative=text(input.alternative,120),dob=text(input.dob,10),gender=text(input.gender,30),purpose=text(input.purpose,600),context=text(input.context,600),preferences=text(input.preferences,600),usage=text(input.usage,100),signatureName=text(input.signatureName,20)
+   let name=text(input.name,120)
+   let names:{type:string;name:string}[]|undefined
+   if(service==='personal'&&action!=='new'&&input.names!==undefined){
+    if(!Array.isArray(input.names)||input.names.length<1||input.names.length>7)throw new Error('Select between one and seven names.')
+    const validatedNames:{type:string;name:string}[]=input.names.map((item:unknown)=>{if(!item||typeof item!=='object')throw new Error('Check each selected name.');const entry=item as Record<string,unknown>;const type=text(entry.type,30),name=text(entry.name,120);if(!nameTypes.includes(type)||!validName(name))throw new Error('Enter valid English spelling for each selected name.');return {type,name}})
+    names=validatedNames
+    if(new Set(validatedNames.map(item=>item.type)).size!==validatedNames.length)throw new Error('Each name type can only appear once.')
+    name=validatedNames[0].name;action='review'
+   }
+   const alternative=text(input.alternative,120),dob=text(input.dob,10),gender=text(input.gender,30),purpose=text(input.purpose,600),context=text(input.context,600),preferences=text(input.preferences,600),usage=text(input.usage,100),signatureName=text(input.signatureName,20)
    if(!purpose)throw new Error('Tell us your purpose.')
    if(action!=='new'&&!validName(name))throw new Error('Enter the exact English spelling of the name.')
    if(action==='compare'&&!validName(alternative))throw new Error('Enter a valid second name.')
    if(human && ((action!=='new'&&!date(dob)) || (dob&&!date(dob))))throw new Error('Enter a valid date of birth.')
    if(personal&&!['Woman','Man','Another identity'].includes(gender))throw new Error('Select your gender.')
    if(!human&&!context)throw new Error('Describe what you are naming and its audience.')
-   if(service==='personal'&&usage==='Name after marriage'&&!context)throw new Error('Describe the previous name and whether the new name is in use.')
+   if(service==='personal'&&(names?names.some(item=>item.type==='after_marriage'):usage==='Name after marriage')&&!context)throw new Error('Describe the previous name and whether the new name is in use.')
    if(service==='signature'&&!['current','chosen'].includes(signatureName))throw new Error('Select which name the signature is for.')
-   details={version:'JS_NAME_INTEREST_1',name:action==='new'?'':name,alternative:action==='compare'?alternative:'',dob:human?dob:'',gender:personal?gender:'',purpose,context,preferences,usage:service==='personal'?usage:'',signatureName:service==='signature'?signatureName:'',signatureReviewRequired:service==='personal'}
+   details={version:names?'JS_NAME_INTEREST_2':'JS_NAME_INTEREST_1',...(names?{names}:{}),name:action==='new'?'':name,alternative:action==='compare'?alternative:'',dob:human?dob:'',gender:personal?gender:'',purpose,context,preferences,usage:service==='personal'?usage:'',signatureName:service==='signature'?signatureName:'',signatureReviewRequired:service==='personal'}
   }catch(error){return reply({error:error instanceof Error?error.message:'Check your request.'},400)}
   const secret=process.env.JS_RATE_LIMIT_HASH_SECRET
   if(!secret||secret.length<32)return reply({error:'Saving is temporarily unavailable.'},503)
