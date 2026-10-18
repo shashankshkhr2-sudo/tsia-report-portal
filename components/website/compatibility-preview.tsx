@@ -32,7 +32,8 @@ export function CompatibilityPreview() {
    } catch {}
   }
   const refreshPhoto = () => { void refresh() }
-  const { data: { subscription } } = client.auth.onAuthStateChange(() => { revision++; setGiftIdentity({ name: "", dob: "", photo: "" }); void Promise.resolve().then(refresh) })
+  let identityUser: string | undefined
+  const { data: { subscription } } = client.auth.onAuthStateChange((_event, session) => { const user = session?.user.id || ""; if (user === identityUser) return; identityUser = user; revision++; setGiftIdentity({ name: "", dob: "", photo: "" }); setTimeout(() => { if (active) void refresh() }, 0) })
   window.addEventListener("jeevansutra-photo-updated", refreshPhoto); void refresh()
   return () => { active = false; revision++; subscription.unsubscribe(); window.removeEventListener("jeevansutra-photo-updated", refreshPhoto); if (objectUrl) URL.revokeObjectURL(objectUrl) }
  }, [])
@@ -82,7 +83,6 @@ export function CompatibilityPreview() {
   <p className="mt-5 text-sm leading-7 text-[#766b67]">Your details come from your saved profile. Add someone you would like to understand better.</p>
   {error && <p role="alert" className="mt-4 text-red-800">{error}</p>}
   {loading ? <p role="status" className="mt-4">Loading your previews…</p> : !signedIn ? <div className="mt-5 flex flex-wrap gap-5"><Link href="/website/welcome" className="underline">My Profile</Link><Link href="/website/start" className="underline">Start with Email / Sign in</Link></div> : <>
-   <p role="status" className="mt-5 rounded-xl border border-[#C5A15A]/40 bg-[#FAF5E9] px-4 py-3 text-sm font-semibold text-[#64263B]">{remaining} of 3 launch gift previews remaining</p>
    <form onSubmit={submit} className="mt-5">
     <label className="block">Relationship category<select className={field} value={kind} onChange={e => { setKind(e.target.value); if (draft) setRelationship(relationships[e.target.value as CompatibilityKind][0]) }}>{(draft ? compatibilityKinds : legacyKinds).map(item => <option key={item}>{item}</option>)}</select></label>
     {draft && <>
