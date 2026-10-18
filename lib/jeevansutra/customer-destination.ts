@@ -5,5 +5,6 @@ export function customerDestination(search: string) {
  const next = new URLSearchParams(search).get('next')
  if (next === 'compatibility') return '/website/compatibility'
  if (next === 'name-guidance') return '/website/name-discovery'
+ if (next === "shared-compatibility") return "/website/shared-compatibility"
  return '/website/welcome'
 }

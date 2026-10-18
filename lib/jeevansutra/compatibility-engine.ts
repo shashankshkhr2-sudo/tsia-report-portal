@@ -1,3 +1,4 @@
+import { loveRelationshipCopy } from "./compatibility-contract"
 import 'server-only'
 import { compatibilityReadingCopy } from './compatibility-reading-copy'
 import { calculateNumerologyV2 } from '@/lib/numerology/calculations'
@@ -56,6 +57,7 @@ export function calculateCompatibility(input: ReadingInput) {
 }
 export function buildCompatibility(input: ReadingInput) {
  const facts = calculateCompatibility(input)
+ const selectedContext = (input.kind === "Love & Marriage" ? loveRelationshipCopy[input.relationship]?.context : undefined) || context[input.kind]
  const theme = (n: NumerologyDigit) => themes[n].theme
  const aTheme = theme(facts.a.mulank.final), bTheme = theme(facts.b.mulank.final)
  const shared = facts.shared.map(theme)
@@ -63,13 +65,13 @@ export function buildCompatibility(input: ReadingInput) {
  const newLine = facts.lines.find(line => line.source === 'together')
  const strong = [...facts.shared].sort((x,y) => facts.combined[y] - facts.combined[x] || x-y)[0]
  const sections: ReadingSection[] = [
-  { title: 'How you relate to each other', text: `${input.self.name} and ${input.other.name}: this draft traditional reading explores ${aTheme === bTheme ? 'a shared theme of ' + aTheme : aTheme + ' alongside ' + bTheme}. In a ${input.relationship.toLowerCase()} connection, the relevant context is ${context[input.kind]}. These are possible themes, not observed behaviour.` },
+  { title: 'How you relate to each other', text: `${input.self.name} and ${input.other.name}: this draft traditional reading explores ${aTheme === bTheme ? 'a shared theme of ' + aTheme : aTheme + ' alongside ' + bTheme}. For the connection you selected (${input.relationship}), this reading considers ${selectedContext}. These are possible themes, not observed behaviour.` },
   { title: 'How you influence each other', text: `${input.self.name}'s contribution highlights ${complementaryA.slice(0,2).join(' and ') || aTheme}; ${input.other.name}'s highlights ${complementaryB.slice(0,2).join(' and ') || bTheme}. Each may experience the other's approach as encouraging in some situations and challenging in others. The reading cannot establish how either actually behaves.` },
   { title: 'How you complement each other', text: complementaryA.length || complementaryB.length ? `Different contributions suggest scope for ${[...complementaryA.slice(0,1), ...complementaryB.slice(0,1)].join(' alongside ')}. This is a possibility to recognise in your experience, rather than one person correcting a deficiency in the other.` : 'Your patterns share several themes. Similarity may feel familiar, while leaving room for different preferences remains relevant.' },
-  { title: 'What you may build together', text: newLine ? `Your combined pattern introduces a draft theme of ${newLine.theme}. This may offer a useful lens on ${context[input.kind]}; it does not guarantee harmony, financial success or a particular future.` : `Shared themes include ${shared.slice(0,2).join(' and ') || 'different approaches to common goals'}. Their constructive expression depends on the people and circumstances, rather than the calculation alone.` },
-  { title: 'Where difficulties may arise', text: strong ? `A shared emphasis may also bring ${themes[strong].excess}. This is a discussion possibility, not a finding of conflict or a judgment about either person. Missing themes are not evidence of a personal defect.` : `Differences in ${context[input.kind]} may be worth exploring. No conflict is inferred merely because your numerical patterns differ.` },
+  { title: 'What you may build together', text: newLine ? `Your combined pattern introduces a draft theme of ${newLine.theme}. This may offer a useful lens on ${selectedContext}; it does not guarantee harmony, financial success or a particular future.` : `Shared themes include ${shared.slice(0,2).join(' and ') || 'different approaches to common goals'}. Their constructive expression depends on the people and circumstances, rather than the calculation alone.` },
+  { title: 'Where difficulties may arise', text: strong ? `A shared emphasis may also bring ${themes[strong].excess}. This is a discussion possibility, not a finding of conflict or a judgment about either person. Missing themes are not evidence of a personal defect.` : `Differences in ${selectedContext} may be worth exploring. No conflict is inferred merely because your numerical patterns differ.` },
  ]
- const standard: StandardReading = { version: methodVersion, status: 'draft', kind: input.kind, relationship: input.relationship, roles: { self: input.selfRole, other: input.otherRole }, people: [{ name: input.self.name }, { name: input.other.name }], sections: sections.map(section => ({ ...section, text: compatibilityReadingCopy(section.text) })), limitation: 'A traditional numerology reading for reflection. Your choices, communication and everyday actions shape your relationship. Interpretation rules are still under review.' }
+ const standard: StandardReading = { version: methodVersion, status: 'draft', kind: input.kind, relationshipContextVersion: "JS_RELATIONSHIP_CONTEXT_1", relationship: input.relationship, roles: { self: input.selfRole, other: input.otherRole }, people: [{ name: input.self.name }, { name: input.other.name }], sections: sections.map(section => ({ ...section, text: compatibilityReadingCopy(section.text) })), limitation: 'A traditional numerology reading for reflection. Your choices, communication and everyday actions shape your relationship. Interpretation rules are still under review.' }
  const practitioner = {
   status: 'draft' as const, methodVersion, roles: { self: input.selfRole, other: input.otherRole }, priorities: input.priorities,
   sections: [...sections, { title: 'Behaviours to develop — consultation discussion', text: `${input.self.name}: consider whether it would help to ${themes[facts.a.mulank.final].habit}. ${input.other.name}: consider whether it would help to ${themes[facts.b.mulank.final].habit}. Shared practice: a regular check-in with one appreciation, one concern and one agreed next step. Ask both people whether these suggestions fit before using them.` }],
