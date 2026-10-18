@@ -1,13 +1,13 @@
 import Link from 'next/link'
 const topics = [
-  ['Improve My Career', 'Where could your strengths fit in your work? Explore what to build on next.', 'Personal guidance report · ₹199', 'focused_report'],
-  ['Understand My Love Life', 'What helps you feel understood and close to someone? Explore your love life.', 'Personal guidance report · ₹199', 'focused_report'],
+  ['Improve My Career', 'Where could your strengths fit in your work? Explore what to build on next.', 'Personal numerology insights · ₹199', 'focused_report'],
+  ['Understand My Love Life', 'What helps you feel understood and close to someone? Explore your love life.', 'Personal numerology insights · ₹199', 'focused_report'],
   ['Understand Us Together', 'Explore the patterns worth discussing with one person.', '3 tests · ₹299 / 6 tests · ₹499', 'compatibility_three'],
-  ['Find My Direction', 'What matters most to you? Explore the choices and possibilities ahead.', 'Personal guidance report · ₹199', 'focused_report'],
-  ['Develop My Personality', 'How could you feel more confident being yourself? Explore ways to grow.', 'Personal guidance report · ₹199', 'focused_report'],
+  ['Find My Direction', 'What matters most to you? Explore the choices and possibilities ahead.', 'Personal numerology insights · ₹199', 'focused_report'],
+  ['Develop My Personality', 'How could you feel more confident being yourself? Explore ways to grow.', 'Personal numerology insights · ₹199', 'focused_report'],
   ['Improve My Working Relationships', 'Explore different approaches to work and communication.', '3 tests · ₹299 / 6 tests · ₹499', 'compatibility_three'],
-  ['Supporting Days & Colours', 'Discover the days and colours traditionally linked with your profile.', 'Automated report · ₹249', 'supporting_days_colours'],
-  ['Personalised Remedies', 'Explore personalised suggestions with practitioner review.', 'Reviewed report · ₹699', 'personalized_remedies'],
+  ['Supporting Days & Colours', 'Discover the days and colours traditionally linked with your profile.', 'Automated insights · ₹249', 'supporting_days_colours'],
+  ['Personalised Remedies', 'Explore personalised suggestions with practitioner review.', 'Practitioner-reviewed guidance · ₹699', 'personalized_remedies'],
   ['Name Correction Review', 'Could a different spelling suit your profile? Review options with a practitioner.', 'Name review · ₹999', 'name_correction'],
   ['Chat with Our Numerologist', 'Choose what you want to discuss. Start with what matters most to you.', '15 minutes · ₹449 / 30 minutes · ₹799', 'chat_15'],
 ]

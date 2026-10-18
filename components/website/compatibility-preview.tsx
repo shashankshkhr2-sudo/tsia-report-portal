@@ -23,7 +23,7 @@ export function CompatibilityPreview() {
  const report = useRef<HTMLElement>(null); const [reportOpenCount, setReportOpenCount] = useState(0)
  const [preview, setPreview] = useState<CustomerReading | null>(null)
  const [reportNotice, setReportNotice] = useState('')
- function openReport(value: CustomerReading, saved = true) { setReportNotice(saved ? 'You’ve already checked this compatibility. Your saved report is below. No additional test was used.' : 'Your compatibility report has been saved. You can reopen it anytime without using another test.'); setPreview(value); setReportOpenCount(count => count + 1) }
+ function openReport(value: CustomerReading, saved = true) { setReportNotice(saved ? 'You’ve already checked this compatibility. Your saved compatibility insights are below. No additional test was used.' : 'Your compatibility insights have been saved. You can reopen it anytime without using another test.'); setPreview(value); setReportOpenCount(count => count + 1) }
  useEffect(() => { if (reportOpenCount) { report.current?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); report.current?.focus({ preventScroll: true }) } }, [reportOpenCount])
  async function token() { return (await customerClient()?.auth.getSession())?.data.session?.access_token }
  async function load() {
@@ -72,7 +72,7 @@ export function CompatibilityPreview() {
     <button disabled={busy} className="mt-5 rounded-xl bg-[#762b40] px-5 py-3 font-semibold text-white disabled:opacity-50">{busy ? 'Saving…' : 'Check Compatibility'}</button>
     {remaining === 0 && <p className="mt-3 text-sm">Your launch allowance is used. You can still reopen a comparison by submitting the same details. Additional packages are coming soon.</p>}
    </form>
-   <h3 id="saved-compatibility-readings" className="mt-7 scroll-mt-24 font-serif text-2xl">My saved compatibility readings</h3><p className="mt-2 text-sm leading-6 text-[#766b67]">Already checked a connection? Choose its saved report below. Reopening uses no additional test.</p>
+   <h3 id="saved-compatibility-readings" className="mt-7 scroll-mt-24 font-serif text-2xl">My saved compatibility readings</h3><p className="mt-2 text-sm leading-6 text-[#766b67]">Already checked a connection? Choose its saved insights below. Reopening uses no additional test.</p>
    {!history.length && <p className="mt-3">Your saved comparisons will appear here.</p>}
    <div className="mt-3 space-y-3">{history.map(item => <button key={item.id} className="block w-full rounded-xl border border-[#eadfd4] p-4 text-left" onClick={() => openReport(item.preview)}>{item.preview.people[1]?.name} · {item.preview.kind}<span className="mt-1 block text-sm underline">Open saved reading — no credit used</span></button>)}</div>
    {preview && <article ref={report} tabIndex={-1} aria-label="Your compatibility reading" className="mt-7 scroll-mt-24 space-y-5 border-t border-[#eadfd4] pt-6 focus:outline-none" aria-live="polite">

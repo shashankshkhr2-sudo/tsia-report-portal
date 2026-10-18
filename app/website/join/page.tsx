@@ -19,13 +19,13 @@ const benefits = [
     icon: Users,
     title: 'Understand the person behind the chart and numbers',
     description:
-      'A client is more than a birth date. Jeevan Sutra is being built to bring together their background, questions, reports and consultation history—helping you prepare better and offer more personal, meaningful guidance.',
+      'A client is more than a birth date. Jeevan Sutra is being built to bring together their background, questions, insights and consultation history—helping you prepare better and offer more personal, meaningful guidance.',
   },
   {
     icon: BriefcaseBusiness,
     title: 'Create more opportunities to earn',
     description:
-      'Approved practitioners can be considered for paid consultations matched to their expertise, languages and availability. Put your knowledge to work through consultations, reports and thoughtful follow-ups.',
+      'Approved practitioners can be considered for paid consultations matched to their expertise, languages and availability. Put your knowledge to work through consultations, written insights and thoughtful follow-ups.',
   },
   {
     icon: HeartHandshake,
@@ -239,7 +239,7 @@ export default function JoinPage() {
               You have invested years in learning, interpretation and
               client relationships. Explore opportunities to bring that
               depth to new clients, with tools designed to support
-              preparation, reports and continuity of guidance.
+              preparation, insights and continuity of guidance.
             </p>
 
             <p className="mt-4 font-medium leading-7 text-[#81243f]">

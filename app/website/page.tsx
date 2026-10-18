@@ -35,7 +35,7 @@ const benefits = [
 const services = [
   {
     number: '01',
-    title: 'Detailed Numerology Reports',
+    title: 'Detailed Numerology Insights',
     description:
       'Personalized analysis of Mulank, Bhagyank, Lo Shu, Graha associations and name numbers.',
   },
@@ -380,7 +380,7 @@ export default function JeevanSutraHomePage() {
                 step: '04',
                 title: 'Explore Deeper Guidance',
                 description:
-                  'Discover optional reports, consultations and other services.',
+                  'Discover optional insights, consultations and other services.',
               },
             ].map((item) => (
               <article
@@ -512,7 +512,7 @@ export default function JeevanSutraHomePage() {
                   number: '01',
                   title: 'A Fuller Understanding of Your Clients',
                   description:
-                    'Organized client information, reports and consultation history to support better preparation and more personal guidance.',
+                    'Organized client information, insights and consultation history to support better preparation and more personal guidance.',
                 },
                 {
                   number: '02',
