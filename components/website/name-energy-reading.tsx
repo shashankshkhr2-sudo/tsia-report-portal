@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-import { ArrowRight } from 'lucide-react'
 import { ProfileDob } from './profile-dob'
 
 const strengths: Record<number, { title: string; description: string }> = {
@@ -16,7 +15,7 @@ const strengths: Record<number, { title: string; description: string }> = {
 
 const grahas: Record<number,string> = {1:'Surya',2:'Chandra',3:'Guru',4:'Rahu',5:'Budh',6:'Shukra',7:'Ketu',8:'Shani',9:'Mangal'}
 const themes: Record<number,string> = {1:'initiative and independence',2:'care and cooperation',3:'expression and learning',4:'structure and original thinking',5:'curiosity and adaptability',6:'care and responsibility',7:'reflection and deeper understanding',8:'patience and steady effort',9:'courage and purposeful action'}
-export function NameEnergyReading({name,dob,mulank,bhagyank,nameNumber,total,isChild = false,calculation}: {name:string;dob:string;mulank:number;bhagyank:number;nameNumber:number;total:number;isChild?:boolean;calculation?:ReactNode}) {
+export function NameEnergyReading({name,dob,mulank,bhagyank,nameNumber,total,calculation}: {name:string;dob:string;mulank:number;bhagyank:number;nameNumber:number;total:number;isChild?:boolean;calculation?:ReactNode}) {
  const numbers = [mulank,bhagyank,nameNumber]
  const unique = [...new Set(numbers)]
  const repeated = unique.filter(number => numbers.filter(value => value === number).length > 1)
@@ -42,6 +41,6 @@ export function NameEnergyReading({name,dob,mulank,bhagyank,nameNumber,total,isC
    <div className="mt-6 border-t border-[#C5A15A]/40 pt-5"><h4 className="font-semibold text-[#64263B]">Bring this into everyday life</h4><p className="mt-3 text-sm leading-7">Notice when {themes[unique[0]]} feels natural to you{unique.length > 1 ? `, and when you draw on ${themes[unique[1]]}` : ''}. Which parts feel familiar? Which would you like to understand better?</p></div>
    <p className="mt-5 text-xs leading-6 text-[#766b67]">These traditional themes are for reflection. Your experience matters; a practitioner will discuss how the reading fits your life before recommending any change.</p>
   </article>
-  <aside className="rounded-3xl bg-[#64263B] p-6 text-[#FAF7F0] sm:p-8"><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#EAD8AD]">Your next step</p><h3 className="mt-3 font-serif text-3xl">What Does This Mean for Your Name?</h3><p className="mt-4 max-w-2xl leading-8">Explore your questions with a Jeevan Sutra practitioner. {isChild ? "Discuss the child’s name, your family’s preferences and the meaning you want it to carry." : "Together, review your purpose, name and current signature before considering whether to retain your spelling or explore another."}</p><a href="#practitioner" className="mt-6 inline-flex min-h-12 items-center gap-3 rounded-full bg-[#EAD8AD] px-6 py-3 font-semibold text-[#64263B]">Explore practitioner guidance <ArrowRight size={18} aria-hidden="true" /></a><p className="mt-3 text-sm text-[#EAD8AD]">Consultations coming soon.</p></aside>
+
  </section>
 }
