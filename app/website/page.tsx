@@ -1,4 +1,4 @@
-import { NameDiscoveryFeature } from '@/components/website/name-discovery-feature'
+import { NameDiscoveryFeature, NameCorrectionCard } from '@/components/website/name-discovery-feature'
 import Link from 'next/link'
 import { Star, BriefcaseBusiness, Heart, Compass, Sprout } from 'lucide-react'
 import { LaunchGift } from '@/components/website/launch-gift'
@@ -86,8 +86,9 @@ export default function JeevanSutraHomePage() {
             </p>
 
             <h1 className="font-serif text-[clamp(1.9rem,6vw,3.4rem)] font-normal leading-[1.18] text-[#FFF8EB]">
-              <span className="block">Understand yourself.</span>
-              <span className="block">Explore your connections.</span>
+              <span className="block">Understand Yourself.</span>
+              <span className="block">Explore Your Connections.</span>
+              <span className="block">Discover Your Life’s Possibilities.</span>
             </h1>
 
             <div className="my-7 h-px w-28 bg-[#C5A15A]" />
@@ -98,6 +99,7 @@ export default function JeevanSutraHomePage() {
             >
               <p>खुद को समझें।</p>
               <p>अपने रिश्तों को जानें।</p>
+              <p>जीवन की संभावनाएँ खोजें।</p>
             </div>
 
             <p className="mt-6 max-w-xl text-base leading-8 text-[#F0E4E5]">
@@ -132,6 +134,7 @@ export default function JeevanSutraHomePage() {
             </ul>
 
             <div className="mt-7"><LaunchGift compact /></div>
+            <div className="mt-5"><NameCorrectionCard compact /></div>
 
             <div className="mt-7 border-t border-[#D8B475]/30 pt-5">
               <p className="text-sm leading-7 text-[#F0E4E5]">
@@ -339,7 +342,7 @@ export default function JeevanSutraHomePage() {
         </div>
       </section>
 
-      <NameDiscoveryFeature />
+      <NameDiscoveryFeature showCorrection={false} />
 
       {/* HOW IT WORKS */}
       <section
@@ -703,16 +706,12 @@ export default function JeevanSutraHomePage() {
             Your Discovery Begins Here
           </p>
 
-          <h2 className="mt-6 font-serif text-4xl font-normal leading-tight md:text-5xl">
-            Every Name Has a Number.
-            <span className="mt-3 block text-[#EAD8AD]">
-              Every Journey Has a Beginning.
-            </span>
+          <h2 className="mt-6 font-serif text-3xl font-normal leading-tight md:text-5xl">
+            Your journey begins with understanding yourself.
           </h2>
 
-          <p className="mx-auto mt-7 max-w-3xl text-lg leading-9 text-[#F1E1D8]">
-            Begin exploring your personal numerology
-            through your name and date of birth.
+          <p lang="hi" className="mx-auto mt-5 max-w-3xl font-serif text-2xl leading-relaxed text-[#EAD8AD] md:text-3xl">
+            खुद को समझने से शुरू होती है आपकी यात्रा।
           </p>
 
           <Link
