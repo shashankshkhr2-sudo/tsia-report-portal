@@ -16,17 +16,18 @@ const personal: Record<NumerologyDigit, { title:string; description:string }> = 
  9:{title:'You put your heart into what matters',description:'When you care about something, you may feel ready to act. Helping someone or standing up for a cause can bring out your energy.'},
 }
 // Describe the whole combination separately from the customer's formation status.
-// These combine the existing individual-number themes; calculation rules are unchanged.
+// Show approved interpretations and practitioner guidance only for complete Rajyogs.
 const rajyogDescriptions: Record<string,string> = {
- '4–5–6': 'Golden Rajyog brings together original thinking and organisation (4), communication and adaptability (5), and care and responsibility (6). Its focus is giving ideas a practical shape while keeping people and responsibilities in mind.',
- '2–5–8': 'Silver Rajyog brings together understanding people (2), communication and adaptability (5), and patience and commitment (8). Its focus is working with others and staying steady through changing circumstances.',
+  "4–5–6": "Golden Rajyog is present in your grid. In numerology, this combination is traditionally associated with good luck, favourable opportunities, name and recognition, financial progress, career achievement and material comforts. If you are facing persistent problems, repeated setbacks, or a lack of progress despite sincere effort, speak with a numerology practitioner for a fuller understanding of your profile.",
+  "2–5–8": "Silver Rajyog is present in your grid. In numerology, this combination is traditionally associated with opportunities to acquire property, build tangible assets and strengthen material security. Property gains may come alongside periods of fluctuation. If you are facing persistent difficulties in acquiring or retaining property, or repeated setbacks in building assets despite sincere effort, consider speaking with a numerology practitioner for a fuller understanding of your profile."
 }
+
 function rajyogStatus(p:PatternResult) {
  const present=p.present.join('–') || 'none'
  const missing=p.missing.join('–') || 'none'
  if(p.status==='complete')return `All three numbers are present: this Rajyog is complete. Read its combined theme alongside the rest of your profile.`
  if(p.status==='partial')return `This Rajyog is partial. Present: ${present}. Missing: ${missing}. The full three-number combination is not formed.`
- return `This Rajyog is not formed. Present: ${present}. Missing: ${missing}. The combination described above is an explanation of the pattern, not an active Rajyog in your grid.`
+ return `This Rajyog is not formed. Present: ${present}. Missing: ${missing}. This combination is not active in your grid.`
 }
 const names:Record<string,string>={mulank:'your birthday number',bhagyank:'your life path number',nameNumber:'your name number',loshu:'your Personal Lo Shu',repetition:'a repeated number',row:'a complete row',column:'a complete column',goldenRajyog:'complete Golden Rajyog',silverRajyog:'complete Silver Rajyog'}
 export function CombinedProfile({ calculation:c }: { calculation:NumerologyCalculationResult }) {
@@ -49,7 +50,7 @@ export function CombinedProfile({ calculation:c }: { calculation:NumerologyCalcu
  const qualities=p.present.map(n=>themes[n])
  const joined=qualities.length>1?`${qualities.slice(0,-1).join(', ')} and ${qualities.at(-1)}`:qualities[0]
  return <article key={title} className="rounded-2xl border-l-4 border-[#C5A15A] bg-[#FAF7F0] p-4"><h4 className="font-bold text-[#64263B]">{title.includes('Rajyog')?'':patterns.indexOf(patterns.find(item=>item[0]===title)!)>=3?'Column · ':'Row · '}{title}</h4>
- <p className="mt-2 text-sm leading-6">{rajyog?rajyogDescriptions[p.numbers.join('–')]:p.presentCount===0?'None of this pattern’s numbers appear in your grid. Your other numbers offer more useful starting points for this reading.':p.status==='complete'?`This part of your grid brings together ${theme}. You may recognise these qualities working together in the way you approach everyday situations.`:`The numbers present here highlight ${joined}. Notice where these qualities feel familiar to you.`}</p>
+ <p className="mt-2 text-sm leading-6">{rajyog?(p.status==="complete"?rajyogDescriptions[p.numbers.join("–")]:null):p.presentCount===0?'None of this pattern’s numbers appear in your grid. Your other numbers offer more useful starting points for this reading.':p.status==='complete'?`This part of your grid brings together ${theme}. You may recognise these qualities working together in the way you approach everyday situations.`:`The numbers present here highlight ${joined}. Notice where these qualities feel familiar to you.`}</p>
  {rajyog && <p className="mt-2 text-sm text-[#766b67]">{rajyogStatus(p)}</p>}
  <details className="mt-3 text-sm text-[#766b67]"><summary className="cursor-pointer">See your numbers</summary><p className="mt-2">Pattern: {p.numbers.join('–')} · {p.presentCount}/3 present · {p.status==='complete'?'Complete':p.status==='partial'?'Partial':'Not formed'}</p><p className="mt-1">Present: {p.present.join(', ') || 'none'}. Missing: {p.missing.join(', ') || 'none'}.</p></details>
  </article>
