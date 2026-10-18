@@ -7,6 +7,8 @@ import { Menu, UserRound, X, Home, BookOpen, UsersRound, ChevronRight } from 'lu
 
 import { customerClient } from "@/lib/jeevansutra/customer-client"
 
+import { AccountPersonalPanel } from "./account-personal-panel"
+
 const items = [
  { title: 'Home', href: '/website', icon: Home },
  { title: 'My Profile', href: '/website/welcome', icon: UserRound },
@@ -77,8 +79,9 @@ export function WebsiteHeader() {
     {signOutError && <p role="alert" className="mt-3 text-sm text-red-800">{signOutError}</p>}
    </div>
   </dialog>
-  <dialog ref={accountDialog} id="website-account-menu" aria-labelledby="website-account-title" onClose={() => setAccountOpen(false)} onClick={event => { if (event.target === event.currentTarget) { const b = event.currentTarget.getBoundingClientRect(); if (event.clientX < b.left || event.clientX > b.right || event.clientY < b.top || event.clientY > b.bottom) closeMenu() } }} className="fixed bottom-auto left-auto right-3 top-20 m-0 max-h-[calc(100dvh-6rem)] w-72 max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-2xl border border-[#C5A15A]/40 bg-[#FAF7F0] p-5 text-[#64263B] shadow-xl backdrop:bg-black/35 sm:right-6">
+  <dialog ref={accountDialog} id="website-account-menu" aria-labelledby="website-account-title" onClose={() => setAccountOpen(false)} onClick={event => { if (event.target === event.currentTarget) { const b = event.currentTarget.getBoundingClientRect(); if (event.clientX < b.left || event.clientX > b.right || event.clientY < b.top || event.clientY > b.bottom) closeMenu() } }} className="fixed bottom-auto left-auto right-3 top-20 m-0 max-h-[calc(100dvh-6rem)] w-96 max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-2xl border border-[#C5A15A]/40 bg-[#FAF7F0] p-5 text-[#64263B] shadow-xl backdrop:bg-black/35 sm:right-6">
    <div className="flex items-center justify-between gap-3"><h2 id="website-account-title" className="font-serif text-2xl">Your account</h2><button type="button" autoFocus onClick={closeMenu} aria-label="Close account menu" className="flex size-11 items-center justify-center rounded-lg hover:bg-[#EAD8AD]/30 focus-visible:outline-2 focus-visible:outline-[#64263B]"><X size={24} aria-hidden="true" /></button></div>
+   {signedIn && accountOpen && <AccountPersonalPanel onNavigate={closeMenu} />}
    <Link href="/website/start" onClick={closeMenu} className="mt-4 block min-h-12 rounded-xl bg-[#64263B] px-4 py-3 text-center font-semibold text-[#FAF7F0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#64263B]">{signedIn ? "My Profile" : "Sign in / Register"}</Link>
    {signedIn && <button type="button" onClick={() => void signOutCustomer()} disabled={signingOut} className="mt-3 min-h-12 w-full rounded-xl border border-[#64263B]/30 px-4 py-3 font-semibold hover:bg-[#EAD8AD]/30 focus-visible:outline-2 focus-visible:outline-[#64263B] disabled:opacity-50">{signingOut ? "Signing out…" : "Sign out"}</button>}
    {signOutError && <p role="alert" className="mt-3 text-sm text-red-800">{signOutError}</p>}

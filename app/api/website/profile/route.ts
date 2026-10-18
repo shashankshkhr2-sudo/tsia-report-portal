@@ -20,7 +20,7 @@ export async function GET(request: Request) {
   if(process.env.JS_CUSTOMER_GUIDANCE_ENABLED !== 'true')return reply({error:'Customer access is not open yet.'},503)
   const user=await account(request); if(!user)return reply({error:'Please verify your email first.'},401)
   const identity=await customerIdentity(request)
-  return reply({needsProfile:!identity,email:user.email})
+  return reply({needsProfile:!identity,email:user.email,profile:identity?{name:identity.client.current_name || identity.client.full_name,dob:identity.client.date_of_birth}:null})
  } catch {return reply({error:'Unable to check your profile. Please try again.'},503)}
 }
 export async function POST(request: Request) {
