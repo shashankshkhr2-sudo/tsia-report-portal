@@ -1,4 +1,5 @@
 'use client'
+import { SavedConnections } from "./saved-connections"
 import { loadCustomerPhoto } from "./customer-photo-loader"
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import Link from 'next/link'
@@ -9,10 +10,12 @@ import { LaunchGift } from './launch-gift'
 import { customerClient } from '@/lib/jeevansutra/customer-client'
 import { compatibilityKinds, relationships, priorities, type CompatibilityKind, type CustomerReading } from '@/lib/jeevansutra/compatibility-contract'
 const legacyKinds = ['Personal Relationship Compatibility', 'Business Partnership Compatibility', 'Professional Compatibility', 'Interaction Guidance']
-type Saved = { id: string; preview: CustomerReading; created_at: string }
+type Saved = { id: string; preview: Pick<CustomerReading, "kind" | "people">; created_at: string }
 const field = 'mt-2 min-h-12 w-full rounded-xl border border-[#ded4cb] bg-[#FFFDFA] p-3 text-base text-[#392e30] focus:outline-2 focus:outline-offset-2 focus:outline-[#C5A15A]'
 export function CompatibilityPreview() {
  const router = useRouter()
+ const savedOpenRevision = useRef(0)
+ const [connectionsView, setConnectionsView] = useState("saved")
  const [giftIdentity, setGiftIdentity] = useState({ name: "", dob: "", photo: "" })
  useEffect(() => {
   const client = customerClient(); if (!client) return
@@ -50,14 +53,41 @@ export function CompatibilityPreview() {
  const [reportNotice, setReportNotice] = useState('')
  function openReport(value: CustomerReading, saved = true) { setReportNotice(saved ? 'You’ve already checked this compatibility. Your saved compatibility insights are below. No additional test was used.' : 'Your compatibility insights have been saved. You can reopen it anytime without using another test.'); setPreview(value); setReportOpenCount(count => count + 1) }
  useEffect(() => { if (reportOpenCount) { report.current?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); report.current?.focus({ preventScroll: true }) } }, [reportOpenCount])
+ async function openSaved(id: string) {
+  const revision = ++savedOpenRevision.current; setError(""); setPreview(null)
+  try {
+   const access = await token(); if (!access) { router.replace(compatibilitySignInPath); return }
+   const response = await fetch("/api/website/compatibility?id=" + encodeURIComponent(id), { headers: { Authorization: "Bearer " + access }, cache: "no-store" })
+   const data = await response.json()
+   if (revision !== savedOpenRevision.current) return
+   if (!response.ok) { if (response.status === 401) router.replace(compatibilitySignInPath); setError(data.error || "Unable to open saved insights."); return }
+   openReport(data.preview)
+  } catch { if (revision === savedOpenRevision.current) setError("Unable to open saved insights. Please try again.") }
+ }
+ async function removeSaved(id: string) {
+  if (!window.confirm("Remove these saved insights from your list? This will not restore a used test.")) return
+  savedOpenRevision.current++; setError("")
+  try {
+   const access = await token(); if (!access) { router.replace(compatibilitySignInPath); return }
+   const response = await fetch("/api/website/compatibility?id=" + encodeURIComponent(id), { method: "DELETE", headers: { Authorization: "Bearer " + access } })
+   const data = await response.json()
+   if (!response.ok) { setError(data.error || "Unable to remove saved insights."); return }
+   setHistory(items => items.filter(item => item.id !== id)); setPreview(null)
+  } catch { setError("Unable to confirm removal. Please reload and check your saved insights.") }
+ }
  async function token() { return (await customerClient()?.auth.getSession())?.data.session?.access_token }
  async function load() {
   try {
    const access = await token(); if (!access) { setSignedIn(false); router.replace(compatibilitySignInPath); return }
-   const response = await fetch('/api/website/compatibility', { headers: { Authorization: `Bearer ${access}` }, cache: 'no-store' })
-   const data = await response.json()
-   if (!response.ok) { if (response.status === 401) { setSignedIn(false); router.replace(compatibilitySignInPath); return } setError(data.error || 'Unable to load compatibility.'); return }
-   setSignedIn(true); setHistory(data.history); setRemaining(data.remaining)
+   const collected: Saved[] = []; let offset: number | null = 0
+   let data: { history: Saved[]; remaining: number; draftEnabled: boolean; nextOffset: number | null; error?: string }
+   do {
+    const response = await fetch("/api/website/compatibility?summary=1&offset=" + offset, { headers: { Authorization: "Bearer " + access }, cache: "no-store" })
+    data = await response.json()
+    if (!response.ok) { if (response.status === 401) { setSignedIn(false); router.replace(compatibilitySignInPath); return } setError(data.error || "Unable to load connections."); return }
+    collected.push(...data.history); offset = data.nextOffset
+   } while (offset !== null)
+   setSignedIn(true); setHistory(Array.from(new Map(collected.map(item => [item.id, item])).values())); setRemaining(data.remaining)
    setDraft(Boolean(data.draftEnabled)); setKind(current => data.draftEnabled ? (compatibilityKinds.includes(current as CompatibilityKind) ? current : compatibilityKinds[0]) : (legacyKinds.includes(current) ? current : legacyKinds[0]))
   } catch { setError('Unable to load your previews. Please reload to try again.') }
   finally { setLoading(false) }
@@ -78,12 +108,13 @@ export function CompatibilityPreview() {
   {error ? <><p role="alert" className="text-red-800">{error}</p><button type="button" className="mt-4 underline" onClick={() => { setError(''); setLoading(true); void load() }}>Try again</button></> : <p role="status">Checking your account and opening compatibility…</p>}
  </section>
  return <section className="mt-8 rounded-3xl border border-[#eadfd4] bg-white p-5 sm:p-7">
-  <LaunchGift showLink={false} customerName={giftIdentity.name} customerDob={giftIdentity.dob} photoUrl={giftIdentity.photo} remaining={remaining} />
+  <LaunchGift compact showLink={false} customerName={giftIdentity.name} customerDob={giftIdentity.dob} photoUrl={giftIdentity.photo} remaining={remaining} />
+  <section aria-labelledby="connections-title" className="mt-6 text-[#64263B]"><h2 id="connections-title" className="font-serif text-3xl">My Connections</h2><p className="mt-2 text-sm leading-6 text-[#766B67]">Understand your connections. Revisit anytime.</p><div className="mt-5 grid grid-cols-2 overflow-hidden rounded-xl border border-[#64263B]">{[["saved", "Saved insights (" + history.length + ")"],["new", "New comparison"]].map(([value,label]) => <button key={value} type="button" aria-pressed={connectionsView === value} onClick={() => { savedOpenRevision.current++; setConnectionsView(value); setPreview(null) }} className={"min-h-12 px-2 py-3 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-[#C5A15A] " + (connectionsView === value ? "bg-[#64263B] text-white" : "bg-[#FFFDFA] text-[#64263B]")}>{label}</button>)}</div><div hidden={connectionsView !== "saved"}><SavedConnections history={history} onOpen={openSaved} onDelete={removeSaved} /></div></section>
   {draft && <p role="status" className="mt-5 rounded-xl border border-amber-400 bg-amber-50 p-4 text-sm text-amber-950">STAGING DRAFT — interpretation tables are under review. Not a final customer reading. Draft saves use this staging account’s existing launch allowance. Reopening preserves the original roles and priorities.</p>}
-  <p className="mt-5 text-sm leading-7 text-[#766b67]">Your details come from your saved profile. Add someone you would like to understand better.</p>
+  <p hidden={connectionsView !== "new"} className="mt-5 text-sm leading-7 text-[#766b67]">Your details come from your saved profile. Add someone you would like to understand better.</p>
   {error && <p role="alert" className="mt-4 text-red-800">{error}</p>}
   {loading ? <p role="status" className="mt-4">Loading your previews…</p> : !signedIn ? <div className="mt-5 flex flex-wrap gap-5"><Link href="/website/welcome" className="underline">My Profile</Link><Link href="/website/start" className="underline">Start with Email / Sign in</Link></div> : <>
-   <form onSubmit={submit} className="mt-5">
+   <form hidden={connectionsView !== "new"} onSubmit={submit} className="mt-5">
     <label className="block">Relationship category<select className={field} value={kind} onChange={e => { setKind(e.target.value); if (draft) setRelationship(relationships[e.target.value as CompatibilityKind][0]) }}>{(draft ? compatibilityKinds : legacyKinds).map(item => <option key={item}>{item}</option>)}</select></label>
     {draft && <>
      <label className="mt-4 block">Relationship<select className={field} value={relationship} onChange={e => setRelationship(e.target.value)}>{(relationships[kind as CompatibilityKind] || []).map(item => <option key={item}>{item}</option>)}</select></label>
@@ -96,9 +127,6 @@ export function CompatibilityPreview() {
     <button disabled={busy} className="mt-5 rounded-xl bg-[#762b40] px-5 py-3 font-semibold text-white disabled:opacity-50">{busy ? 'Saving…' : 'Check Compatibility'}</button>
     {remaining === 0 && <p className="mt-3 text-sm">Your launch allowance is used. You can still reopen a comparison by submitting the same details. Additional packages are coming soon.</p>}
    </form>
-   <h3 id="saved-compatibility-readings" className="mt-7 scroll-mt-24 font-serif text-2xl">My saved compatibility readings</h3><p className="mt-2 text-sm leading-6 text-[#766b67]">Already checked a connection? Choose its saved insights below. Reopening uses no additional test.</p>
-   {!history.length && <p className="mt-3">Your saved comparisons will appear here.</p>}
-   <div className="mt-3 space-y-3">{history.map(item => <button key={item.id} className="block w-full rounded-xl border border-[#eadfd4] p-4 text-left" onClick={() => openReport(item.preview)}>{item.preview.people[1]?.name} · {item.preview.kind}<span className="mt-1 block text-sm underline">Open saved reading — no credit used</span></button>)}</div>
    {preview && <article ref={report} tabIndex={-1} aria-label="Your compatibility reading" className="mt-7 scroll-mt-24 space-y-5 border-t border-[#eadfd4] pt-6 focus:outline-none" aria-live="polite">
     <div role="status" className="rounded-2xl border border-[#C5A15A]/50 bg-[#F4EBD9] p-4 text-sm leading-7 text-[#64263B]">{reportNotice}</div>
     <CompatibilityReading reading={preview} />
