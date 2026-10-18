@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useRef, useState, type ChangeEvent } from "react"
+import { loadCustomerPhoto, clearCustomerPhoto } from "./customer-photo-loader"
 import { customerClient } from "@/lib/jeevansutra/customer-client"
 export function AccountPhoto({ name }: { name: string }) {
  const viewer = useRef<HTMLDialogElement>(null)
@@ -17,7 +18,7 @@ export function AccountPhoto({ name }: { name: string }) {
     const session = await customerClient()?.auth.getSession()
     const token = session?.data.session?.access_token
     if (!token) return
-    const response = await fetch("/api/website/customer-photo", {headers:{Authorization:"Bearer " + token},cache:"no-store",signal:controller.signal})
+    const response = await loadCustomerPhoto(token)
     if (response.status === 404) return
     if (!response.ok) throw new Error("Load failed")
     const blob = await response.blob()
@@ -43,7 +44,7 @@ export function AccountPhoto({ name }: { name: string }) {
    const response = await fetch("/api/website/customer-photo", {method:"POST",headers:{Authorization:"Bearer " + token,"Content-Type":file.type},body:file})
    const data = await response.json()
    if (!response.ok || data.saved !== true) throw new Error(data.error || "Unable to save your photo.")
-   if (alive.current) { setPhoto(URL.createObjectURL(file)); setMessage("Photo saved."); window.dispatchEvent(new Event("jeevansutra-photo-updated")) }
+   if (alive.current) { setPhoto(URL.createObjectURL(file)); setMessage("Photo saved."); clearCustomerPhoto(); window.dispatchEvent(new Event("jeevansutra-photo-updated")) }
   } catch (error) { if (alive.current) setMessage(error instanceof Error ? error.message : "Unable to save your photo. Please try again.") }
   finally { working.current = false; if (alive.current) setBusy(false) }
  }

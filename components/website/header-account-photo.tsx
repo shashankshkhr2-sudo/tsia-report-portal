@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { UserRound } from "lucide-react"
+import { loadCustomerPhoto, clearCustomerPhoto } from "./customer-photo-loader"
 import { customerClient } from "@/lib/jeevansutra/customer-client"
 
 export function HeaderAccountPhoto() {
@@ -25,7 +26,7 @@ export function HeaderAccountPhoto() {
     const token = session?.data.session?.access_token
     if (!active || current !== revision) return
     if (!token) { clear(); return }
-    const response = await fetch("/api/website/customer-photo", { headers: { Authorization: "Bearer " + token }, cache: "no-store", signal: request.signal })
+    const response = await loadCustomerPhoto(token)
     if (!response.ok) { if (active && current === revision) clear(); return }
     const blob = await response.blob()
     if (!active || current !== revision) return
@@ -38,6 +39,7 @@ export function HeaderAccountPhoto() {
   window.addEventListener("jeevansutra-photo-updated", refresh)
   void load()
   return () => {
+   clearCustomerPhoto()
    active = false
    revision++
    controller?.abort()

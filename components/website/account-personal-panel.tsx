@@ -1,12 +1,12 @@
 "use client"
-import { useEffect, useState } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import Link from "next/link"
 import { customerClient } from "@/lib/jeevansutra/customer-client"
 import { ProfileDob } from "./profile-dob"
 import { AccountPhoto } from "./account-photo"
 type Profile = { name: string; dob: string }
 const choices = ["Love & relationships", "Work & career", "Money & stability", "Family & personal life", "I’m feeling good"]
-export function AccountPersonalPanel({ onNavigate }: { onNavigate: () => void }) {
+export function AccountPersonalPanel({ onNavigate, actions }: { onNavigate: () => void; actions: ReactNode }) {
  const [profile, setProfile] = useState<Profile | null>(null)
  const [loading, setLoading] = useState(true)
  const [error, setError] = useState("")
@@ -31,6 +31,7 @@ export function AccountPersonalPanel({ onNavigate }: { onNavigate: () => void })
  }, [])
  return <div className="mt-4 space-y-4">
   {loading ? <p role="status" className="text-sm">Loading your details…</p> : error ? <p role="alert" className="text-sm text-red-800">{error}</p> : profile ? <div className="rounded-xl border border-[#C5A15A]/30 bg-white/60 p-3"><div className="flex items-center gap-3"><AccountPhoto name={profile.name} /><p className="min-w-0 break-words font-semibold">{profile.name}</p></div><ProfileDob dob={profile.dob} /></div> : <p className="text-sm">Complete your profile to add your name and date of birth.</p>}
+  {actions}
   {profile && <fieldset className="min-w-0 rounded-xl border border-[#C5A15A]/30 p-3"><legend className="px-1 text-base font-semibold">What in your life could use a little more clarity right now?</legend><div className="mt-2 flex flex-col gap-2">{choices.map(label => <button key={label} type="button" aria-pressed={choice === label} onClick={() => setChoice(label)} className={choice === label ? "min-h-11 rounded-lg border border-[#64263B] bg-[#64263B] px-3 py-2 text-left text-sm text-white" : "min-h-11 rounded-lg border border-[#C5A15A]/30 px-3 py-2 text-left text-sm hover:bg-[#EAD8AD]/30"}>{label}</button>)}</div><p className="mt-3 text-sm leading-6">Whatever is on your mind, we’re here to listen.</p>{choice && <div role="status" className="mt-3 text-sm leading-6">{choice === "I’m feeling good" ? <p>Glad to hear it. Take a moment to appreciate what is going well.</p> : <><p>You can take your time to explore what matters to you.</p><Link href="/website/services#chat_15" onClick={onNavigate} className="mt-2 inline-block underline underline-offset-4">Explore a conversation with a numerologist</Link></>}<p className="mt-2 text-xs text-[#766b67]">Optional. Your selection is not saved or sent to a practitioner.</p></div>}</fieldset>}
  </div>
 }
