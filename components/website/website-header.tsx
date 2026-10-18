@@ -62,14 +62,15 @@ export function WebsiteHeader() {
  const action = 'flex size-11 items-center justify-center rounded-lg text-[#EAD8AD] hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#EAD8AD]'
  return <>
   <header className="sticky top-0 z-40 border-b border-[#C5A15A]/60 bg-[#64263B] shadow-sm">
-   <div className="mx-auto grid h-16 max-w-6xl grid-cols-[44px_minmax(0,1fr)_44px] items-center gap-2 px-3 sm:px-6">
+   <div className="mx-auto grid h-16 max-w-6xl grid-cols-[56px_minmax(0,1fr)_56px] items-center gap-2 px-3 sm:px-6">
     <button type="button" onClick={openMenu} aria-label="Open Jeevan Sutra menu" aria-haspopup="dialog" aria-controls="website-menu" aria-expanded={open} className={action}><Menu size={25} strokeWidth={1.7} aria-hidden="true" /></button>
     <Link href="/website" aria-label="Jeevan Sutra homepage" className="mx-auto flex min-w-0 items-center gap-2 rounded-md focus-visible:outline-2 focus-visible:outline-[#EAD8AD]">
      {logoAvailable && <img src="/images/jeevansutra-approved-logo.png" alt="" width={40} height={48} className="h-12 w-10 shrink-0 object-contain" onError={()=>setLogoAvailable(false)} />}
      <span className="truncate font-serif text-[17px] tracking-wide text-[#EAD8AD] sm:text-2xl">JEEVAN SUTRA</span>
     </Link>
-    <button type="button" onClick={openAccount} aria-label="Open account menu" aria-haspopup="dialog" aria-controls="website-account-menu" aria-expanded={accountOpen} className={action}>{signedIn ? <HeaderAccountPhoto /> : <UserRound size={24} strokeWidth={1.7} aria-hidden="true" />}</button>
+<div id="header-auth-action" className="flex flex-col items-center"><button type="button" onClick={openAccount} aria-label="Open account menu" aria-haspopup="dialog" aria-controls="website-account-menu" aria-expanded={accountOpen} className="flex size-8 items-center justify-center rounded-full text-[#EAD8AD] focus-visible:outline-2 focus-visible:outline-[#EAD8AD]">{signedIn ? <HeaderAccountPhoto /> : <UserRound size={24} strokeWidth={1.7} aria-hidden="true" />}</button>{signedIn ? <button type="button" onClick={() => void signOutCustomer()} disabled={signingOut} className="min-h-7 min-w-14 whitespace-nowrap rounded px-1 text-xs font-semibold text-[#EAD8AD] focus-visible:outline-2 focus-visible:outline-[#EAD8AD] disabled:opacity-50">{signingOut ? "Wait…" : "Sign out"}</button> : <Link href="/website/start" className="flex min-h-7 min-w-14 items-center justify-center rounded px-1 text-xs font-semibold text-[#EAD8AD] focus-visible:outline-2 focus-visible:outline-[#EAD8AD]">Sign in</Link>}</div>
    </div>
+   {signOutError && <p role="alert" className="px-3 pb-2 text-center text-sm text-[#FAF7F0]">{signOutError}</p>}
   </header>
   <dialog ref={dialog} id="website-menu" aria-labelledby="website-menu-title" onClose={()=>setOpen(false)} onClick={event=>{if(event.target===event.currentTarget){const bounds=event.currentTarget.getBoundingClientRect();if(event.clientX<bounds.left || event.clientX>bounds.right || event.clientY<bounds.top || event.clientY>bounds.bottom)closeMenu()}}} className="fixed inset-x-0 bottom-auto top-16 m-0 max-h-[calc(100dvh-4rem)] w-full max-w-none overflow-y-auto border-0 border-b border-[#C5A15A]/40 bg-[#FAF7F0] p-0 text-[#64263B] shadow-xl backdrop:bg-black/35 md:inset-x-auto md:left-[max(1.5rem,calc((100vw-72rem)/2))] md:top-20 md:max-h-[calc(100dvh-6rem)] md:w-96 md:rounded-3xl md:border md:border-[#C5A15A]/50">
    <div className="mx-auto max-w-xl px-5 pb-7 pt-4 sm:px-8 md:px-6 md:pb-6">
