@@ -7,6 +7,7 @@ import { Menu, UserRound, X, Home, BookOpen, UsersRound, ChevronRight } from 'lu
 
 import { customerClient } from "@/lib/jeevansutra/customer-client"
 
+import { HeaderAccountPhoto } from "./header-account-photo"
 import { AccountPersonalPanel } from "./account-personal-panel"
 
 const items = [
@@ -67,7 +68,7 @@ export function WebsiteHeader() {
      {logoAvailable && <img src="/images/jeevansutra-approved-logo.png" alt="" width={40} height={48} className="h-12 w-10 shrink-0 object-contain" onError={()=>setLogoAvailable(false)} />}
      <span className="truncate font-serif text-[17px] tracking-wide text-[#EAD8AD] sm:text-2xl">JEEVAN SUTRA</span>
     </Link>
-    <button type="button" onClick={openAccount} aria-label="Open account menu" aria-haspopup="dialog" aria-controls="website-account-menu" aria-expanded={accountOpen} className={action}><UserRound size={24} strokeWidth={1.7} aria-hidden="true" /></button>
+    <button type="button" onClick={openAccount} aria-label="Open account menu" aria-haspopup="dialog" aria-controls="website-account-menu" aria-expanded={accountOpen} className={action}>{signedIn ? <HeaderAccountPhoto /> : <UserRound size={24} strokeWidth={1.7} aria-hidden="true" />}</button>
    </div>
   </header>
   <dialog ref={dialog} id="website-menu" aria-labelledby="website-menu-title" onClose={()=>setOpen(false)} onClick={event=>{if(event.target===event.currentTarget){const bounds=event.currentTarget.getBoundingClientRect();if(event.clientX<bounds.left || event.clientX>bounds.right || event.clientY<bounds.top || event.clientY>bounds.bottom)closeMenu()}}} className="fixed inset-x-0 bottom-auto top-16 m-0 max-h-[calc(100dvh-4rem)] w-full max-w-none overflow-y-auto border-0 border-b border-[#C5A15A]/40 bg-[#FAF7F0] p-0 text-[#64263B] shadow-xl backdrop:bg-black/35 md:inset-x-auto md:left-[max(1.5rem,calc((100vw-72rem)/2))] md:top-20 md:max-h-[calc(100dvh-6rem)] md:w-96 md:rounded-3xl md:border md:border-[#C5A15A]/50">
