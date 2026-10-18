@@ -87,7 +87,7 @@ export default function JeevanSutraHomePage() {
 
             <h1 className="font-serif text-[clamp(1.9rem,6vw,3.4rem)] font-normal leading-[1.18] text-[#FFF8EB]">
               <span className="block">Understand Yourself.</span>
-              <span className="block">Explore Your Connections.</span>
+              <span className="block whitespace-nowrap text-[clamp(1rem,5.4vw,3.4rem)]">Explore Your Connections.</span>
               <span className="block">Discover Your Life’s Possibilities.</span>
             </h1>
 
