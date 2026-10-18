@@ -5,6 +5,8 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { Menu, UserRound, X, Home, BookOpen, UsersRound, ChevronRight } from 'lucide-react'
 
+import { customerClient } from "@/lib/jeevansutra/customer-client"
+
 const items = [
  { title: 'Home', href: '/website', icon: Home },
  { title: 'My Profile', href: '/website/welcome', icon: UserRound },
@@ -12,6 +14,32 @@ const items = [
  { title: 'Compatibility', href: '/website/compatibility', icon: UsersRound },
 ]
 export function WebsiteHeader() {
+ const [signedIn, setSignedIn] = useState(false)
+ const [signingOut, setSigningOut] = useState(false)
+ const [signOutError, setSignOutError] = useState("")
+ useEffect(() => {
+  const client = customerClient()
+  if (!client) return
+  let active = true
+  let authChanged = false
+  const { data: { subscription } } = client.auth.onAuthStateChange((_event, session) => { authChanged = true; if (active) setSignedIn(Boolean(session)) })
+  void client.auth.getSession().then(({ data, error }) => { if (active && !authChanged) setSignedIn(!error && Boolean(data.session)) }).catch(() => {})
+  return () => { active = false; subscription.unsubscribe() }
+ }, [])
+ async function signOutCustomer() {
+  if (signingOut) return
+  setSigningOut(true); setSignOutError("")
+  try {
+   const client = customerClient()
+   if (!client) throw new Error("Unavailable")
+   const result = await client.auth.signOut({ scope: "local" })
+   if (result.error) throw result.error
+   const remaining = await client.auth.getSession()
+   if (remaining.error || remaining.data.session) throw new Error("Session remains")
+   setSignedIn(false); closeMenu(); window.location.replace("/website")
+  } catch { setSignOutError("Unable to sign out. Please try again.") }
+  finally { setSigningOut(false) }
+ }
  const pathname = usePathname()
  const dialog = useRef<HTMLDialogElement>(null)
  const [open, setOpen] = useState(false)
@@ -42,6 +70,8 @@ export function WebsiteHeader() {
     <div className="flex items-start justify-between gap-4"><h2 id="website-menu-title" className="py-3 font-serif text-2xl sm:text-3xl md:text-2xl">Explore Jeevan Sutra</h2><button type="button" autoFocus onClick={closeMenu} aria-label="Close menu" className="flex size-11 shrink-0 items-center justify-center rounded-lg hover:bg-[#EAD8AD]/40 focus-visible:outline-2 focus-visible:outline-[#64263B]"><X size={26} aria-hidden="true" /></button></div>
     <nav aria-label="Jeevan Sutra navigation" className="mt-3">{items.map(({title,href,icon:Icon})=><Link key={href} href={href} onClick={closeMenu} aria-current={pathname===href?'page':undefined} className={`flex min-h-16 items-center gap-4 border-b border-[#C5A15A]/30 px-2 py-4 font-serif text-xl md:min-h-14 md:rounded-xl md:px-3 md:py-3 md:text-lg focus-visible:outline-2 focus-visible:outline-[#64263B] ${pathname===href?'bg-[#EAD8AD]/30':'hover:bg-[#EAD8AD]/20'}`}><Icon size={23} strokeWidth={1.6} aria-hidden="true" /><span className="flex-1">{title}</span><ChevronRight size={20} aria-hidden="true" /></Link>)}</nav>
     <Link href="/website/start" onClick={closeMenu} className="mt-6 block rounded-xl bg-[#64263B] px-5 py-3 text-center font-semibold text-[#FAF7F0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#64263B]">My Profile / Sign in</Link>
+    {signedIn && <button type="button" onClick={() => void signOutCustomer()} disabled={signingOut} className="mt-3 min-h-12 w-full rounded-xl border border-[#64263B]/30 px-5 py-3 text-center font-semibold text-[#64263B] hover:bg-[#EAD8AD]/30 focus-visible:outline-2 focus-visible:outline-[#64263B] disabled:opacity-50">{signingOut ? "Signing out…" : "Sign out"}</button>}
+    {signOutError && <p role="alert" className="mt-3 text-sm text-red-800">{signOutError}</p>}
    </div>
   </dialog>
  </>
