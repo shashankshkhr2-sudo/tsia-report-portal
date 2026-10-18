@@ -41,18 +41,21 @@ export function WebsiteHeader() {
   finally { setSigningOut(false) }
  }
  const pathname = usePathname()
+ const accountDialog = useRef<HTMLDialogElement>(null)
+ const [accountOpen, setAccountOpen] = useState(false)
  const dialog = useRef<HTMLDialogElement>(null)
  const [open, setOpen] = useState(false)
  const [logoAvailable, setLogoAvailable] = useState(true)
- function closeMenu() { dialog.current?.close(); setOpen(false) }
- function openMenu() { dialog.current?.showModal(); setOpen(true) }
- useEffect(() => { dialog.current?.close(); setOpen(false) }, [pathname])
+ function closeMenu() { dialog.current?.close(); accountDialog.current?.close(); setOpen(false); setAccountOpen(false) }
+ function openAccount() { closeMenu(); accountDialog.current?.showModal(); setAccountOpen(true) }
+ function openMenu() { closeMenu(); dialog.current?.showModal(); setOpen(true) }
+ useEffect(() => { dialog.current?.close(); accountDialog.current?.close(); setOpen(false); setAccountOpen(false) }, [pathname])
  useEffect(() => {
-  if (!open) return
+  if (!open && !accountOpen) return
   const previous = document.body.style.overflow
   document.body.style.overflow = 'hidden'
   return () => { document.body.style.overflow = previous }
- }, [open])
+ }, [open, accountOpen])
  const action = 'flex size-11 items-center justify-center rounded-lg text-[#EAD8AD] hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#EAD8AD]'
  return <>
   <header className="sticky top-0 z-40 border-b border-[#C5A15A]/60 bg-[#64263B] shadow-sm">
@@ -62,7 +65,7 @@ export function WebsiteHeader() {
      {logoAvailable && <img src="/images/jeevansutra-approved-logo.png" alt="" width={40} height={48} className="h-12 w-10 shrink-0 object-contain" onError={()=>setLogoAvailable(false)} />}
      <span className="truncate font-serif text-[17px] tracking-wide text-[#EAD8AD] sm:text-2xl">JEEVAN SUTRA</span>
     </Link>
-    <Link href="/website/start" aria-label="My Profile / Sign in" className={action}><UserRound size={24} strokeWidth={1.7} aria-hidden="true" /></Link>
+    <button type="button" onClick={openAccount} aria-label="Open account menu" aria-haspopup="dialog" aria-controls="website-account-menu" aria-expanded={accountOpen} className={action}><UserRound size={24} strokeWidth={1.7} aria-hidden="true" /></button>
    </div>
   </header>
   <dialog ref={dialog} id="website-menu" aria-labelledby="website-menu-title" onClose={()=>setOpen(false)} onClick={event=>{if(event.target===event.currentTarget){const bounds=event.currentTarget.getBoundingClientRect();if(event.clientX<bounds.left || event.clientX>bounds.right || event.clientY<bounds.top || event.clientY>bounds.bottom)closeMenu()}}} className="fixed inset-x-0 bottom-auto top-16 m-0 max-h-[calc(100dvh-4rem)] w-full max-w-none overflow-y-auto border-0 border-b border-[#C5A15A]/40 bg-[#FAF7F0] p-0 text-[#64263B] shadow-xl backdrop:bg-black/35 md:inset-x-auto md:left-[max(1.5rem,calc((100vw-72rem)/2))] md:top-20 md:max-h-[calc(100dvh-6rem)] md:w-96 md:rounded-3xl md:border md:border-[#C5A15A]/50">
@@ -73,6 +76,12 @@ export function WebsiteHeader() {
     {signedIn && <button type="button" onClick={() => void signOutCustomer()} disabled={signingOut} className="mt-3 min-h-12 w-full rounded-xl border border-[#64263B]/30 px-5 py-3 text-center font-semibold text-[#64263B] hover:bg-[#EAD8AD]/30 focus-visible:outline-2 focus-visible:outline-[#64263B] disabled:opacity-50">{signingOut ? "Signing out…" : "Sign out"}</button>}
     {signOutError && <p role="alert" className="mt-3 text-sm text-red-800">{signOutError}</p>}
    </div>
+  </dialog>
+  <dialog ref={accountDialog} id="website-account-menu" aria-labelledby="website-account-title" onClose={() => setAccountOpen(false)} onClick={event => { if (event.target === event.currentTarget) { const b = event.currentTarget.getBoundingClientRect(); if (event.clientX < b.left || event.clientX > b.right || event.clientY < b.top || event.clientY > b.bottom) closeMenu() } }} className="fixed bottom-auto left-auto right-3 top-20 m-0 max-h-[calc(100dvh-6rem)] w-72 max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-2xl border border-[#C5A15A]/40 bg-[#FAF7F0] p-5 text-[#64263B] shadow-xl backdrop:bg-black/35 sm:right-6">
+   <div className="flex items-center justify-between gap-3"><h2 id="website-account-title" className="font-serif text-2xl">Your account</h2><button type="button" autoFocus onClick={closeMenu} aria-label="Close account menu" className="flex size-11 items-center justify-center rounded-lg hover:bg-[#EAD8AD]/30 focus-visible:outline-2 focus-visible:outline-[#64263B]"><X size={24} aria-hidden="true" /></button></div>
+   <Link href="/website/start" onClick={closeMenu} className="mt-4 block min-h-12 rounded-xl bg-[#64263B] px-4 py-3 text-center font-semibold text-[#FAF7F0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#64263B]">{signedIn ? "My Profile" : "Sign in / Register"}</Link>
+   {signedIn && <button type="button" onClick={() => void signOutCustomer()} disabled={signingOut} className="mt-3 min-h-12 w-full rounded-xl border border-[#64263B]/30 px-4 py-3 font-semibold hover:bg-[#EAD8AD]/30 focus-visible:outline-2 focus-visible:outline-[#64263B] disabled:opacity-50">{signingOut ? "Signing out…" : "Sign out"}</button>}
+   {signOutError && <p role="alert" className="mt-3 text-sm text-red-800">{signOutError}</p>}
   </dialog>
  </>
 }
