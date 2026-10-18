@@ -85,11 +85,7 @@ export default function JeevanSutraHomePage() {
               Your Personal Numerology Journey
             </p>
 
-            <h1 className="font-serif text-[clamp(1.9rem,6vw,3.4rem)] font-normal leading-[1.18] text-[#FFF8EB]">
-              <span className="block">Understand Yourself.</span>
-              <span className="block whitespace-nowrap text-[clamp(1rem,5.4vw,3.4rem)]">Explore Your Connections.</span>
-              <span className="block">Discover Your Life’s Possibilities.</span>
-            </h1>
+            <div style={{ containerType: "inline-size" }}><h1 className="font-serif text-[clamp(0.875rem,5.4cqw,2.6rem)] font-normal leading-[1.5] text-[#FFF8EB]"><span className="block whitespace-nowrap">Understand Yourself.</span><span className="block whitespace-nowrap">Explore Your Connections.</span><span className="block whitespace-nowrap">Discover Your Life’s Possibilities.</span></h1></div>
 
             <div className="my-7 h-px w-28 bg-[#C5A15A]" />
 
