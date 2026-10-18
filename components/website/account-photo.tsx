@@ -52,7 +52,7 @@ export function AccountPhoto({ name }: { name: string }) {
  return <><div className="flex w-24 shrink-0 flex-col items-center gap-1">
   {photo ? <button type="button" onClick={() => viewer.current?.showModal()} aria-label="View larger profile photo" aria-haspopup="dialog" className="rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#64263B]"><img src={photo} alt="Your profile photo" width={64} height={64} className="size-16 rounded-full object-cover" /></button> : <span aria-hidden="true" className="flex size-16 items-center justify-center rounded-full bg-[#64263B] text-xl font-semibold text-[#EAD8AD]">{initials}</span>}
   <label className="relative flex min-h-11 w-full cursor-pointer items-center justify-center rounded-lg px-1 py-2 text-center text-xs font-semibold underline underline-offset-4 focus-within:outline-2 focus-within:outline-[#64263B]">{busy ? "Saving…" : photo ? "Change photo" : "Add photo"}<input type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={event => void upload(event)} aria-label={photo ? "Change profile photo" : "Add profile photo"} className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-wait" /></label>
-  <p className="text-center text-[11px] text-[#766b67]">Optional · up to 2 MB</p>
+
   {message && <p role="status" className="break-words text-center text-xs leading-5">{message}</p>}
  </div>
  <dialog ref={viewer} aria-label="Your profile photo" onClick={event => { if (event.target === event.currentTarget) viewer.current?.close() }} className="fixed inset-0 m-auto max-h-[90dvh] w-[min(90vw,36rem)] max-w-none overflow-auto rounded-2xl border border-[#C5A15A]/40 bg-[#FAF7F0] p-4 text-[#64263B] shadow-xl backdrop:bg-black/70">
