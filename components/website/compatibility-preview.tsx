@@ -1,4 +1,5 @@
 'use client'
+import { loadCustomerPhoto } from "./customer-photo-loader"
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -12,6 +13,29 @@ type Saved = { id: string; preview: CustomerReading; created_at: string }
 const field = 'mt-2 min-h-12 w-full rounded-xl border border-[#ded4cb] bg-[#FFFDFA] p-3 text-base text-[#392e30] focus:outline-2 focus:outline-offset-2 focus:outline-[#C5A15A]'
 export function CompatibilityPreview() {
  const router = useRouter()
+ const [giftIdentity, setGiftIdentity] = useState({ name: "", dob: "", photo: "" })
+ useEffect(() => {
+  const client = customerClient(); if (!client) return
+  let active = true, revision = 0, objectUrl = ""
+  async function refresh() {
+   const current = ++revision
+   try {
+    const session = await client!.auth.getSession(); const access = session.data.session?.access_token
+    if (!active || current !== revision) return
+    setGiftIdentity({ name: "", dob: "", photo: "" }); if (objectUrl) URL.revokeObjectURL(objectUrl); objectUrl = ""
+    if (!access) return
+    const headers = { Authorization: "Bearer " + access }
+    await Promise.allSettled([
+     (async () => { const response = await fetch("/api/website/profile", { headers, cache: "no-store" }); if (!response.ok) return; const data = await response.json(); if (!active || current !== revision) return; const name = typeof data.profile?.name === "string" ? data.profile.name.trim() : ""; const raw = typeof data.profile?.dob === "string" ? data.profile.dob : ""; const dob = /^\d{4}-\d{2}-\d{2}/.test(raw) ? raw.slice(0,10).split("-").reverse().join("/") : raw; setGiftIdentity(value => ({ ...value, name, dob })) })(),
+     (async () => { const response = await loadCustomerPhoto(access); if (!response.ok) return; const blob = await response.blob(); if (!active || current !== revision) return; objectUrl = URL.createObjectURL(blob); setGiftIdentity(value => ({ ...value, photo: objectUrl })) })()
+    ])
+   } catch {}
+  }
+  const refreshPhoto = () => { void refresh() }
+  const { data: { subscription } } = client.auth.onAuthStateChange(() => { revision++; setGiftIdentity({ name: "", dob: "", photo: "" }); void Promise.resolve().then(refresh) })
+  window.addEventListener("jeevansutra-photo-updated", refreshPhoto); void refresh()
+  return () => { active = false; revision++; subscription.unsubscribe(); window.removeEventListener("jeevansutra-photo-updated", refreshPhoto); if (objectUrl) URL.revokeObjectURL(objectUrl) }
+ }, [])
  const [draft, setDraft] = useState(false)
  const [kind, setKind] = useState(legacyKinds[0]); const [relationship, setRelationship] = useState('Partners')
  const [selfRole, setSelfRole] = useState(''); const [otherRole, setOtherRole] = useState('')
@@ -53,7 +77,7 @@ export function CompatibilityPreview() {
   {error ? <><p role="alert" className="text-red-800">{error}</p><button type="button" className="mt-4 underline" onClick={() => { setError(''); setLoading(true); void load() }}>Try again</button></> : <p role="status">Checking your account and opening compatibility…</p>}
  </section>
  return <section className="mt-8 rounded-3xl border border-[#eadfd4] bg-white p-5 sm:p-7">
-  <LaunchGift showLink={false} />
+  <LaunchGift showLink={false} customerName={giftIdentity.name} customerDob={giftIdentity.dob} photoUrl={giftIdentity.photo} remaining={remaining} />
   {draft && <p role="status" className="mt-5 rounded-xl border border-amber-400 bg-amber-50 p-4 text-sm text-amber-950">STAGING DRAFT — interpretation tables are under review. Not a final customer reading. Draft saves use this staging account’s existing launch allowance. Reopening preserves the original roles and priorities.</p>}
   <p className="mt-5 text-sm leading-7 text-[#766b67]">Your details come from your saved profile. Add someone you would like to understand better.</p>
   {error && <p role="alert" className="mt-4 text-red-800">{error}</p>}
