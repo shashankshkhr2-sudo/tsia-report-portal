@@ -2,7 +2,8 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react"
 import { loadCustomerPhoto, clearCustomerPhoto } from "./customer-photo-loader"
 import { customerClient } from "@/lib/jeevansutra/customer-client"
-export function AccountPhoto({ name }: { name: string }) {
+export function AccountPhoto({ name, invitation = false }: { name: string; invitation?: boolean }) {
+ const [loaded, setLoaded] = useState(false)
  const viewer = useRef<HTMLDialogElement>(null)
  const [photo, setPhoto] = useState("")
  const [busy, setBusy] = useState(false)
@@ -13,7 +14,9 @@ export function AccountPhoto({ name }: { name: string }) {
   alive.current = true
   const controller = new AbortController()
   let active = true
+  let revision = 0
   async function load() {
+   const current = ++revision
    try {
     const session = await customerClient()?.auth.getSession()
     const token = session?.data.session?.access_token
@@ -22,11 +25,13 @@ export function AccountPhoto({ name }: { name: string }) {
     if (response.status === 404) return
     if (!response.ok) throw new Error("Load failed")
     const blob = await response.blob()
-    if (active && !working.current) setPhoto(URL.createObjectURL(blob))
-   } catch { if (active) setMessage("Unable to load your photo. Reopen your account to retry.") }
+    if (active && current === revision && !working.current) setPhoto(URL.createObjectURL(blob))
+   } catch { if (active && current === revision) setMessage("Unable to load your photo. Reopen your account to retry.") }
   }
-  void load()
-  return () => { active = false; alive.current = false; controller.abort() }
+  const refresh = () => { void load() }
+  window.addEventListener("jeevansutra-photo-updated", refresh)
+  void load().finally(() => { if (active) setLoaded(true) })
+  return () => { window.removeEventListener("jeevansutra-photo-updated", refresh); revision++; active = false; alive.current = false; controller.abort() }
  }, [])
  useEffect(() => { return () => { if (photo) URL.revokeObjectURL(photo) } }, [photo])
  async function upload(event: ChangeEvent<HTMLInputElement>) {
@@ -49,9 +54,9 @@ export function AccountPhoto({ name }: { name: string }) {
   finally { working.current = false; if (alive.current) setBusy(false) }
  }
  const initials = name.trim().split(/\s+/).slice(0,2).map(part => Array.from(part)[0]).join("").toUpperCase()
- return <><div className="flex w-24 shrink-0 flex-col items-center gap-1">
+ return <>{invitation && loaded && !photo && <div className="mb-4 rounded-xl bg-[#EAD8AD]/30 p-4 text-[#64263B]"><p className="font-serif text-xl font-semibold">Let your profile reflect you</p><p className="mt-2 text-sm leading-6">Your personality is more than a photograph. Add a photo to make this space feel more like you as you explore your strengths, confidence and self-expression.</p><p className="mt-2 text-xs">Optional—you can add it anytime.</p></div>}<div className="flex w-24 shrink-0 flex-col items-center gap-1">
   {photo ? <button type="button" onClick={() => viewer.current?.showModal()} aria-label="View larger profile photo" aria-haspopup="dialog" className="rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#64263B]"><img src={photo} alt="Your profile photo" width={64} height={64} className="size-16 rounded-full object-cover" /></button> : <span aria-hidden="true" className="flex size-16 items-center justify-center rounded-full bg-[#64263B] text-xl font-semibold text-[#EAD8AD]">{initials}</span>}
-  <label className="relative flex min-h-11 w-full cursor-pointer items-center justify-center rounded-lg px-1 py-2 text-center text-xs font-semibold underline underline-offset-4 focus-within:outline-2 focus-within:outline-[#64263B]">{busy ? "Saving…" : photo ? "Change photo" : "Add photo"}<input type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={event => void upload(event)} aria-label={photo ? "Change profile photo" : "Add profile photo"} className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-wait" /></label>
+  <label className="relative flex min-h-11 w-full cursor-pointer items-center justify-center rounded-lg px-1 py-2 text-center text-xs font-semibold underline underline-offset-4 focus-within:outline-2 focus-within:outline-[#64263B]">{busy ? "Saving…" : photo ? "Change photo" : "Add your photo"}<input type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={event => void upload(event)} aria-label={photo ? "Change profile photo" : "Add profile photo"} className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-wait" /></label>
 
   {message && <p role="status" className="break-words text-center text-xs leading-5">{message}</p>}
  </div>
