@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createHmac } from 'node:crypto'
-import { customerIdentity, database } from '@/lib/jeevansutra/customer-server'
+import { customerIdentity, customerAuthResponse, database } from '@/lib/jeevansutra/customer-server'
 import { comparisonPerson } from '@/lib/jeevansutra/compatibility-launch'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -10,7 +10,7 @@ async function account(request: Request) {
  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
  if (!match || match[1].length > 8192 || !url || !key) return null
- const response = await fetch(new URL('/auth/v1/user',url),{headers:{apikey:key,Authorization:`Bearer ${match[1]}`},cache:'no-store',signal:AbortSignal.timeout(10000)})
+ const response = await customerAuthResponse(request)
  if (!response.ok) { if(response.status===401 || response.status===403)return null; throw new Error('Verification unavailable') }
  const user = await response.json()
  return user.id && user.email && user.email_confirmed_at && !user.is_anonymous ? {id:user.id as string,email:user.email as string} : null

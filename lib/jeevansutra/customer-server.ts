@@ -13,7 +13,7 @@ export async function customerIdentity(request: Request) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   if (!match || match[1].length > 8192 || !url || !key) return null
-  const response = await fetch(new URL('/auth/v1/user', url), { headers: { apikey: key, Authorization: `Bearer ${match[1]}` }, cache: 'no-store', signal: AbortSignal.timeout(10000) })
+ const response = await customerAuthResponse(request)
   if (!response.ok) return null
   const user = await response.json()
   if (!user.id || !user.email_confirmed_at) return null
@@ -25,4 +25,18 @@ export async function customerIdentity(request: Request) {
   if (!client.ok) throw new Error('Unable to load your profile.')
   const clients = await client.json()
   return clients.length === 1 ? { userId: user.id as string, email: typeof user.email === "string" ? user.email.trim().toLowerCase() : "", isAnonymous: user.is_anonymous === true, client: clients[0] as { id: string; full_name: string; current_name: string | null; date_of_birth: string } } : null
+}
+
+const customerAuthRequests = new WeakMap<Request, Promise<Response>>()
+export async function customerAuthResponse(request: Request) {
+ let pending = customerAuthRequests.get(request)
+ if (!pending) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const authorization = request.headers.get("authorization") || ""
+  if (!url || !key || !/^Bearer [A-Za-z0-9._-]+$/.test(authorization) || authorization.length > 8199) throw new Error("Invalid authentication request")
+  pending = fetch(new URL("/auth/v1/user", url), { headers: { apikey: key, Authorization: authorization }, cache: "no-store", signal: AbortSignal.timeout(10000) })
+  customerAuthRequests.set(request, pending)
+ }
+ return (await pending).clone()
 }
