@@ -24,5 +24,5 @@ export async function customerIdentity(request: Request) {
   const client = await database(`clients?id=eq.${rows[0].client_id}&organization_id=eq.${JS_ORGANIZATION_ID}&select=id,full_name,current_name,date_of_birth`)
   if (!client.ok) throw new Error('Unable to load your profile.')
   const clients = await client.json()
-  return clients.length === 1 ? { userId: user.id as string, client: clients[0] as { id: string; full_name: string; current_name: string | null; date_of_birth: string } } : null
+  return clients.length === 1 ? { userId: user.id as string, email: typeof user.email === "string" ? user.email.trim().toLowerCase() : "", isAnonymous: user.is_anonymous === true, client: clients[0] as { id: string; full_name: string; current_name: string | null; date_of_birth: string } } : null
 }

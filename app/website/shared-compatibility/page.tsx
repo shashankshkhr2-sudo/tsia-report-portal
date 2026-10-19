@@ -33,17 +33,15 @@ export default function SharedPage() {
   const response = await fetch(path,{...init,headers:{...init.headers,Authorization:"Bearer "+token},cache:"no-store",signal:AbortSignal.timeout(30000)})
   const data = await response.json(); if (!response.ok) throw new Error(data.error || "Unable to load shared insights."); return data
  }
- async function load(position = 0, append = false) {
+ async function load() {
   const current = ++revision.current; setOpened(null); setError(""); setLoading(true)
   try {
    const session = await customerClient()?.auth.getSession(); if (current !== revision.current) return
    if (!session?.data.session) { setSignedIn(false); setEmail(""); setItems([]); return }
-   const [profileResult,listResult] = await Promise.allSettled([request("/api/website/profile"),request("/api/website/shared-compatibility?offset="+position)]); if (current !== revision.current) return; if(profileResult.status!=="fulfilled")throw profileResult.reason; const profile=profileResult.value
+   const profile = await request("/api/website/profile"); if (current !== revision.current) return
    if (profile.needsProfile) { router.replace(signIn); return }
    setSignedIn(true); setEmail(profile.email || "")
-   if(listResult.status!=="fulfilled")throw listResult.reason; const data=listResult.value
-   if (current !== revision.current) return
-   setItems(previous => append ? Array.from(new Map([...previous,...data.history].map((item: Shared)=>[item.id,item])).values()) : data.history); setOffset(data.nextOffset)
+   setItems([]); setOffset(null)
   } catch (problem) { if (current === revision.current) setError(problem instanceof Error ? problem.message : "Unable to load shared insights.") }
   finally { if (current === revision.current) setLoading(false) }
  }

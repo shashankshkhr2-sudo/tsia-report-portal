@@ -7,21 +7,8 @@ import { customerIdentity } from "@/lib/jeevansutra/customer-server"
 
 export async function sharingIdentity(request: Request) {
  const identity = await customerIdentity(request)
- if (!identity) return null
- const url = process.env.NEXT_PUBLIC_SUPABASE_URL
- const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
- const authorization = request.headers.get("authorization")
- if (!url || !key || !authorization) return null
- const response = await fetch(new URL("/auth/v1/user", url), {
-  headers: { apikey: key, Authorization: authorization },
-  cache: "no-store", signal: AbortSignal.timeout(10000)
- })
- if (!response.ok) return null
- const user = await response.json()
- if (user.id !== identity.userId || user.is_anonymous || !user.email_confirmed_at || typeof user.email !== "string") return null
- const email = user.email.trim().toLowerCase()
- if (!email || email.length > 254) return null
- return { ...identity, email }
+ if (!identity || identity.isAnonymous || !identity.email || identity.email.length > 254) return null
+ return identity
 }
 
 export async function shareableReading(id: string, ownerId: string) {
