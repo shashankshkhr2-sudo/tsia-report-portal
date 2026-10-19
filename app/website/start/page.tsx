@@ -29,6 +29,13 @@ export default function StartPage(){
  useEffect(()=>{setForSharing(destination()==="/website/shared-compatibility");setForCompatibility(destination()==='/website/compatibility');setForNameGuidance(destination()==='/website/name-discovery');void checkProfile().catch(()=>setError('Unable to connect. Please reload.')).finally(()=>setLoading(false))},[])
  useEffect(()=>{if(!cooldown)return;const timer=setTimeout(()=>setCooldown(v=>v-1),1000);return()=>clearTimeout(timer)},[cooldown])
  async function continueWithGoogle(){
+    const stableOrigin="https://tsia-report-portal-git-admin-ap-7e5ea0-shekhar-sales-coporation.vercel.app"
+    if(window.location.hostname.startsWith("tsia-report-portal-") && window.location.hostname.endsWith("-shekhar-sales-coporation.vercel.app") && window.location.origin!==stableOrigin){
+      const target=destination()
+      const next=target==="/website/shared-compatibility"?"?next=shared-compatibility":target==="/website/compatibility"?"?next=compatibility":target==="/website/name-discovery"?"?next=name-guidance":""
+      window.location.replace(stableOrigin+"/website/start"+next)
+      return
+    }
   if(busy)return
   setBusy(true);setError("")
   try{
