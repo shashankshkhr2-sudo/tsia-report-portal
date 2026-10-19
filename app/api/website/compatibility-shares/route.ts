@@ -19,7 +19,7 @@ export async function GET(request: Request) {
   if (params.get("view") === "sent") {
    const offset = Number(params.get("offset") || "0")
    if (!Number.isSafeInteger(offset) || offset < 0) return reply({ error: "Invalid page." }, 400)
-   const response = await database(`js_compatibility_shares?owner_user_id=eq.${identity.userId}&organization_id=eq.${JS_ORGANIZATION_ID}&select=id,preview_id,recipient_email,created_at,expires_at,revoked_at,accepted_at,email_sent_at,ready_at,delivery_channel&order=created_at.desc,id.desc&limit=100&offset=${offset}`)
+   const response = await database(`js_compatibility_shares?owner_user_id=eq.${identity.userId}&organization_id=eq.${JS_ORGANIZATION_ID}&select=id,preview_id,recipient_email,created_at,expires_at,revoked_at,declined_at,accepted_at,email_sent_at,ready_at,delivery_channel&order=created_at.desc,id.desc&limit=100&offset=${offset}`)
    if (!response.ok) throw new Error("Sent invitations unavailable")
    const invitations = await response.json()
    return reply({ invitations, nextOffset: invitations.length === 100 ? offset + 100 : null })
@@ -29,7 +29,7 @@ export async function GET(request: Request) {
   if (!await shareableReading(id, identity.userId)) return reply({ error: "Saved reading is unavailable." }, 404)
   const offset = Number(new URL(request.url).searchParams.get("offset") || "0")
   if (!Number.isSafeInteger(offset) || offset < 0) return reply({ error: "Invalid page." }, 400)
-  const response = await database(`js_compatibility_shares?preview_id=eq.${id}&owner_user_id=eq.${identity.userId}&organization_id=eq.${JS_ORGANIZATION_ID}&select=id,recipient_email,created_at,expires_at,revoked_at,accepted_at,email_sent_at,ready_at,delivery_channel&order=created_at.desc,id.desc&limit=100&offset=${offset}`)
+  const response = await database(`js_compatibility_shares?preview_id=eq.${id}&owner_user_id=eq.${identity.userId}&organization_id=eq.${JS_ORGANIZATION_ID}&select=id,recipient_email,created_at,expires_at,revoked_at,declined_at,accepted_at,email_sent_at,ready_at,delivery_channel&order=created_at.desc,id.desc&limit=100&offset=${offset}`)
   if (!response.ok) throw new Error("Invitation list unavailable")
   const invitations = await response.json()
   return reply({ invitations, nextOffset: invitations.length === 100 ? offset + 100 : null })

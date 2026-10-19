@@ -26,7 +26,16 @@ export async function POST(request: Request) {
   }
   let input
   try { input = JSON.parse(Buffer.concat(chunks).toString("utf8")) } catch { return reply({ error: "Invalid invitation." }, 400) }
-  if (!input || typeof input.token !== "string" || !/^[a-f0-9]{64}$/.test(input.token) || input.accepted !== true) return reply({ error: "Confirm that you want to accept this invitation." }, 400)
+  if (input?.action === "decline") {
+   if (typeof input.token !== "string" || !/^[a-f0-9]{64}$/.test(input.token) || input.confirmed !== true) return reply({ error: "Confirm that you want to decline this invitation." }, 400)
+   if (!await sharingRateLimit("decline:" + identity.userId, 30)) return reply({ error: "Please wait before trying again." }, 429)
+   const hash = createHash("sha256").update(input.token).digest("hex")
+   const response = await database("rpc/decline_js_compatibility_share", { method: "POST", body: JSON.stringify({ p_auth_user_id: identity.userId, p_token_hash: hash }) })
+   if (!response.ok) throw new Error("Decline failed")
+   if (await response.json() !== true) return reply({ error: "Unable to decline this invitation. Check the invited email or refresh its status." }, 403)
+   return reply({ declined: true })
+  }
+  if (!input || typeof input.token !== "string" || !/^[a-f0-9]{64}$/.test(input.token) || input.accepted !== true || input.consent !== true) return reply({ error: "Confirm that you want to accept this invitation." }, 400)
   if (typeof input.dob !== "string" || !/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(input.dob)) return reply({ error: "Enter your date of birth to accept this invitation." }, 400)
   if (!await sharingRateLimit("accept:" + identity.userId, 30)) return reply({ error: "Please wait before trying again." }, 429)
   const hash = createHash("sha256").update(input.token).digest("hex")
