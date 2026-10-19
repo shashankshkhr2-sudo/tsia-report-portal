@@ -1,7 +1,7 @@
 import { NameDiscoveryFeature, NameCorrectionCard } from '@/components/website/name-discovery-feature'
 import Link from 'next/link'
 import { Star, BriefcaseBusiness, Heart, Compass, Sprout } from 'lucide-react'
-import { LaunchGift } from '@/components/website/launch-gift'
+import { HomeConnections as LaunchGift } from "@/components/website/home-connections"
 import GrahaArtwork from './GrahaArtwork'
 
 const benefits = [
