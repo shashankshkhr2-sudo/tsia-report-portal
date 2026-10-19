@@ -1,4 +1,5 @@
 "use client"
+import { LoadingTimer } from "@/components/website/loading-timer"
 import { useEffect, useState, type ReactNode } from "react"
 import Link from "next/link"
 import { customerClient } from "@/lib/jeevansutra/customer-client"
@@ -33,7 +34,7 @@ export function AccountPersonalPanel({ onNavigate, actions }: { onNavigate: () =
   void load()
   return () => { active = false; controller.abort() }
  }, [])
- return <div className="mt-4 space-y-4">
+ return <div className="mt-4 space-y-4"><LoadingTimer loading={loading} label="Profile" />
   {email&&<div className="border-b border-[#C5A15A]/25 pb-5 text-center"><p className="break-words text-sm leading-6 text-[#64263B] [overflow-wrap:anywhere]">{email}</p><button type="button" disabled={switching} onClick={()=>void switchAccount()} className="mt-3 inline-flex min-h-11 items-center justify-center rounded-full border border-[#64263B]/60 px-6 py-2 text-sm font-medium text-[#64263B] transition-colors hover:bg-[#EAD8AD]/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#64263B] disabled:opacity-50">{switching?"Please wait…":"Change email"}</button></div>}
   {loading ? <p role="status" className="text-sm">Loading your details…</p> : error ? <p role="alert" className="text-sm text-red-800">{error}</p> : profile ? <div className="rounded-xl border border-[#C5A15A]/30 bg-white/60 p-3"><div className="flex flex-col items-center gap-2"><AccountPhoto name={profile.name} /><p className="min-w-0 w-full break-words text-center font-serif text-2xl font-semibold leading-tight capitalize">{profile.name}</p></div><div className="flex justify-center text-center"><ProfileDob dob={profile.dob} /></div></div> : <p className="text-sm">Complete your profile to add your name and date of birth.</p>}
   {actions}
