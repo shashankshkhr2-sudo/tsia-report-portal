@@ -1,4 +1,5 @@
 'use client'
+import { LoadingTimer } from "@/components/website/loading-timer"
 import { AccountPhoto } from "./account-photo"
 import { LaunchGift } from './launch-gift'
 import { ProfileDob } from './profile-dob'
@@ -35,7 +36,7 @@ export function CustomerGuidance({ demo }: { demo?: { profile: Profile; previews
  }
  useEffect(() => { void load() }, [])
  function reset() { setError('') }
- return <section className="mx-auto max-w-5xl px-4 py-7 sm:px-6">
+ return <section className="mx-auto max-w-5xl px-4 py-7 sm:px-6"><LoadingTimer loading={loading} label="My Profile" />
   {error && <p role="alert" className="mb-5 rounded-xl bg-red-50 p-4 text-red-800">{error}</p>}
   {loading ? <p role="status">Loading your saved profile…</p> : !profile ? <div className="rounded-2xl border border-[#eadfd4] bg-white p-5 sm:p-7">
    <h2 className="font-serif text-3xl">Your personal profile starts here</h2><p className="mt-3">Verify your email to open your saved profile or create a new one.</p><Link href="/website/start" className={`${button} mt-5 inline-block`}>Start with Email / Sign in</Link>
