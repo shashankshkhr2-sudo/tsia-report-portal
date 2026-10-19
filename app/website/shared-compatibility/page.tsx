@@ -12,6 +12,7 @@ const storageKey = "js-pending-compatibility-invite"
 const button = "min-h-12 rounded-xl border border-[#64263B]/25 px-5 py-3 font-medium text-[#64263B] transition-colors hover:bg-[#F3EBE7] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#64263B] disabled:opacity-50"
 export default function SharedPage() {
  const router = useRouter(); const revision = useRef(0)
+ const [dob,setDob] = useState("")
  const [invite,setInvite] = useState(""); const [email,setEmail] = useState("")
  const [signedIn,setSignedIn] = useState(false); const [loading,setLoading] = useState(true)
  const [busy,setBusy] = useState(false); const [error,setError] = useState("")
@@ -58,8 +59,8 @@ export default function SharedPage() {
   const timer=setTimeout(()=>{setOpened(null);setError("Access to these insights has expired.")},Math.min(delay,2147483647));return()=>clearTimeout(timer)
  },[opened])
  async function accept() {
-  if(busy||!invite)return;const current=++revision.current;setBusy(true);setError("")
-  try {const accepted=await request("/api/website/shared-compatibility",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:invite,accepted:true})});if(current!==revision.current)return;if(accepted.accepted!==true||typeof accepted.id!=="string")throw Error("Unable to confirm invitation acceptance.");const data=await request("/api/website/shared-compatibility?id="+encodeURIComponent(accepted.id));if(current!==revision.current)return;try{sessionStorage.removeItem(storageKey)}catch{}setInvite("");setOpened(data)}
+  if(busy||!invite)return;if(!dob){setError("Enter your date of birth to accept this invitation.");return}const current=++revision.current;setBusy(true);setError("")
+  try {const accepted=await request("/api/website/shared-compatibility",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:invite,accepted:true,dob})});if(current!==revision.current)return;if(accepted.accepted!==true||typeof accepted.id!=="string")throw Error("Unable to confirm invitation acceptance.");const data=await request("/api/website/shared-compatibility?id="+encodeURIComponent(accepted.id));if(current!==revision.current)return;try{sessionStorage.removeItem(storageKey)}catch{}setInvite("");setDob("");setOpened(data)}
   catch(problem){if(current===revision.current)setError(problem instanceof Error?problem.message:"Unable to accept invitation.")}finally{setBusy(false)}
  }
  async function open(id:string) {
@@ -75,7 +76,7 @@ export default function SharedPage() {
   {storageWarning&&<p role="status" className="mt-4 rounded-xl bg-amber-50 p-4 text-sm text-amber-950">{storageWarning}</p>}
   {error&&<p role="alert" className="mt-4 rounded-xl bg-red-50 p-4 text-red-800">{error}</p>}
   {loading?<p role="status" className="mt-5">Checking shared insights…</p>:!signedIn?<section className="mt-6 rounded-2xl border border-[#C5A15A]/35 bg-[#FAF7F0] p-6"><p className="leading-7">Sign in or register using the email address that received the invitation.</p><Link href={signIn} className={button+" mt-4 inline-block"}>Verify email &amp; continue</Link></section>:<>
-   {invite&&<section className="mt-6 rounded-2xl border border-[#C5A15A]/35 bg-[#FAF7F0] p-6"><h2 className="font-serif text-2xl">You have an invitation</h2><p className="mt-3 text-sm leading-7">Accept to view the selected compatibility insights. Access expires seven days after the invitation was created and can be revoked by the sender.</p><button type="button" disabled={busy} onClick={()=>void accept()} className={button+" mt-4"}>{busy?"Please wait…":"Accept invitation"}</button></section>}
+  {invite&&<section className="mt-6 rounded-2xl border border-[#C5A15A]/35 bg-[#FAF7F0] p-6"><h2 className="font-serif text-2xl">You have an invitation</h2><p className="mt-3 text-sm leading-7">Verify your email and enter your own date of birth to open the shared insights. Your date must match the person in this comparison.</p><p className="mt-2 text-xs leading-6 text-[#766B67]">Access expires seven days after the invitation was created and can be stopped by the sender.</p><form onSubmit={event=>{event.preventDefault();void accept()}} className="mt-4"><label className="block text-sm font-semibold">Your date of birth<input type="date" required value={dob} disabled={busy} onChange={event=>setDob(event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-[#DCCFC3] bg-white p-3 text-base text-[#64263B] focus-visible:outline-2 focus-visible:outline-[#64263B]" /></label><p className="mt-2 text-xs leading-5 text-[#766B67]">For your privacy, the expected date is never displayed. Attempts are limited.</p><button type="submit" disabled={busy||!dob} className="mt-4 min-h-12 w-full rounded-xl bg-[#64263B] px-5 py-3 font-semibold text-[#FAF7F0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#64263B] disabled:opacity-50">{busy?"Verifying…":"Verify & accept invitation"}</button></form></section>}
    <div className="mt-6 space-y-5">{items.map(item=>{
     const sender=item.senderName?.trim().split(/\s+/)[0]
     const relationship=item.preview.relationship

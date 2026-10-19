@@ -27,16 +27,17 @@ export async function POST(request: Request) {
   let input
   try { input = JSON.parse(Buffer.concat(chunks).toString("utf8")) } catch { return reply({ error: "Invalid invitation." }, 400) }
   if (!input || typeof input.token !== "string" || !/^[a-f0-9]{64}$/.test(input.token) || input.accepted !== true) return reply({ error: "Confirm that you want to accept this invitation." }, 400)
+  if (typeof input.dob !== "string" || !/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(input.dob)) return reply({ error: "Enter your date of birth to accept this invitation." }, 400)
   if (!await sharingRateLimit("accept:" + identity.userId, 30)) return reply({ error: "Please wait before trying again." }, 429)
   const hash = createHash("sha256").update(input.token).digest("hex")
   const lookup = await database(`js_compatibility_shares?token_hash=eq.${hash}&organization_id=eq.${JS_ORGANIZATION_ID}&recipient_email=eq.${encodeURIComponent(identity.email)}&revoked_at=is.null&ready_at=not.is.null&expires_at=gt.${encodeURIComponent(new Date().toISOString())}&select=id,preview_id,owner_user_id&limit=1`)
   if (!lookup.ok) throw new Error("Invitation lookup failed")
   const rows = await lookup.json(); const share = rows[0]
   if (!share || !await shareableReading(share.preview_id, share.owner_user_id)) return reply({ error: "Invitation is unavailable. Use the invited email address, or ask the sender for a new invitation." }, 404)
-  const response = await database("rpc/accept_js_compatibility_share", { method: "POST", body: JSON.stringify({ p_auth_user_id: identity.userId, p_token_hash: hash }) })
+  const response = await database("rpc/accept_js_compatibility_share", { method: "POST", body: JSON.stringify({ p_auth_user_id: identity.userId, p_token_hash: hash, p_dob: input.dob }) })
   if (!response.ok) throw new Error("Acceptance failed")
   const id = await response.json()
-  if (!id) return reply({ error: "Invitation is unavailable. Use the invited email address, or ask the sender for a new invitation." }, 404)
+  if (!id) return reply({ error: "Unable to verify this invitation. Check your email and date of birth, or contact the sender. If you have tried several times, wait one hour before trying again." }, 403)
   return reply({ accepted: true, id })
  } catch { return reply({ error: "Unable to accept the invitation. Please try again." }, 503) }
 }
