@@ -18,9 +18,12 @@ export async function GET(request: Request) {
   const id = new URL(request.url).searchParams.get("id") || ""
   if (!uuid.test(id)) return reply({ error: "Invalid saved reading." }, 400)
   if (!await shareableReading(id, identity.userId)) return reply({ error: "Saved reading is unavailable." }, 404)
-  const response = await database(`js_compatibility_shares?preview_id=eq.${id}&owner_user_id=eq.${identity.userId}&organization_id=eq.${JS_ORGANIZATION_ID}&select=id,recipient_email,created_at,expires_at,revoked_at,accepted_at,email_sent_at,ready_at,delivery_channel&order=created_at.desc,id.desc&limit=100`)
+  const offset = Number(new URL(request.url).searchParams.get("offset") || "0")
+  if (!Number.isSafeInteger(offset) || offset < 0) return reply({ error: "Invalid page." }, 400)
+  const response = await database(`js_compatibility_shares?preview_id=eq.${id}&owner_user_id=eq.${identity.userId}&organization_id=eq.${JS_ORGANIZATION_ID}&select=id,recipient_email,created_at,expires_at,revoked_at,accepted_at,email_sent_at,ready_at,delivery_channel&order=created_at.desc,id.desc&limit=100&offset=${offset}`)
   if (!response.ok) throw new Error("Invitation list unavailable")
-  return reply({ invitations: await response.json() })
+  const invitations = await response.json()
+  return reply({ invitations, nextOffset: invitations.length === 100 ? offset + 100 : null })
  } catch { return reply({ error: "Unable to load invitations. Please try again." }, 503) }
 }
 
@@ -32,6 +35,15 @@ export async function DELETE(request: Request) {
   if (!identity) return reply({ error: "Sign in with your verified registered account." }, 401)
   const id = new URL(request.url).searchParams.get("id") || ""
   if (!uuid.test(id)) return reply({ error: "Invalid invitation." }, 400)
+  const recipient = new URL(request.url).searchParams.get("recipient")
+  if (recipient !== null) {
+   const email = recipient.trim().toLowerCase()
+   if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return reply({ error: "Invalid recipient." }, 400)
+   if (!await shareableReading(id, identity.userId)) return reply({ error: "Saved reading is unavailable." }, 404)
+   const response = await database(`js_compatibility_shares?preview_id=eq.${id}&owner_user_id=eq.${identity.userId}&organization_id=eq.${JS_ORGANIZATION_ID}&recipient_email=eq.${encodeURIComponent(JSON.stringify(email))}&revoked_at=is.null`, { method: "PATCH", body: JSON.stringify({ revoked_at: new Date().toISOString() }) })
+   if (!response.ok) throw new Error("Revocation failed")
+   return reply({ revoked: true, recipient: email })
+  }
   const response = await database(`js_compatibility_shares?id=eq.${id}&owner_user_id=eq.${identity.userId}&organization_id=eq.${JS_ORGANIZATION_ID}&select=id`, { method: "PATCH", headers: { Prefer: "return=representation" }, body: JSON.stringify({ revoked_at: new Date().toISOString() }) })
   if (!response.ok) throw new Error("Revocation failed")
   const rows = await response.json()
