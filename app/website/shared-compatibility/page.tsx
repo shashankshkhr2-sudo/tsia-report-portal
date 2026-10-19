@@ -8,7 +8,7 @@ import type { CustomerReading } from "@/lib/jeevansutra/compatibility-contract"
 type Shared = { id: string; expires_at: string; preview: Pick<CustomerReading, "kind" | "people"> }
 const signIn = "/website/start?next=shared-compatibility"
 const storageKey = "js-pending-compatibility-invite"
-const button = "min-h-12 rounded-xl border border-[#64263B] px-4 py-3 text-[#64263B] disabled:opacity-50"
+const button = "min-h-12 rounded-xl border border-[#64263B]/25 px-5 py-3 font-medium text-[#64263B] transition-colors hover:bg-[#F3EBE7] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#64263B] disabled:opacity-50"
 export default function SharedPage() {
  const router = useRouter(); const revision = useRef(0)
  const [invite,setInvite] = useState(""); const [email,setEmail] = useState("")
@@ -68,18 +68,18 @@ export default function SharedPage() {
   if(busy)return;setBusy(true);setError("")
   try{const client=customerClient();if(!client)throw Error();const result=await client.auth.signOut({scope:"local"});if(result.error)throw result.error;revision.current++;setOpened(null);setItems([]);setSignedIn(false);router.push(signIn)}catch{setError("Unable to switch email. Please try again.")}finally{setBusy(false)}
  }
- return <main className="mx-auto max-w-3xl px-5 py-8 text-[#64263B]">
+ return <main className="mx-auto min-h-screen max-w-3xl bg-[#FAF7F0] px-5 py-8 text-[#64263B] sm:px-8">
   <h1 className="font-serif text-3xl">Shared with me</h1><p className="mt-3 text-sm leading-7 text-[#766B67]">View insights shared by invitation. Opening them uses no compatibility credit.</p>
   {storageWarning&&<p role="status" className="mt-4 rounded-xl bg-amber-50 p-4 text-sm text-amber-950">{storageWarning}</p>}
   {error&&<p role="alert" className="mt-4 rounded-xl bg-red-50 p-4 text-red-800">{error}</p>}
-  {loading?<p role="status" className="mt-5">Checking shared insights…</p>:!signedIn?<section className="mt-5 rounded-2xl border border-[#D7B77A] bg-[#FAF7F0] p-5"><p className="leading-7">Sign in or register using the email address that received the invitation.</p><Link href={signIn} className={button+" mt-4 inline-block"}>Verify email &amp; continue</Link></section>:<>
-   <div className="mt-5 flex flex-wrap items-center gap-3"><p className="break-all text-sm">Signed in as <strong>{email}</strong></p><button type="button" disabled={busy} onClick={()=>void switchEmail()} className="min-h-11 px-2 underline">Use another email</button></div>
-   {invite&&<section className="mt-5 rounded-2xl border border-[#D7B77A] bg-[#FAF7F0] p-5"><h2 className="font-serif text-2xl">You have an invitation</h2><p className="mt-3 text-sm leading-7">Accept to view the selected compatibility insights. Access expires seven days after the invitation was created and can be revoked by the sender.</p><button type="button" disabled={busy} onClick={()=>void accept()} className={button+" mt-4"}>{busy?"Please wait…":"Accept invitation"}</button></section>}
-   <div className="mt-6 space-y-3">{items.map(item=><button key={item.id} type="button" disabled={busy} onClick={()=>void open(item.id)} className={button+" block w-full bg-[#FFFDFA] text-left"}><span className="block break-words font-serif text-xl">{item.preview.people.map(person=>person.name).join(" & ")}</span><span className="mt-2 block text-sm">{item.preview.kind}</span></button>)}</div>
+  {loading?<p role="status" className="mt-5">Checking shared insights…</p>:!signedIn?<section className="mt-6 rounded-2xl border border-[#E6DDD4] bg-white p-6 shadow-sm"><p className="leading-7">Sign in or register using the email address that received the invitation.</p><Link href={signIn} className={button+" mt-4 inline-block"}>Verify email &amp; continue</Link></section>:<>
+   <div className="mt-6 flex flex-col items-start gap-2 rounded-2xl border border-[#E6DDD4] bg-white p-4"><p className="min-w-0 break-words text-sm leading-6 [overflow-wrap:anywhere]">Signed in as <strong>{email}</strong></p><button type="button" disabled={busy} onClick={()=>void switchEmail()} className="min-h-11 rounded-lg px-2 text-sm underline underline-offset-4">Use another email</button></div>
+   {invite&&<section className="mt-6 rounded-2xl border border-[#E6DDD4] bg-white p-6 shadow-sm"><h2 className="font-serif text-2xl">You have an invitation</h2><p className="mt-3 text-sm leading-7">Accept to view the selected compatibility insights. Access expires seven days after the invitation was created and can be revoked by the sender.</p><button type="button" disabled={busy} onClick={()=>void accept()} className={button+" mt-4"}>{busy?"Please wait…":"Accept invitation"}</button></section>}
+   <div className="mt-6 space-y-4">{items.map(item=><button key={item.id} type="button" disabled={busy} onClick={()=>void open(item.id)} className={button+" block w-full rounded-2xl border-[#E6DDD4] bg-white p-5 text-left shadow-sm"}><span className="block break-words font-serif text-xl leading-snug">{item.preview.people.map(person=>person.name).join(" & ")}</span><span className="mt-3 block text-sm text-[#766B67]">{item.preview.kind}</span></button>)}</div>
    {!items.length&&!opened&&<p className="mt-5 text-sm text-[#766B67]">Accepted invitations with current access will appear here.</p>}
    {offset!==null&&<button type="button" disabled={busy} onClick={()=>void load(offset,true)} className={button+" mt-4"}>Load more</button>}
    <button type="button" disabled={busy} onClick={()=>void load()} className="mt-4 min-h-11 px-2 underline">Refresh shared insights</button>
    {opened&&<article ref={report} tabIndex={-1} className="mt-8 scroll-mt-24 focus:outline-none">{opened.preview.version==="JS_COMPATIBILITY_V2_DRAFT_1"&&<p className="mb-5 rounded-xl border border-amber-400 bg-amber-50 p-4 text-sm text-amber-950">STAGING DRAFT — interpretation tables are under review. Not a final customer reading.</p>}<CompatibilityReading reading={opened.preview}/></article>}
-  </>}<Link href="/website/compatibility" className="mt-6 inline-block min-h-11 py-2 underline">My Connections</Link>
+  </>}<Link href="/website/compatibility" className="mt-6 flex min-h-12 w-full items-center justify-center rounded-xl border border-[#64263B]/25 bg-white px-5 py-3 text-center font-medium">My Connections</Link>
  </main>
 }
