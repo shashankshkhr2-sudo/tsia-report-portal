@@ -21,7 +21,7 @@ function ConnectionArtwork({ category }: { category: 'love' | 'business' | 'fami
 function PersonalText({ text, names }: { text: string; names: string[] }) {
  return <>{compatibilityNameParts(text,names).map((part,i) => part.person === null ? <span key={i}>{part.text}</span> : <strong key={i} className={`font-semibold ${colours[part.person] || colours[0]}`}>{displayName(part.text)}</strong>)}</>
 }
-export function CompatibilityReading({ reading }: { reading: CustomerReading }) {
+export function CompatibilityReading({ reading, sharedSurface = false }: { reading: CustomerReading; sharedSurface?: boolean }) {
  const business = reading.kind === 'Business & Work' || /Business|Professional/.test(reading.kind)
  const family = reading.kind === 'Family'
  const friendship = reading.kind === 'Friendship'
@@ -47,7 +47,7 @@ export function CompatibilityReading({ reading }: { reading: CustomerReading }) 
    // Separate the two contributions without splitting initials or altering the reading.
    const splitAt = names[1] ? text.indexOf(`, while ${names[1]}`) : -1
    const paragraphs = splitAt >= 0 ? [text.slice(0,splitAt)+'.',text.slice(splitAt+8)] : [text]
-   return <section key={`${section.title}-${i}`} className="rounded-2xl border border-[#DCC9A8]/80 bg-gradient-to-br from-[#FFFEFB] to-[#FBF5EA] p-5 shadow-[0_8px_24px_rgba(100,38,59,0.07)] sm:p-7">
+   return <section key={`${section.title}-${i}`} className={sharedSurface ? "rounded-2xl border border-[#C5A15A]/30 bg-[#FAF7F0] p-5 sm:p-7" : "rounded-2xl border border-[#DCC9A8]/80 bg-gradient-to-br from-[#FFFEFB] to-[#FBF5EA] p-5 shadow-[0_8px_24px_rgba(100,38,59,0.07)] sm:p-7"}>
     <div className="flex items-start gap-3"><span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-[#C5A15A]/45 bg-[#FAF3E5] text-[#96733E]"><SectionIcon aria-hidden="true" size={20} strokeWidth={1.5} /></span><h4 className="min-w-0 border-l-2 border-[#C5A15A] pl-3 font-serif text-[1.3rem] leading-snug text-[#64263B] sm:text-2xl">{'sections' in reading ? headings[i] || section.title : section.title}</h4></div>
     <div className="mt-4 space-y-3 text-base leading-7 text-[#463B3B]">{paragraphs.map((paragraph,j) => <p key={j}><PersonalText text={paragraph} names={names} /></p>)}</div>
    </section>

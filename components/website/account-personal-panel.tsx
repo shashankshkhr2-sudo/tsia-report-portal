@@ -11,6 +11,9 @@ export function AccountPersonalPanel({ onNavigate, actions }: { onNavigate: () =
  const [loading, setLoading] = useState(true)
  const [error, setError] = useState("")
  const [choice, setChoice] = useState("")
+ const [email,setEmail] = useState("")
+ const [switching,setSwitching] = useState(false)
+ async function switchAccount(){if(switching)return;setSwitching(true);try{const client=customerClient();if(!client)throw Error();const result=await client.auth.signOut({scope:"local"});if(result.error)throw result.error;window.location.assign(window.location.pathname==="/website/shared-compatibility"?"/website/start?next=shared-compatibility":"/website/start")}catch{setError("Unable to switch account. Please try again.");setSwitching(false)}}
  useEffect(() => {
   const controller = new AbortController()
   let active = true
@@ -22,6 +25,7 @@ export function AccountPersonalPanel({ onNavigate, actions }: { onNavigate: () =
     const response = await fetch("/api/website/profile", { headers: { Authorization: "Bearer " + token }, cache: "no-store", signal: controller.signal })
     const data = await response.json()
     if (!response.ok) throw new Error("Unable to load your details. Please reopen your account.")
+    if(active)setEmail(typeof data.email==="string"?data.email:"")
     if (active && data.profile && typeof data.profile.name === "string" && typeof data.profile.dob === "string") setProfile(data.profile)
    } catch { if (active) setError("Unable to load your details. Please reopen your account.") }
    finally { if (active) setLoading(false) }
@@ -30,6 +34,7 @@ export function AccountPersonalPanel({ onNavigate, actions }: { onNavigate: () =
   return () => { active = false; controller.abort() }
  }, [])
  return <div className="mt-4 space-y-4">
+  {email&&<div className="border-b border-[#C5A15A]/25 pb-4"><p className="break-words text-sm leading-6 [overflow-wrap:anywhere]">{email}</p><button type="button" disabled={switching} onClick={()=>void switchAccount()} className="mt-1 min-h-11 text-sm underline underline-offset-4 disabled:opacity-50">{switching?"Please wait…":"Use another account"}</button></div>}
   {loading ? <p role="status" className="text-sm">Loading your details…</p> : error ? <p role="alert" className="text-sm text-red-800">{error}</p> : profile ? <div className="rounded-xl border border-[#C5A15A]/30 bg-white/60 p-3"><div className="flex flex-col items-center gap-2"><AccountPhoto name={profile.name} /><p className="min-w-0 w-full break-words text-center font-serif text-2xl font-semibold leading-tight capitalize">{profile.name}</p></div><div className="flex justify-center text-center"><ProfileDob dob={profile.dob} /></div></div> : <p className="text-sm">Complete your profile to add your name and date of birth.</p>}
   {actions}
   {profile && <p className="rounded-xl bg-[#EAD8AD]/40 px-4 py-4 text-xl font-semibold leading-8 text-[#64263B]">Whatever is on your mind,<br />we’re here to listen.</p>}
