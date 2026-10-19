@@ -49,9 +49,11 @@ export async function DELETE(request: Request) {
    const email = recipient.trim().toLowerCase()
    if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return reply({ error: "Invalid recipient." }, 400)
    if (!await shareableReading(id, identity.userId)) return reply({ error: "Saved reading is unavailable." }, 404)
-   const response = await database(`js_compatibility_shares?preview_id=eq.${id}&owner_user_id=eq.${identity.userId}&organization_id=eq.${JS_ORGANIZATION_ID}&recipient_email=eq.${encodeURIComponent(JSON.stringify(email))}&revoked_at=is.null`, { method: "PATCH", body: JSON.stringify({ revoked_at: new Date().toISOString() }) })
+   const response = await database(`js_compatibility_shares?preview_id=eq.${id}&owner_user_id=eq.${identity.userId}&organization_id=eq.${JS_ORGANIZATION_ID}&recipient_email=eq.${encodeURIComponent(email)}&revoked_at=is.null&select=id`, { method: "PATCH", headers: { Prefer: "return=representation" }, body: JSON.stringify({ revoked_at: new Date().toISOString() }) })
    if (!response.ok) throw new Error("Revocation failed")
-   return reply({ revoked: true, recipient: email })
+   const revokedRows = await response.json()
+  if (!Array.isArray(revokedRows) || !revokedRows.length) return reply({ error: "No active invitation was found. Refresh your invitations." }, 404)
+  return reply({ revoked: true, recipient: email })
   }
   const response = await database(`js_compatibility_shares?id=eq.${id}&owner_user_id=eq.${identity.userId}&organization_id=eq.${JS_ORGANIZATION_ID}&select=id`, { method: "PATCH", headers: { Prefer: "return=representation" }, body: JSON.stringify({ revoked_at: new Date().toISOString() }) })
   if (!response.ok) throw new Error("Revocation failed")
