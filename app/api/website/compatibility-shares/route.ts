@@ -15,6 +15,15 @@ export async function GET(request: Request) {
   if (process.env.JS_CUSTOMER_GUIDANCE_ENABLED !== "true") return reply({ error: "Sharing is unavailable." }, 503)
   const identity = await sharingIdentity(request)
   if (!identity) return reply({ error: "Sign in with your verified registered account." }, 401)
+  const params = new URL(request.url).searchParams
+  if (params.get("view") === "sent") {
+   const offset = Number(params.get("offset") || "0")
+   if (!Number.isSafeInteger(offset) || offset < 0) return reply({ error: "Invalid page." }, 400)
+   const response = await database(`js_compatibility_shares?owner_user_id=eq.${identity.userId}&organization_id=eq.${JS_ORGANIZATION_ID}&select=id,preview_id,recipient_email,created_at,expires_at,revoked_at,accepted_at,email_sent_at,ready_at,delivery_channel&order=created_at.desc,id.desc&limit=100&offset=${offset}`)
+   if (!response.ok) throw new Error("Sent invitations unavailable")
+   const invitations = await response.json()
+   return reply({ invitations, nextOffset: invitations.length === 100 ? offset + 100 : null })
+  }
   const id = new URL(request.url).searchParams.get("id") || ""
   if (!uuid.test(id)) return reply({ error: "Invalid saved reading." }, 400)
   if (!await shareableReading(id, identity.userId)) return reply({ error: "Saved reading is unavailable." }, 404)

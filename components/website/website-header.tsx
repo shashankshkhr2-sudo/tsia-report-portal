@@ -15,7 +15,7 @@ const items = [
  { title: 'My Profile', href: '/website/welcome', icon: UserRound },
  { title: 'Services', href: '/website/services', icon: BookOpen },
  { title: 'Compatibility', href: '/website/compatibility', icon: UsersRound },
- { title: "Shared with me", href: "/website/shared-compatibility", icon: UsersRound },
+ { title: "Invitations", href: "/website/shared-compatibility", icon: UsersRound },
 ]
 export function WebsiteHeader() {
  const [signedIn, setSignedIn] = useState(false)
