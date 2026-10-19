@@ -29,7 +29,7 @@ export function customerClient() {
  instance = createClient(url, key, { auth: {
   storageKey,
   storage,
-  persistSession: true, autoRefreshToken: true, detectSessionInUrl: false,
+  flowType: "pkce", persistSession: true, autoRefreshToken: true, detectSessionInUrl: false,
  } })
  return instance
 }

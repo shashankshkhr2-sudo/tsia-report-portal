@@ -57,7 +57,7 @@ export default function SharedPage() {
  },[opened])
  async function accept() {
   if(busy||!invite)return;const current=++revision.current;setBusy(true);setError("")
-  try {await request("/api/website/shared-compatibility",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:invite,accepted:true})});if(current!==revision.current)return;try{sessionStorage.removeItem(storageKey)}catch{}setInvite("");await load()}
+  try {const accepted=await request("/api/website/shared-compatibility",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:invite,accepted:true})});if(current!==revision.current)return;if(accepted.accepted!==true||typeof accepted.id!=="string")throw Error("Unable to confirm invitation acceptance.");const data=await request("/api/website/shared-compatibility?id="+encodeURIComponent(accepted.id));if(current!==revision.current)return;try{sessionStorage.removeItem(storageKey)}catch{}setInvite("");setOpened(data)}
   catch(problem){if(current===revision.current)setError(problem instanceof Error?problem.message:"Unable to accept invitation.")}finally{setBusy(false)}
  }
  async function open(id:string) {
@@ -76,7 +76,7 @@ export default function SharedPage() {
    <div className="mt-5 flex flex-wrap items-center gap-3"><p className="break-all text-sm">Signed in as <strong>{email}</strong></p><button type="button" disabled={busy} onClick={()=>void switchEmail()} className="min-h-11 px-2 underline">Use another email</button></div>
    {invite&&<section className="mt-5 rounded-2xl border border-[#D7B77A] bg-[#FAF7F0] p-5"><h2 className="font-serif text-2xl">You have an invitation</h2><p className="mt-3 text-sm leading-7">Accept to view the selected compatibility insights. Access expires seven days after the invitation was created and can be revoked by the sender.</p><button type="button" disabled={busy} onClick={()=>void accept()} className={button+" mt-4"}>{busy?"Please wait…":"Accept invitation"}</button></section>}
    <div className="mt-6 space-y-3">{items.map(item=><button key={item.id} type="button" disabled={busy} onClick={()=>void open(item.id)} className={button+" block w-full bg-[#FFFDFA] text-left"}><span className="block break-words font-serif text-xl">{item.preview.people.map(person=>person.name).join(" & ")}</span><span className="mt-2 block text-sm">{item.preview.kind}</span></button>)}</div>
-   {!items.length&&<p className="mt-5 text-sm text-[#766B67]">Accepted invitations with current access will appear here.</p>}
+   {!items.length&&!opened&&<p className="mt-5 text-sm text-[#766B67]">Accepted invitations with current access will appear here.</p>}
    {offset!==null&&<button type="button" disabled={busy} onClick={()=>void load(offset,true)} className={button+" mt-4"}>Load more</button>}
    <button type="button" disabled={busy} onClick={()=>void load()} className="mt-4 min-h-11 px-2 underline">Refresh shared insights</button>
    {opened&&<article ref={report} tabIndex={-1} className="mt-8 scroll-mt-24 focus:outline-none">{opened.preview.version==="JS_COMPATIBILITY_V2_DRAFT_1"&&<p className="mb-5 rounded-xl border border-amber-400 bg-amber-50 p-4 text-sm text-amber-950">STAGING DRAFT — interpretation tables are under review. Not a final customer reading.</p>}<CompatibilityReading reading={opened.preview}/></article>}
