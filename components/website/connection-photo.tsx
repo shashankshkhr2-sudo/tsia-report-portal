@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useRef, useState, type ReactNode } from "react"
 import { customerClient } from "@/lib/jeevansutra/customer-client"
-export function ConnectionPhoto({ id, name, children }: { id: string; name: string; children: (photo: string) => ReactNode }) {
+export function ConnectionPhoto({ id, name, children, footer, actions }: { id: string; name: string; children: (photo: string) => ReactNode; footer?: ReactNode; actions?: ReactNode }) {
  const root = useRef<HTMLDivElement>(null)
  const input = useRef<HTMLInputElement>(null)
  const objectUrl = useRef("")
@@ -76,13 +76,15 @@ export function ConnectionPhoto({ id, name, children }: { id: string; name: stri
   } catch (problem) { if (current === revision.current) setError(problem instanceof Error && problem.name !== "AbortError" ? problem.message : "Unable to confirm the update. Reload to check the photo.") }
   finally { clearTimeout(timer); setBusy(false) }
  }
- return <div ref={root}>
+ return <div ref={root} className="rounded-2xl border border-[#D7B77A]/60 bg-[#FFFDFA] p-4 text-[#64263B] sm:p-5">
   {children(photo)}
-  <div className="flex flex-wrap gap-2 px-2">
+  <div className="mt-2 flex flex-wrap gap-2 border-t border-[#C5A15A]/25 pt-3">
    <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" aria-label={"Choose photo for " + name} disabled={busy} onChange={event => { const file = event.target.files?.[0]; event.target.value = ""; if (file) void change(file) }} />
-   <button type="button" disabled={busy} onClick={() => input.current?.click()} className="min-h-11 rounded-lg px-2 py-2 text-sm text-[#64263B] underline focus-visible:outline-2 focus-visible:outline-[#64263B] disabled:opacity-50">{busy ? "Updating photo…" : photo ? "Replace photo" : "Add photo"}</button>
+   <button type="button" disabled={busy} onClick={() => input.current?.click()} className="min-h-11 rounded-lg bg-[#64263B] px-4 py-2 text-sm font-semibold text-[#FAF7F0] focus-visible:outline-2 focus-visible:outline-[#64263B] disabled:opacity-50">{busy ? "Updating photo…" : photo ? "Change photo" : "Add photo"}</button>
    {photo && <button type="button" disabled={busy} onClick={() => void change(null)} className="min-h-11 rounded-lg px-2 py-2 text-sm text-[#64263B] underline focus-visible:outline-2 focus-visible:outline-[#64263B] disabled:opacity-50">Remove photo</button>}
+   {actions && <div className="ml-auto flex items-center">{actions}</div>}
   </div>
+  {footer}
   {error && <p role="alert" className="px-4 text-sm text-red-800">{error}</p>}
  </div>
 }
