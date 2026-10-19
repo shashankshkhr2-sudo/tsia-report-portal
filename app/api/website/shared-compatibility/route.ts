@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   if (input && typeof input.id === "string" && input.token === undefined) {
    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(input.id)) return reply({ error: "Invalid invitation." }, 400)
    if (!await sharingRateLimit("inbox-action:" + identity.userId, 30)) return reply({ error: "Please wait before trying again." }, 429)
-   const lookup = await database(`js_compatibility_shares?id=eq.${input.id}&recipient_email=eq.${encodeURIComponent(JSON.stringify(identity.email))}&organization_id=eq.${JS_ORGANIZATION_ID}&ready_at=not.is.null&select=token_hash&limit=1`)
+   const lookup = await database(`js_compatibility_shares?id=eq.${input.id}&recipient_email=eq.${encodeURIComponent(identity.email)}&organization_id=eq.${JS_ORGANIZATION_ID}&ready_at=not.is.null&select=token_hash&limit=1`)
    if (!lookup.ok) throw Error("Invitation lookup failed")
    const rows = await lookup.json()
    if (!rows[0]?.token_hash) return reply({ error: "Invitation is unavailable for this account." }, 404)
@@ -73,7 +73,7 @@ export async function GET(request: Request) {
   const offset = Number(params.get("offset") || "0")
   if (!Number.isSafeInteger(offset) || offset < 0) return reply({ error: "Invalid list position." }, 400)
   if (!id && params.get("view") === "inbox") {
-   const response = await database(`js_compatibility_shares?recipient_email=eq.${encodeURIComponent(JSON.stringify(identity.email))}&organization_id=eq.${JS_ORGANIZATION_ID}&ready_at=not.is.null&select=id,owner_user_id,created_at,expires_at,accepted_at,accepted_user_id,declined_at,revoked_at&order=created_at.desc,id.desc&limit=100&offset=${offset}`)
+   const response = await database(`js_compatibility_shares?recipient_email=eq.${encodeURIComponent(identity.email)}&organization_id=eq.${JS_ORGANIZATION_ID}&ready_at=not.is.null&select=id,owner_user_id,created_at,expires_at,accepted_at,accepted_user_id,declined_at,revoked_at&order=created_at.desc,id.desc&limit=100&offset=${offset}`)
    if (!response.ok) throw Error("Invitation inbox unavailable")
    type InboxRow = { id:string; owner_user_id:string; created_at:string; expires_at:string; accepted_at:string|null; accepted_user_id:string|null; declined_at:string|null; revoked_at:string|null }
    const rows:InboxRow[] = await response.json()
