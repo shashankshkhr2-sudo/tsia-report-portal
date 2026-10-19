@@ -81,14 +81,11 @@ export default function SharedPage() {
     const relationship=item.preview.relationship
     const dating=relationship==="Dating / getting to know each other"
     const married=relationship==="Married"
-    const en=dating?"Understand each other’s behaviour—how you express feelings, respond, and connect.":married?"Explore how you share responsibilities, support each other, and approach life together.":"Explore a new perspective on this connection."
-    const hi=dating?"एक-दूसरे के व्यवहार को समझें—आप भावनाएँ कैसे जताते हैं, प्रतिक्रिया कैसे देते हैं और एक-दूसरे से कैसे जुड़ते हैं।":married?"समझें कि आप ज़िम्मेदारियाँ कैसे बाँटते हैं, एक-दूसरे का साथ कैसे देते हैं और जीवन में साथ कैसे आगे बढ़ते हैं।":"इस रिश्ते को एक नए नज़रिए से समझें।"
     return <section key={item.id} className="rounded-3xl border border-[#C5A15A]/35 bg-[#FAF7F0] p-5 sm:p-7">
      <p className="text-center text-sm font-medium leading-6 text-[#987943]">{dating?"Dating · Getting to know each other":relationship||item.preview.kind}</p>
      <div className="my-6 grid grid-cols-2 gap-4">{item.preview.people.map((person,index)=><div key={index} className="flex min-w-0 flex-col items-center gap-3 text-center"><SharedPersonPhoto id={item.id} person={index} name={person.name} expiresAt={item.expires_at} /><p className="break-words font-serif text-xl">{person.name}</p></div>)}</div>
      <h2 className="mt-5 break-words text-center font-serif text-2xl font-medium leading-relaxed">{sender?sender+" has explored your connection. Now it’s your turn.":"A new perspective on your connection awaits."}</h2>
      <p lang="hi" className="mt-4 break-words text-center font-serif text-2xl font-medium leading-relaxed">{sender?sender+" ने आपके रिश्ते को समझने की पहल की है। अब आपकी बारी।":"आपके रिश्ते को समझने का एक नया नज़रिया आपका इंतज़ार कर रहा है।"}</p>
-     <p className="mt-6 text-center text-base font-normal leading-7 text-[#392E30]">{en}</p><p lang="hi" className="mt-3 text-center text-base font-normal leading-7 text-[#392E30]">{hi}</p>
      <button type="button" disabled={busy} onClick={()=>void open(item.id)} className="mt-6 min-h-12 w-full rounded-xl bg-[#64263B] px-5 py-3 font-semibold text-[#FAF7F0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#64263B] disabled:opacity-50">{busy?"Please wait…":"Explore our connection →"}</button>
      <p className="mt-3 text-center text-xs text-[#766B67]">No compatibility credit used</p>
     </section>
