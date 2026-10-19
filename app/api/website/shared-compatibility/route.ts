@@ -79,6 +79,13 @@ export async function GET(request: Request) {
    const rows:InboxRow[] = await response.json()
    const owners = Array.from(new Set(rows.map(row=>row.owner_user_id)))
    const names = new Map<string,string>()
+   const senderEmails = new Map<string,string>()
+   if (rows.length) {
+    const emailResponse = await database("rpc/js_invitation_sender_emails", { method:"POST", body:JSON.stringify({p_auth_user_id:identity.userId}) })
+    if (!emailResponse.ok) throw Error("Sender emails unavailable")
+    const emailRows:{owner_user_id:string;sender_email:string}[] = await emailResponse.json()
+    for (const row of emailRows) senderEmails.set(row.owner_user_id,row.sender_email)
+   }
    if (owners.length) {
     const access = await database("js_customer_access?organization_id=eq."+JS_ORGANIZATION_ID+"&auth_user_id=in.("+owners.join(",")+")&select=auth_user_id,client_id")
     if (!access.ok) throw Error("Sender lookup unavailable")
@@ -92,7 +99,7 @@ export async function GET(request: Request) {
      for (const mapping of mappings) { const name=byId.get(mapping.client_id);if(name)names.set(mapping.auth_user_id,name) }
     }
    }
-   return reply({ invitations:rows.map(row=>({id:row.id,senderName:names.get(row.owner_user_id)||"Jeevan Sutra member",created_at:row.created_at,expires_at:row.expires_at,accepted_at:row.accepted_at,declined_at:row.declined_at,status:row.declined_at?"declined":row.revoked_at?"stopped":Date.parse(row.expires_at)<=Date.now()?"expired":row.accepted_at&&row.accepted_user_id===identity.userId?"accepted":row.accepted_at?"unavailable":"pending"})),nextOffset:rows.length===100?offset+100:null })
+   return reply({ invitations:rows.map(row=>({id:row.id,senderName:names.get(row.owner_user_id)||"Jeevan Sutra member",senderEmail:senderEmails.get(row.owner_user_id)||null,created_at:row.created_at,expires_at:row.expires_at,accepted_at:row.accepted_at,declined_at:row.declined_at,status:row.declined_at?"declined":row.revoked_at?"stopped":Date.parse(row.expires_at)<=Date.now()?"expired":row.accepted_at&&row.accepted_user_id===identity.userId?"accepted":row.accepted_at?"unavailable":"pending"})),nextOffset:rows.length===100?offset+100:null })
   }
   const fields = "id,auth_user_id,organization_id,created_at,version:preview->>version,kind:preview->>kind,relationship:preview->>relationship,people:preview->people" + (id ? ",preview" : "")
   const base = `js_compatibility_shares?accepted_user_id=eq.${identity.userId}&recipient_email=eq.${encodeURIComponent(identity.email)}&organization_id=eq.${JS_ORGANIZATION_ID}&revoked_at=is.null&ready_at=not.is.null&expires_at=gt.${encodeURIComponent(new Date().toISOString())}&reading.is_active=eq.true&reading.organization_id=eq.${JS_ORGANIZATION_ID}`
