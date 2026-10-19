@@ -51,11 +51,11 @@ export async function GET(request: Request) {
   if (id !== null && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return reply({ error: "Invalid shared reading." }, 400)
   const offset = Number(params.get("offset") || "0")
   if (!Number.isSafeInteger(offset) || offset < 0) return reply({ error: "Invalid list position." }, 400)
-  const fields = "id,auth_user_id,organization_id,created_at,version:preview->>version,kind:preview->>kind,people:preview->people" + (id ? ",preview" : "")
+  const fields = "id,auth_user_id,organization_id,created_at,version:preview->>version,kind:preview->>kind,relationship:preview->>relationship,people:preview->people" + (id ? ",preview" : "")
   const base = `js_compatibility_shares?accepted_user_id=eq.${identity.userId}&recipient_email=eq.${encodeURIComponent(identity.email)}&organization_id=eq.${JS_ORGANIZATION_ID}&revoked_at=is.null&ready_at=not.is.null&expires_at=gt.${encodeURIComponent(new Date().toISOString())}&reading.is_active=eq.true&reading.organization_id=eq.${JS_ORGANIZATION_ID}`
   const response = await database(base + `&select=id,owner_user_id,created_at,expires_at,reading:js_compatibility_previews!inner(${fields})&order=created_at.desc,id.desc` + (id ? `&id=eq.${id}&limit=1` : `&limit=100&offset=${offset}`))
   if (!response.ok) throw new Error("Shared readings unavailable")
-  type Row = { id: string; owner_user_id: string; created_at: string; expires_at: string; reading: { id: string; auth_user_id: string; organization_id: string; created_at: string; version?: string; kind: string; people: { name: string }[]; preview?: unknown } }
+  type Row = { id: string; owner_user_id: string; created_at: string; expires_at: string; reading: { id: string; auth_user_id: string; organization_id: string; created_at: string; version?: string; kind: string; relationship?: string; people: { name: string }[]; preview?: unknown } }
   const rows: Row[] = await response.json()
   const visible = rows.filter(row => row.reading && row.reading.auth_user_id === row.owner_user_id && row.reading.organization_id === JS_ORGANIZATION_ID && (compatibilityDraftEnabled() || row.reading.version !== "JS_COMPATIBILITY_V2_DRAFT_1"))
   if (id) {
@@ -63,6 +63,21 @@ export async function GET(request: Request) {
    if (!row) return reply({ error: "Shared insights are unavailable or access has expired." }, 404)
    return reply({ id: row.id, preview: customerResult(row.reading.preview), expires_at: row.expires_at })
   }
-  return reply({ history: visible.map(row => ({ id: row.id, created_at: row.created_at, expires_at: row.expires_at, preview: { kind: row.reading.kind, people: row.reading.people.map(person => ({ name: person.name })) } })), nextOffset: rows.length === 100 ? offset + 100 : null })
+  const senderNames = new Map<string,string>()
+  const owners = Array.from(new Set(visible.map(row=>row.owner_user_id)))
+  if (owners.length) {
+   const access = await database("js_customer_access?organization_id=eq."+JS_ORGANIZATION_ID+"&auth_user_id=in.("+owners.map(encodeURIComponent).join(",")+")&select=auth_user_id,client_id")
+   if (!access.ok) throw Error("Sender lookup unavailable")
+   const mappings: {auth_user_id:string;client_id:string}[] = await access.json()
+   const ids = Array.from(new Set(mappings.map(row=>row.client_id)))
+   if (ids.length) {
+    const response = await database("clients?organization_id=eq."+JS_ORGANIZATION_ID+"&id=in.("+ids.map(encodeURIComponent).join(",")+")&select=id,full_name,current_name")
+    if (!response.ok) throw Error("Sender names unavailable")
+    const clients: {id:string;full_name:string;current_name:string|null}[] = await response.json()
+    const names = new Map(clients.map(client=>[client.id,client.current_name||client.full_name]))
+    for (const mapping of mappings) { const name=names.get(mapping.client_id); if(name)senderNames.set(mapping.auth_user_id,name) }
+   }
+  }
+  return reply({ history: visible.map(row => ({ id: row.id, senderName: senderNames.get(row.owner_user_id) || null, created_at: row.created_at, expires_at: row.expires_at, preview: { kind: row.reading.kind, relationship: row.reading.relationship || null, people: row.reading.people.map(person => ({ name: person.name })) } })), nextOffset: rows.length === 100 ? offset + 100 : null })
  } catch { return reply({ error: "Unable to load shared insights. Please try again." }, 503) }
 }

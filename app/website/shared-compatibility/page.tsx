@@ -1,11 +1,12 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
+import { SharedPersonPhoto } from "@/components/website/shared-person-photo"
 import { useRouter } from "next/navigation"
 import { customerClient } from "@/lib/jeevansutra/customer-client"
 import { CompatibilityReading } from "@/components/website/compatibility-reading"
 import type { CustomerReading } from "@/lib/jeevansutra/compatibility-contract"
-type Shared = { id: string; expires_at: string; preview: Pick<CustomerReading, "kind" | "people"> }
+type Shared = { id: string; senderName?: string|null; expires_at: string; preview: Pick<CustomerReading, "kind" | "people"> & { relationship?: string|null } }
 const signIn = "/website/start?next=shared-compatibility"
 const storageKey = "js-pending-compatibility-invite"
 const button = "min-h-12 rounded-xl border border-[#64263B]/25 px-5 py-3 font-medium text-[#64263B] transition-colors hover:bg-[#F3EBE7] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#64263B] disabled:opacity-50"
@@ -29,10 +30,11 @@ export default function SharedPage() {
   try {
    const session = await customerClient()?.auth.getSession(); if (current !== revision.current) return
    if (!session?.data.session) { setSignedIn(false); setEmail(""); setItems([]); return }
-   const profile = await request("/api/website/profile"); if (current !== revision.current) return
+   const [profileResult,listResult] = await Promise.allSettled([request("/api/website/profile"),request("/api/website/shared-compatibility?offset="+position)]); if (current !== revision.current) return; if(profileResult.status!=="fulfilled")throw profileResult.reason; const profile=profileResult.value
    if (profile.needsProfile) { router.replace(signIn); return }
    setSignedIn(true); setEmail(profile.email || "")
-   const data = await request("/api/website/shared-compatibility?offset="+position); if (current !== revision.current) return
+   if(listResult.status!=="fulfilled")throw listResult.reason; const data=listResult.value
+   if (current !== revision.current) return
    setItems(previous => append ? Array.from(new Map([...previous,...data.history].map((item: Shared)=>[item.id,item])).values()) : data.history); setOffset(data.nextOffset)
   } catch (problem) { if (current === revision.current) setError(problem instanceof Error ? problem.message : "Unable to load shared insights.") }
   finally { if (current === revision.current) setLoading(false) }
@@ -75,7 +77,23 @@ export default function SharedPage() {
   {loading?<p role="status" className="mt-5">Checking shared insights…</p>:!signedIn?<section className="mt-6 rounded-2xl border border-[#E6DDD4] bg-white p-6 shadow-sm"><p className="leading-7">Sign in or register using the email address that received the invitation.</p><Link href={signIn} className={button+" mt-4 inline-block"}>Verify email &amp; continue</Link></section>:<>
    <div className="mt-6 flex flex-col items-start gap-2 rounded-2xl border border-[#E6DDD4] bg-white p-4"><p className="min-w-0 break-words text-sm leading-6 [overflow-wrap:anywhere]">Signed in as <strong>{email}</strong></p><button type="button" disabled={busy} onClick={()=>void switchEmail()} className="min-h-11 rounded-lg px-2 text-sm underline underline-offset-4">Use another email</button></div>
    {invite&&<section className="mt-6 rounded-2xl border border-[#E6DDD4] bg-white p-6 shadow-sm"><h2 className="font-serif text-2xl">You have an invitation</h2><p className="mt-3 text-sm leading-7">Accept to view the selected compatibility insights. Access expires seven days after the invitation was created and can be revoked by the sender.</p><button type="button" disabled={busy} onClick={()=>void accept()} className={button+" mt-4"}>{busy?"Please wait…":"Accept invitation"}</button></section>}
-   <div className="mt-6 space-y-4">{items.map(item=><button key={item.id} type="button" disabled={busy} onClick={()=>void open(item.id)} className={button+" block w-full rounded-2xl border-[#E6DDD4] bg-white p-5 text-left shadow-sm"}><span className="block break-words font-serif text-xl leading-snug">{item.preview.people.map(person=>person.name).join(" & ")}</span><span className="mt-3 block text-sm text-[#766B67]">{item.preview.kind}</span></button>)}</div>
+   <div className="mt-6 space-y-5">{items.map(item=>{
+    const sender=item.senderName?.trim().split(/\s+/)[0]
+    const relationship=item.preview.relationship
+    const dating=relationship==="Dating / getting to know each other"
+    const married=relationship==="Married"
+    const en=dating?"Understand each other’s behaviour—how you express feelings, respond, and connect.":married?"Explore how you share responsibilities, support each other, and approach life together.":"Explore a new perspective on this connection."
+    const hi=dating?"एक-दूसरे के व्यवहार को समझें—आप भावनाएँ कैसे जताते हैं, प्रतिक्रिया कैसे देते हैं और एक-दूसरे से कैसे जुड़ते हैं।":married?"समझें कि आप ज़िम्मेदारियाँ कैसे बाँटते हैं, एक-दूसरे का साथ कैसे देते हैं और जीवन में साथ कैसे आगे बढ़ते हैं।":"इस रिश्ते को एक नए नज़रिए से समझें।"
+    return <section key={item.id} className="rounded-3xl border border-[#E6DDD4] bg-white p-5 shadow-sm sm:p-7">
+     <p className="text-xs font-semibold uppercase tracking-widest text-[#987943]">{relationship||item.preview.kind}</p>
+     <h2 className="mt-4 break-words font-serif text-2xl leading-snug">{sender?sender+" has explored your connection. Now it’s your turn to understand it better.":"A new perspective on your connection awaits."}</h2>
+     {sender&&<p lang="hi" className="mt-3 text-base leading-7 text-[#766B67]">{sender} ने आपके रिश्ते को जानने की पहल की है। अब आपकी बारी है इसे और बेहतर समझने की।</p>}
+     <div className="my-6 grid grid-cols-2 gap-4">{item.preview.people.map((person,index)=><div key={index} className="flex min-w-0 flex-col items-center gap-3 text-center"><SharedPersonPhoto id={item.id} person={index} name={person.name} expiresAt={item.expires_at} /><p className="break-words font-serif text-xl">{person.name}</p></div>)}</div>
+     <p className="text-base leading-7 text-[#392E30]">{en}</p><p lang="hi" className="mt-3 text-base leading-7 text-[#766B67]">{hi}</p>
+     <button type="button" disabled={busy} onClick={()=>void open(item.id)} className="mt-6 min-h-12 w-full rounded-xl bg-[#64263B] px-5 py-3 font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#64263B] disabled:opacity-50">{busy?"Please wait…":"Open shared insights →"}</button>
+     <p className="mt-3 text-center text-xs text-[#766B67]">No compatibility credit used</p>
+    </section>
+   })}</div>
    {!items.length&&!opened&&<p className="mt-5 text-sm text-[#766B67]">Accepted invitations with current access will appear here.</p>}
    {offset!==null&&<button type="button" disabled={busy} onClick={()=>void load(offset,true)} className={button+" mt-4"}>Load more</button>}
    <button type="button" disabled={busy} onClick={()=>void load()} className="mt-4 min-h-11 px-2 underline">Refresh shared insights</button>
