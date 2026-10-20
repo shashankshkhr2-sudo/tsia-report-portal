@@ -47,7 +47,7 @@ const guidanceAreas = [
 ]
 
 const fieldClass =
-  'mt-2 w-full rounded-xl border border-[#ded4cb] bg-white px-4 py-3 text-base outline-none transition focus:border-[#81243f] focus:ring-2 focus:ring-[#81243f]/15'
+  'mt-2 w-full rounded-xl border border-[#ded4cb] bg-white px-4 py-3 text-base outline-none transition focus:border-[#64263B] focus:ring-2 focus:ring-[#64263B]/15'
 
 const labelClass =
   'block text-sm font-medium text-[#392c30]'
@@ -128,12 +128,12 @@ export default function JoinPage() {
   const [introduction, setIntroduction] = useState('')
 
   return (
-    <main className="min-h-screen bg-[#faf6ef] text-[#392c30]">
+    <main className="min-h-screen bg-[#FAF7F0] text-[#392c30]">
 
 
-      <section className="bg-[#81243f] px-5 py-16 text-white sm:py-24">
+      <section className="bg-[#64263B] px-5 py-16 text-white sm:py-24">
         <div className="mx-auto max-w-4xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#f1c780]">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#EAD8AD]">
             The Complete Guidance Experience
           </p>
 
@@ -141,7 +141,7 @@ export default function JoinPage() {
             Join Jeevan Sutra
           </h1>
 
-          <p className="mx-auto mt-6 max-w-3xl font-serif text-2xl leading-relaxed text-[#f8e6e8] sm:text-3xl">
+          <p className="mx-auto mt-6 max-w-3xl font-serif text-2xl leading-relaxed text-[#FAF7F0] sm:text-3xl">
             Bring your knowledge.
             <br />
             Build your practice. Reach more people.
@@ -155,7 +155,7 @@ export default function JoinPage() {
 
           <a
             href="#application"
-            className="mt-9 inline-flex items-center justify-center gap-3 rounded-xl bg-[#f1c780] px-7 py-4 font-semibold text-[#492e25] transition hover:bg-[#f6d69f]"
+            className="mt-9 inline-flex items-center justify-center gap-3 rounded-xl bg-[#EAD8AD] px-7 py-4 font-semibold text-[#64263B] transition hover:bg-[#F0E2C4]"
           >
             Apply to Join — Free
             <ArrowRight className="size-5" aria-hidden="true" />
@@ -169,7 +169,7 @@ export default function JoinPage() {
             ].map((item) => (
               <span key={item} className="inline-flex items-center gap-2">
                 <Check
-                  className="size-4 shrink-0 text-[#f1c780]"
+                  className="size-4 shrink-0 text-[#EAD8AD]"
                   aria-hidden="true"
                 />
                 {item}
@@ -185,7 +185,7 @@ export default function JoinPage() {
             A More Complete Way to Guide
           </p>
 
-          <h2 className="mt-4 font-serif text-3xl font-semibold text-[#81243f] sm:text-4xl">
+          <h2 className="mt-4 font-serif text-3xl font-semibold text-[#64263B] sm:text-4xl">
             Your expertise, supported by a fuller client picture.
           </h2>
 
@@ -203,11 +203,11 @@ export default function JoinPage() {
               key={title}
               className="rounded-3xl border border-[#e8dbce] bg-white p-7 shadow-sm"
             >
-              <div className="flex size-12 items-center justify-center rounded-xl bg-[#f7e9d5] text-[#81243f]">
+              <div className="flex size-12 items-center justify-center rounded-xl bg-[#f7e9d5] text-[#64263B]">
                 <Icon className="size-6" aria-hidden="true" />
               </div>
 
-              <h3 className="mt-5 font-serif text-xl font-semibold leading-7 text-[#81243f]">
+              <h3 className="mt-5 font-serif text-xl font-semibold leading-7 text-[#64263B]">
                 {title}
               </h3>
 
@@ -221,7 +221,7 @@ export default function JoinPage() {
 
       <section className="border-y border-[#e9ddcf] bg-white px-5 py-14">
         <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-2">
-          <article className="rounded-3xl bg-[#faf6ef] p-7 sm:p-9">
+          <article className="rounded-3xl bg-[#FAF7F0] p-7 sm:p-9">
             <BookOpen
               className="size-8 text-[#a57a40]"
               aria-hidden="true"
@@ -231,7 +231,7 @@ export default function JoinPage() {
               Established Practitioners
             </p>
 
-            <h2 className="mt-3 font-serif text-2xl font-semibold text-[#81243f]">
+            <h2 className="mt-3 font-serif text-2xl font-semibold text-[#64263B]">
               Bring your experience to a wider audience.
             </h2>
 
@@ -242,12 +242,12 @@ export default function JoinPage() {
               preparation, insights and continuity of guidance.
             </p>
 
-            <p className="mt-4 font-medium leading-7 text-[#81243f]">
+            <p className="mt-4 font-medium leading-7 text-[#64263B]">
               Let your expertise reach further.
             </p>
           </article>
 
-          <article className="rounded-3xl bg-[#faf6ef] p-7 sm:p-9">
+          <article className="rounded-3xl bg-[#FAF7F0] p-7 sm:p-9">
             <Compass
               className="size-8 text-[#a57a40]"
               aria-hidden="true"
@@ -257,7 +257,7 @@ export default function JoinPage() {
               Emerging Practitioners
             </p>
 
-            <h2 className="mt-3 font-serif text-2xl font-semibold text-[#81243f]">
+            <h2 className="mt-3 font-serif text-2xl font-semibold text-[#64263B]">
               Give your knowledge a professional beginning.
             </h2>
 
@@ -269,7 +269,7 @@ export default function JoinPage() {
               suited to your readiness and strengths.
             </p>
 
-            <p className="mt-4 font-medium leading-7 text-[#81243f]">
+            <p className="mt-4 font-medium leading-7 text-[#64263B]">
               Let your ability speak for itself.
             </p>
           </article>
@@ -277,7 +277,7 @@ export default function JoinPage() {
       </section>
 
       <section className="mx-auto max-w-4xl px-5 py-14 text-center">
-        <h2 className="font-serif text-3xl font-semibold text-[#81243f]">
+        <h2 className="font-serif text-3xl font-semibold text-[#64263B]">
           Grow with Jeevan Sutra. Keep your independence.
         </h2>
 
@@ -296,7 +296,7 @@ export default function JoinPage() {
 
       <section className="bg-[#f1e8dc] px-5 py-14">
         <div className="mx-auto max-w-6xl">
-          <h2 className="text-center font-serif text-3xl font-semibold text-[#81243f]">
+          <h2 className="text-center font-serif text-3xl font-semibold text-[#64263B]">
             A Clear Path to Joining
           </h2>
 
@@ -326,7 +326,7 @@ export default function JoinPage() {
                   {number}
                 </p>
 
-                <h3 className="mt-4 text-lg font-semibold text-[#81243f]">
+                <h3 className="mt-4 text-lg font-semibold text-[#64263B]">
                   {title}
                 </h3>
 
@@ -348,7 +348,7 @@ export default function JoinPage() {
             Your Next Chapter
           </p>
 
-          <h2 className="mt-4 font-serif text-3xl font-semibold text-[#81243f]">
+          <h2 className="mt-4 font-serif text-3xl font-semibold text-[#64263B]">
             Apply to Join Jeevan Sutra
           </h2>
 
@@ -375,7 +375,7 @@ export default function JoinPage() {
             names, personal client records or identity documents.
           </p>
 
-          <h3 className="mt-7 font-serif text-xl font-semibold text-[#81243f]">
+          <h3 className="mt-7 font-serif text-xl font-semibold text-[#64263B]">
             About You
           </h3>
 
@@ -424,7 +424,7 @@ export default function JoinPage() {
             </div>
           </div>
 
-          <h3 className="mt-9 font-serif text-xl font-semibold text-[#81243f]">
+          <h3 className="mt-9 font-serif text-xl font-semibold text-[#64263B]">
             Your Practice
           </h3>
 
@@ -494,7 +494,7 @@ export default function JoinPage() {
                       name="guidanceAreas"
                       defaultChecked={savedArea(area)}
                       value={area}
-                      className="mt-1 accent-[#81243f]"
+                      className="mt-1 accent-[#64263B]"
                     />
                     {area}
                   </label>
@@ -503,7 +503,7 @@ export default function JoinPage() {
             </fieldset>
           </div>
 
-          <h3 className="mt-9 font-serif text-xl font-semibold text-[#81243f]">
+          <h3 className="mt-9 font-serif text-xl font-semibold text-[#64263B]">
             Your Learning Background
           </h3>
 
@@ -541,7 +541,7 @@ export default function JoinPage() {
             </label>
           </div>
 
-          <h3 className="mt-9 font-serif text-xl font-semibold text-[#81243f]">
+          <h3 className="mt-9 font-serif text-xl font-semibold text-[#64263B]">
             Working With Jeevan Sutra
           </h3>
 
@@ -602,7 +602,7 @@ export default function JoinPage() {
               type="checkbox"
               name="accuracyConsent" defaultChecked={application?.accuracy_consent === true}
               required
-              className="mt-2 accent-[#81243f]"
+              className="mt-2 accent-[#64263B]"
             />
             I confirm that the information I have provided is accurate.
             I understand that registration is an application, and
@@ -614,7 +614,7 @@ export default function JoinPage() {
               type="checkbox"
               name="contactConsent" defaultChecked={application?.contact_consent === true}
               required
-              className="mt-2 accent-[#81243f]"
+              className="mt-2 accent-[#64263B]"
             />
             I consent to Jeevan Sutra reviewing this information and
             contacting me about my application and onboarding.
@@ -623,7 +623,7 @@ export default function JoinPage() {
           <button
             type="submit"
             disabled={saving || (application ? !editing : Boolean(success))}
-            className="mt-8 w-full rounded-xl bg-[#81243f] px-5 py-4 font-semibold text-white disabled:opacity-50"
+            className="mt-8 w-full rounded-xl bg-[#64263B] px-5 py-4 font-semibold text-white disabled:opacity-50"
           >
             {saving ? 'Saving application…' : application ? editing ? 'Save Changes' : 'Application Received' : success ? 'Application Received' : 'Submit Application'}
           </button>
@@ -640,7 +640,7 @@ export default function JoinPage() {
 
       <section className="border-t border-[#e9ddcf] bg-white px-5 py-12">
         <div className="mx-auto max-w-3xl">
-          <h2 className="text-center font-serif text-3xl font-semibold text-[#81243f]">
+          <h2 className="text-center font-serif text-3xl font-semibold text-[#64263B]">
             Before You Apply
           </h2>
 
@@ -674,9 +674,9 @@ export default function JoinPage() {
             ].map(({ question, answer }) => (
               <details
                 key={question}
-                className="rounded-2xl border border-[#e8dbce] bg-[#faf6ef] p-5"
+                className="rounded-2xl border border-[#e8dbce] bg-[#FAF7F0] p-5"
               >
-                <summary className="cursor-pointer font-medium text-[#81243f]">
+                <summary className="cursor-pointer font-medium text-[#64263B]">
                   {question}
                 </summary>
 
