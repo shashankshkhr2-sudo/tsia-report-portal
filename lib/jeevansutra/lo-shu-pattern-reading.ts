@@ -181,7 +181,7 @@ export function patternReading(p: PatternResult) {
   if (!subject) return null
   const present = p.numbers.filter(n => p.present.includes(n))
   if (new Set(p.numbers).size !== 3 || new Set(p.present).size !== p.present.length || present.length !== p.present.length || present.length !== p.presentCount) throw new Error("Inconsistent pattern input")
-  if ((p.status === "complete") !== (present.length === 3) || (p.status === "partial") !== (present.length > 0 && present.length < 3)) throw new Error("Inconsistent pattern status")
+  if ((p.status === "complete") !== (present.length === 3) || (p.status === "partial") !== (present.length === 2)) throw new Error("Inconsistent pattern status")
   const parts = present.map(n => {
     const part = contributions[key][n]
     if (!part) throw new Error("Missing pattern contribution")
