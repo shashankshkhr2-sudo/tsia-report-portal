@@ -1,4 +1,5 @@
 'use client'
+import { patternReading } from "@/lib/jeevansutra/lo-shu-pattern-reading"
 import { MissingNumberGrowth } from './missing-number-growth'
 import { useState } from 'react'
 import type { NumerologyCalculationResult, NumerologyDigit, PatternResult } from '@/lib/numerology/types'
@@ -47,12 +48,13 @@ export function CombinedProfile({ calculation:c }: { calculation:NumerologyCalcu
  return <section className="space-y-5">
  <details open id="grid-patterns" className="rounded-2xl border border-[#eadfd4] p-4 sm:p-5"><summary className="cursor-pointer font-semibold">Your Lo Shu Grid Patterns</summary><div className="mt-4 space-y-5">{[["Rajyogs",patterns.slice(6)],["Columns",patterns.slice(3,6)],["Rows",patterns.slice(0,3)]].map(([group,items])=><section key={group as string}><h4 className="mb-3 text-lg font-bold text-[#64263B]">{group as string}</h4><div className="grid gap-3 sm:grid-cols-2">{(items as typeof patterns).map(([title,p,theme])=>{
  const rajyog=title.includes('Rajyog')
+  const reading = rajyog ? null : patternReading(p)
  const qualities=p.present.map(n=>themes[n])
  const joined=qualities.length>1?`${qualities.slice(0,-1).join(', ')} and ${qualities.at(-1)}`:qualities[0]
- return <article key={title} className="rounded-2xl border-l-4 border-[#C5A15A] bg-[#FAF7F0] p-4"><h4 className="font-bold text-[#64263B]">{title.includes('Rajyog')?'':patterns.indexOf(patterns.find(item=>item[0]===title)!)>=3?'Column · ':'Row · '}{title}</h4>
- <p className="mt-2 text-sm leading-6">{rajyog?(p.status==="complete"?rajyogDescriptions[p.numbers.join("–")]:null):p.presentCount===0?'None of this pattern’s numbers appear in your grid. Your other numbers offer more useful starting points for this reading.':p.status==='complete'?`This part of your grid brings together ${theme}. You may recognise these qualities working together in the way you approach everyday situations.`:`The numbers present here highlight ${joined}. Notice where these qualities feel familiar to you.`}</p>
+ return <article key={title} className="rounded-2xl border-l-4 border-[#C5A15A] bg-[#FAF7F0] p-4"><h4 className="font-bold text-[#64263B]">{title.includes('Rajyog')?'':patterns.indexOf(patterns.find(item=>item[0]===title)!)>=3?'Column · ':'Row · '}{reading?.title ?? title}</h4>
+  {reading ? <><p className="mt-2 text-sm leading-6">{reading.meaning}</p><p className="mt-2 text-sm leading-6">{reading.example}</p><p className="mt-3 text-sm leading-6"><strong>Try this:</strong> {reading.habit}</p></> : <p className="mt-2 text-sm leading-6">{p.status === "complete" ? rajyogDescriptions[p.numbers.join("-")] : null}</p>}
  {rajyog && <p className="mt-2 text-sm text-[#766b67]">{rajyogStatus(p)}</p>}
- <details className="mt-3 text-sm text-[#766b67]"><summary className="cursor-pointer">See your numbers</summary><p className="mt-2">Pattern: {p.numbers.join('–')} · {p.presentCount}/3 present · {p.status==='complete'?'Complete':p.status==='partial'?'Partial':'Not formed'}</p><p className="mt-1">Present: {p.present.join(', ') || 'none'}. Missing: {p.missing.join(', ') || 'none'}.</p></details>
+ <details className="mt-3 text-sm text-[#766b67]"><summary className="cursor-pointer">See your numbers</summary><p className="mt-2">{reading && <span className="block mb-1">{reading.plane}</span>}Pattern: {p.numbers.join('–')} · {p.presentCount}/3 present · {p.status==='complete'?'Complete':p.status==='partial'?'Partial':'Not formed'}</p><p className="mt-1">Present: {p.present.join(', ') || 'none'}. Missing: {p.missing.join(', ') || 'none'}.</p></details>
  </article>
  })}</div></section>)}</div><p className="mt-4 text-sm leading-6 text-[#766b67]">An incomplete pattern does not mean you lack these qualities. Rajyogs describe traditional number combinations; they do not guarantee wealth or success.</p></details>
  <h3 id="combined-reading" className="font-serif text-2xl text-[#64263B]">A Little More About You</h3>
