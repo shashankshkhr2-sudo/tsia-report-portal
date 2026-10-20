@@ -10,7 +10,7 @@ export function compatibilityReadingCopy(text: string): string {
   .replace(/; (.+?)'s highlights /g, ', while $1 may bring ')
   .replace(/Each may experience the other's approach as encouraging in some situations and challenging in others\./g, 'These themes offer a starting point for discussing how you support and understand each other.')
   .replace(/ The reading cannot establish how either actually behaves\./g, '')
-  .replace(/Different contributions suggest scope for /g, 'Themes present in one numerical pattern and absent from the other include: ')
+  .replace(/Different contributions suggest scope for /g, 'You may support each other through ')
   .replace(/This is a possibility to recognise in your experience, rather than one person correcting a deficiency in the other\./g, 'Together, these strengths may help you support each other in different ways.')
   .replace(/Your patterns share several themes\. Similarity may feel familiar, while leaving room for different preferences remains relevant\./g, 'Your numbers share several qualities. You may find some things easy to understand about each other, even when your preferences differ.')
   .replace(/Your combined pattern introduces a draft theme of /g, 'Together, your numbers highlight ')
@@ -21,6 +21,6 @@ export function compatibilityReadingCopy(text: string): string {
   .replace(/ This is a discussion possibility, not a finding of conflict or a judgment about either person\. Missing themes are not evidence of a personal defect\./g, ' What feels natural to one of you may not always feel the same to the other.')
   .replace(/Differences in (.+?) may be worth exploring\. No conflict is inferred merely because your numerical patterns differ\./g, 'You may have different expectations around $1. Different approaches do not automatically mean you will clash.')
     .replaceAll("These differences can help you see things in a new way, although you may not always agree.", "These themes offer a starting point for discussing how you support and understand each other.")
-    .replaceAll("Your numbers point to different strengths: ", "Themes present in one numerical pattern and absent from the other include: ")
+    .replaceAll("Your numbers point to different strengths: ", "You may support each other through ")
     .replaceAll("One difference to watch for is ", "A shared emphasis may need balance. One possibility to discuss is ")
 }
