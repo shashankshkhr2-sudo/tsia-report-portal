@@ -20,4 +20,7 @@ export function compatibilityReadingCopy(text: string): string {
   .replace(/A shared emphasis may also bring /g, 'A shared emphasis may need balance. One possibility to discuss is ')
   .replace(/ This is a discussion possibility, not a finding of conflict or a judgment about either person\. Missing themes are not evidence of a personal defect\./g, ' What feels natural to one of you may not always feel the same to the other.')
   .replace(/Differences in (.+?) may be worth exploring\. No conflict is inferred merely because your numerical patterns differ\./g, 'You may have different expectations around $1. Different approaches do not automatically mean you will clash.')
+    .replaceAll("These differences can help you see things in a new way, although you may not always agree.", "These themes offer a starting point for discussing how you support and understand each other.")
+    .replaceAll("Your numbers point to different strengths: ", "Themes present in one numerical pattern and absent from the other include: ")
+    .replaceAll("One difference to watch for is ", "A shared emphasis may need balance. One possibility to discuss is ")
 }
