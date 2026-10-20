@@ -103,7 +103,7 @@ const contributions: Record<string, Partial<Record<NumerologyDigit, Contribution
   "4-3-8": {
     "3": [
       "learning enough to explain an approach",
-      "find out what an unfamiliar task involves and explain it simply",
+      "learn how the booking process for a small event works and explain its steps",
       "Explain one process in three clear steps."
     ],
     "4": [
@@ -202,6 +202,6 @@ export function patternReading(p: PatternResult) {
     meaning = capitalise(parts[0][0]) + " is the focus of this part of your reading. Consider how it relates to " + subject.title.toLowerCase() + " in your own experience."
   }
   const actions = parts.map(part => part[1])
-  const example = "For example, you could " + (actions.length === 1 ? actions[0] : actions.slice(0,-1).join(", ") + " and " + actions[actions.length-1]) + "."
+  const example = parts.length === 3 ? subject.example : "For example, you could " + actions[0] + "." + (actions.length === 2 ? " You could also " + actions[1] + "." : "")
   return { ...subject, meaning, example, habit: parts.length === 3 ? subject.habit : parts[0][2] }
 }
