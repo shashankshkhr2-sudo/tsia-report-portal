@@ -20,7 +20,7 @@ export async function GET(request: Request) {
       const detail = await database(`js_compatibility_previews?auth_user_id=eq.${identity.userId}&organization_id=eq.${JS_ORGANIZATION_ID}&id=eq.${readingId}&is_active=eq.true&select=id,preview,created_at&limit=1`)
       if (!detail.ok) return reply({ error: "Unable to open saved insights. Please try again." }, 503)
       const items = await detail.json(); const item = items[0]
-      if (!item || (!compatibilityDraftEnabled() && item.preview?.version === "JS_COMPATIBILITY_V2_DRAFT_1")) return reply({ error: "Saved reading is unavailable." }, 404)
+      if (!item) return reply({ error: "Saved reading is unavailable." }, 404)
       return reply({ id: item.id, preview: customerResult(item.preview), created_at: item.created_at })
     }
     if (new URL(request.url).searchParams.get("summary") === "1") {
@@ -35,13 +35,13 @@ export async function GET(request: Request) {
       type SummaryRow = { id: string; created_at: string; is_active: boolean; kind: string; people: { name: string }[]; version?: string }
       const rows: SummaryRow[] = await list.json()
       const used: { id: string }[] = await allowance.json()
-      const history = rows.filter(row => row.is_active && (compatibilityDraftEnabled() || row.version !== "JS_COMPATIBILITY_V2_DRAFT_1")).map(row => ({ id: row.id, created_at: row.created_at, preview: { kind: row.kind, people: row.people } }))
+      const history = rows.filter(row => row.is_active).map(row => ({ id: row.id, created_at: row.created_at, preview: { kind: row.kind, people: row.people } }))
       return reply({ history, remaining: Math.max(0, 3 - used.length), draftEnabled: compatibilityDraftEnabled(), nextOffset: rows.length === 100 ? summaryOffset + 100 : null })
     }
     const response = await database(`js_compatibility_previews?auth_user_id=eq.${identity.userId}&organization_id=eq.${JS_ORGANIZATION_ID}&select=id,preview,created_at,is_active&order=created_at.desc`)
     if (!response.ok) return reply({ error: 'Unable to load your complimentary previews.' }, 503)
     const rows = await response.json()
-    const visible = rows.filter((row: { is_active: boolean; preview: { version?: string } }) => row.is_active && (compatibilityDraftEnabled() || row.preview.version !== "JS_COMPATIBILITY_V2_DRAFT_1"))
+    const visible = rows.filter((row: { is_active: boolean; preview: { version?: string } }) => row.is_active)
     const history = visible.map((row: { id: string; preview: unknown; created_at: string }) => ({ id: row.id, created_at: row.created_at, preview: customerResult(row.preview) }))
     return reply({ history, remaining: Math.max(0, 3 - rows.length), draftEnabled: compatibilityDraftEnabled() })
   } catch { return reply({ error: 'Unable to load previews. Please try again.' }, 503) }
