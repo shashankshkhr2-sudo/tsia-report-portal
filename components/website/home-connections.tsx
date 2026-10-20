@@ -32,7 +32,7 @@ export function HomeConnections({compact}: {compact?: boolean}) {
     <div className="px-5 pt-7 pb-5 sm:px-8">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#EAD8AD]">✦ Your Launch Gift</p>
       <h2 className="mt-4 font-serif text-3xl leading-tight sm:text-4xl">Numerology Brings People Closer</h2>
-      <p className="mt-3 text-sm leading-7 text-[#F2DFE5]">Discover meaningful connections in love, friendship and business.</p>
+      <p className="mt-3 text-sm leading-7 text-[#EAD8AD]">Discover meaningful connections in love, friendship and business.</p>
       <div className="mx-auto mt-5 max-w-sm overflow-hidden rounded-2xl border border-[#C5A15A]/40"><img src="/website/illustrations/compatibility-human-numerology.webp" alt="Two people connected through symbolic numerology circles" width={500} height={590} loading="lazy" decoding="async" className="block h-auto w-full" /></div>
       <div className="mt-5 grid grid-cols-3 gap-2 text-center text-xs text-[#F7E6D4]">
         <span className="rounded-xl border border-[#C5A15A]/40 p-3">♡ Love</span>
