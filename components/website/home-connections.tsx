@@ -40,12 +40,12 @@ export function HomeConnections({compact}: {compact?: boolean}) {
         <span className="rounded-xl border border-[#C5A15A]/40 p-3">◇ Business</span>
       </div>
     </div>
-    <div className="mx-4 mb-4 rounded-2xl bg-[#FFF7E9] p-5 text-[#64263B] sm:mx-8 sm:p-7">
-      <h3 className="font-serif text-2xl">{status === "ready" ? "Your Complimentary Compatibility Tests" : "3 Complimentary Compatibility Tests"}</h3>
-      <p role="status" className="mt-3 text-sm leading-6 text-[#765366]">{guest ? "Three complimentary tests are available with your free verified account." : status === "loading" ? "Checking your complimentary tests…" : status === "error" ? "Your balance is temporarily unavailable. Please try again." : balance === 0 ? "No complimentary tests remaining. Your saved comparisons remain available." : balance === null ? "Your complimentary tests" : balance + " of 3 complimentary tests remaining"}</p>
-      <div className="mt-4 flex justify-center gap-3" aria-hidden="true">{[0,1,2].map(i => <span key={i} className={"flex h-11 w-11 items-center justify-center rounded-full border border-[#C5A15A] text-lg " + (guest || (balance !== null && i < balance) ? "bg-[#64263B] text-white" : "bg-white text-[#947C82]")}>{i+1}</span>)}</div>
-      <Link href={status === "ready" ? "/website/compatibility" : "/website/start?next=compatibility"} className="mt-5 flex min-h-12 items-center justify-center rounded-xl bg-[#64263B] px-5 py-3 text-center font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#64263B]">Check Compatibility →</Link>
-      <p className="mt-3 text-center text-xs leading-5 text-[#765366]">Use your tests across supported categories. Revisit saved comparisons without using another test.</p>
+    <div className="mx-4 mb-4 rounded-2xl border border-[#C5A15A]/60 bg-[#64263B] p-5 text-[#EAD8AD] sm:mx-8 sm:p-7">
+      <h3 className="font-serif text-3xl leading-tight text-[#EAD8AD]">{status === "ready" ? "Your Complimentary Compatibility Tests" : "3 Complimentary Compatibility Tests"}</h3>
+      <p role="status" className="mt-3 text-sm leading-6 text-[#EAD8AD]">{guest ? "Three complimentary tests are available with your free verified account." : status === "loading" ? "Checking your complimentary tests…" : status === "error" ? "Your balance is temporarily unavailable. Please try again." : balance === 0 ? "No complimentary tests remaining. Your saved comparisons remain available." : balance === null ? "Your complimentary tests" : balance + " of 3 complimentary tests remaining"}</p>
+      <div className="mt-4 flex justify-center gap-3" aria-hidden="true">{[0,1,2].map(i => <span key={i} className={"flex h-11 w-11 items-center justify-center rounded-full border border-[#C5A15A] text-lg " + (guest || (balance !== null && i < balance) ? "bg-[#EAD8AD] text-[#64263B]" : "bg-[#64263B]/35 text-[#EAD8AD]/60")}>{i+1}</span>)}</div>
+      <Link href={status === "ready" ? "/website/compatibility" : "/website/start?next=compatibility"} className="mt-5 flex min-h-12 items-center justify-center rounded-2xl bg-[#EAD8AD] px-6 py-5 text-center text-lg font-bold text-[#64263B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#64263B]">Check Compatibility →</Link>
+      <p className="mt-3 text-center text-xs leading-5 text-[#EAD8AD]">Use your tests across supported categories. Revisit saved comparisons without using another test.</p>
     </div>
   </section>
 }
