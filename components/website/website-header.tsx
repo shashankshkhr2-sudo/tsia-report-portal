@@ -16,6 +16,7 @@ const items = [
  { title: 'Services', href: '/website/services', icon: BookOpen },
  { title: 'Compatibility', href: '/website/compatibility', icon: UsersRound },
  { title: "Invitations", href: "/website/shared-compatibility", icon: UsersRound },
+  { title: "Join as a Practitioner", href: "/website/join", icon: UsersRound },
 ]
 export function WebsiteHeader() {
  const [signedIn, setSignedIn] = useState(false)
