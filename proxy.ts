@@ -4,6 +4,7 @@ import { updateSession } from '@/lib/supabase/proxy'
 
 export async function proxy(request: NextRequest) {
   if(request.nextUrl.pathname === "/" && ["jeevansutra.co.in","www.jeevansutra.co.in"].includes(request.nextUrl.hostname)){const u=request.nextUrl.clone();u.pathname="/website";return NextResponse.redirect(u)}
+  if (["/sitemap.xml", "/robots.txt"].includes(request.nextUrl.pathname)) return NextResponse.next()
   return updateSession(request)
 }
 
