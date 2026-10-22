@@ -1,3 +1,11 @@
+export const metadata = {
+  "title": "Jeevan Sutra | Numerology, Name Numbers & Lo Shu Grid",
+  "description": "Explore traditional numerology with Jeevan Sutra. Discover your Mulank, Bhagyank, Chaldean name numbers, Lo Shu grid and compatibility previews.",
+  "alternates": {
+    "canonical": "https://www.jeevansutra.co.in/website"
+  }
+}
+
 import { NameDiscoveryFeature, NameCorrectionCard } from '@/components/website/name-discovery-feature'
 import Link from 'next/link'
 import { Star, BriefcaseBusiness, Heart, Compass, Sprout } from 'lucide-react'

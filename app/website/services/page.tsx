@@ -1,3 +1,11 @@
+export const metadata = {
+  "title": "Numerology Insights & Personal Guidance | Jeevan Sutra",
+  "description": "Explore Jeevan Sutra numerology insights, name analysis, compatibility and personal guidance. View planned services and consultation options.",
+  "alternates": {
+    "canonical": "https://www.jeevansutra.co.in/website/services"
+  }
+}
+
 import Link from 'next/link'
 import { LaunchGift } from '@/components/website/launch-gift'
 import { offers } from '@/lib/jeevansutra/catalogue'
