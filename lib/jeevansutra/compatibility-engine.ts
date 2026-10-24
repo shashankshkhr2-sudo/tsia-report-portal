@@ -1,3 +1,4 @@
+import { familyRelationshipContext } from "./compatibility-contract"
 import { loveRelationshipCopy } from "./compatibility-contract"
 import 'server-only'
 import { compatibilityReadingCopy } from './compatibility-reading-copy'
@@ -30,6 +31,9 @@ const lineDefinitions: { id: string; digits: NumerologyDigit[]; theme: string }[
  { id: 'silver_258', digits: [2,5,8], theme: 'cooperation and steadiness' },
 ]
 const context: Record<CompatibilityKind, string> = {
+  Business: "sharing work, money, decisions and responsibilities",
+  Work: "working together, giving feedback and respecting boundaries",
+  "Meeting Someone": "the purpose of the meeting, questions to ask and the next step",
  'Love & Marriage': 'closeness, independence and shared expectations',
  Family: 'respect, boundaries and family expectations',
  Friendship: 'mutual support, availability and personal space',
@@ -57,7 +61,7 @@ export function calculateCompatibility(input: ReadingInput) {
 }
 export function buildCompatibility(input: ReadingInput) {
  const facts = calculateCompatibility(input)
- const selectedContext = (input.kind === "Love & Marriage" ? loveRelationshipCopy[input.relationship]?.context : undefined) || context[input.kind]
+ const selectedContext = (input.kind === "Love & Marriage" ? loveRelationshipCopy[input.relationship]?.context : undefined) || (input.kind === "Family" ? familyRelationshipContext[input.relationship] : undefined) || context[input.kind]
  const theme = (n: NumerologyDigit) => themes[n].theme
  const aTheme = theme(facts.a.mulank.final), bTheme = theme(facts.b.mulank.final)
  const shared = facts.shared.map(theme)

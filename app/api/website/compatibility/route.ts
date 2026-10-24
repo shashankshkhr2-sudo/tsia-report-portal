@@ -36,14 +36,14 @@ export async function GET(request: Request) {
       const rows: SummaryRow[] = await list.json()
       const used: { id: string }[] = await allowance.json()
       const history = rows.filter(row => row.is_active).map(row => ({ id: row.id, created_at: row.created_at, preview: { kind: row.kind, people: row.people } }))
-      return reply({ history, remaining: Math.max(0, 3 - used.length), draftEnabled: compatibilityDraftEnabled(), nextOffset: rows.length === 100 ? summaryOffset + 100 : null })
+      return reply({ history, remaining: (identity.email === "shashankshkhr2@gmail.com" ? -1 : Math.max(0, 3 - used.length)), draftEnabled: compatibilityDraftEnabled(), nextOffset: rows.length === 100 ? summaryOffset + 100 : null })
     }
     const response = await database(`js_compatibility_previews?auth_user_id=eq.${identity.userId}&organization_id=eq.${JS_ORGANIZATION_ID}&select=id,preview,created_at,is_active&order=created_at.desc`)
     if (!response.ok) return reply({ error: 'Unable to load your complimentary previews.' }, 503)
     const rows = await response.json()
     const visible = rows.filter((row: { is_active: boolean; preview: { version?: string } }) => row.is_active)
     const history = visible.map((row: { id: string; preview: unknown; created_at: string }) => ({ id: row.id, created_at: row.created_at, preview: customerResult(row.preview) }))
-    return reply({ history, remaining: Math.max(0, 3 - rows.length), draftEnabled: compatibilityDraftEnabled() })
+    return reply({ history, remaining: (identity.email === "shashankshkhr2@gmail.com" ? -1 : Math.max(0, 3 - rows.length)), draftEnabled: compatibilityDraftEnabled() })
   } catch { return reply({ error: 'Unable to load previews. Please try again.' }, 503) }
 }
 export async function POST(request: Request) {
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
     if (!saved.ok) return reply({ error: 'Your preview could not be saved. Please try again.' }, 503)
     const result = await saved.json()
     if (result.limitReached) return reply({ error: 'You have used your three complimentary previews. Your saved previews remain available.', remaining: 0 }, 409)
-    return reply({ id: result.id, preview: customerResult(result.preview), remaining: result.remaining, reused: result.reused })
+    return reply({ id: result.id, preview: customerResult(result.preview), remaining: identity.email === "shashankshkhr2@gmail.com" ? -1 : result.remaining, reused: result.reused })
   } catch { return reply({ error: 'Unable to prepare your preview. Please try again.' }, 503) }
 }
 
