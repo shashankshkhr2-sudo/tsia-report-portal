@@ -9,7 +9,7 @@ import { compatibilitySignInPath } from '@/lib/jeevansutra/customer-destination'
 import { LaunchGift } from './launch-gift'
 import { customerClient } from '@/lib/jeevansutra/customer-client'
 import { compatibilityKinds, relationships, priorities, type CompatibilityKind, type CustomerReading } from '@/lib/jeevansutra/compatibility-contract'
-const legacyKinds = ['Personal Relationship Compatibility', 'Business Partnership Compatibility', 'Professional Compatibility', 'Interaction Guidance']
+const legacyKinds = ['Personal Relationship Compatibility', 'Business Partnership Compatibility', 'Professional Compatibility', 'Interaction Guidance', "Family Compatibility"]
 type Saved = { id: string; preview: Pick<CustomerReading, "kind" | "people">; created_at: string }
 const field = 'mt-2 min-h-12 w-full rounded-xl border border-[#ded4cb] bg-[#FFFDFA] p-3 text-base text-[#392e30] focus:outline-2 focus:outline-offset-2 focus:outline-[#C5A15A]'
 export function CompatibilityPreview() {

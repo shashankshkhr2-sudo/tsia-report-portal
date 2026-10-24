@@ -1,6 +1,6 @@
 import type { NumerologyCalculationResult, NumberCounts, NumerologyDigit } from '@/lib/numerology/types'
 
-export const reportKinds = ['Personal Relationship Compatibility', 'Business Partnership Compatibility', 'Professional Compatibility', 'Interaction Guidance'] as const
+export const reportKinds = ['Personal Relationship Compatibility', 'Business Partnership Compatibility', 'Professional Compatibility', 'Interaction Guidance', "Family Compatibility"] as const
 export const themes: Record<number, { title: string; strength: string; balance: string; prompt: string }> = {
  1: { title: 'Surya · Initiative', strength: 'Independence, initiative and clear self-expression.', balance: 'Make room for shared decisions and other viewpoints.', prompt: 'How much autonomy do you each prefer?' },
  2: { title: 'Chandra · Sensitivity', strength: 'Cooperation, sensitivity and emotional attentiveness.', balance: 'State needs clearly rather than expecting others to guess.', prompt: 'What makes you feel heard and supported?' },
@@ -13,6 +13,7 @@ export const themes: Record<number, { title: string; strength: string; balance: 
  9: { title: 'Mangal · Drive', strength: 'Energy, conviction, vision and purposeful action.', balance: 'Let conviction coexist with patient listening.', prompt: 'How will you handle strong differences of opinion?' },
 }
 export const questionsByKind: Record<string, string[]> = {
+  [reportKinds[4]]: ["Listening and expressing needs respectfully","Sharing family responsibilities fairly","Personal space, boundaries and independence","Supporting each other through disagreements and change"],
  [reportKinds[0]]: ['Communication and resolving disagreements', 'Affection, reassurance and personal space', 'Family, responsibilities and money expectations', 'Future plans and shared values'],
  [reportKinds[1]]: ['Roles, skills and time commitment', 'Investment, risk and financial transparency', 'Decision authority and accountability', 'Goals, conflict resolution and exit expectations'],
  [reportKinds[2]]: ['Working style and feedback', 'Responsibilities and reliability expectations', 'Autonomy, leadership and decision-making', 'Boundaries and resolving disagreements'],
