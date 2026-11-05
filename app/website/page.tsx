@@ -1,3 +1,4 @@
+import ExploreSlider from "@/components/website/explore-slider"
 export const metadata = {
   "title": "Jeevan Sutra | Numerology, Name Numbers & Lo Shu Grid",
   "description": "Explore traditional numerology with Jeevan Sutra. Discover your Mulank, Bhagyank, Chaldean name numbers, Lo Shu grid and compatibility previews.",
@@ -86,59 +87,23 @@ export default function JeevanSutraHomePage() {
 
 
       {/* HERO */}
-      <section className="bg-gradient-to-br from-[#64263B] via-[#551F35] to-[#351020] text-white">
-        <div className="mx-auto grid max-w-7xl items-center gap-9 px-5 pb-14 pt-12 md:grid-cols-2 md:gap-5 md:px-10 md:py-16">
-          <div className="min-w-0">
-            <p className="mb-6 text-[11px] uppercase tracking-[0.22em] text-[#EAD8AD]">
-              Your Personal Numerology Journey
-            </p>
-
-            <div style={{ containerType: "inline-size" }}><h1 className="font-serif text-[clamp(0.875rem,5.4cqw,2.6rem)] font-normal leading-[1.5] text-[#FFF8EB]"><span className="block whitespace-nowrap">Understand Yourself.</span><span className="block whitespace-nowrap">Explore Your Connections.</span><span className="block whitespace-nowrap">Discover Your Life’s Possibilities.</span></h1></div>
-
-            <div className="my-7 h-px w-28 bg-[#C5A15A]" />
-
-            <div
-              lang="hi"
-              className="font-serif text-[clamp(1.45rem,4.5vw,2.3rem)] font-normal leading-[1.55] text-[#EAD8AD]"
-            >
-              <p>खुद को समझें।</p>
-              <p>अपने रिश्तों को जानें।</p>
-              <p>जीवन की संभावनाएँ खोजें।</p>
+        <section className="bg-[#64263B] text-[#FAF0DE]">
+        <div id="personality" className="bg-[#64263B] text-[#FAF0DE]">
+          <div className="mx-auto grid max-w-7xl items-center md:grid-cols-2">
+            <div className="order-2 px-5 py-9 sm:px-10 md:order-1">
+              <h1 className="font-serif text-4xl font-bold leading-tight lg:text-6xl">Discover Your Personality</h1>
+              <p className="mt-3 max-w-md leading-relaxed text-[#FAF0DE]">Gain a deeper understanding of who you are, why you think and feel the way you do, and how to make the most of your unique nature.</p>
+              <dl className="mt-6 grid gap-4 sm:grid-cols-3">
+                <div><dt className="font-serif text-xl font-bold">Strengths</dt><dd className="mt-1 text-sm text-[#FAF0DE]">Know your natural talents and advantages.</dd></div>
+                <div><dt className="font-serif text-xl font-bold">Challenges</dt><dd className="mt-1 text-sm text-[#FAF0DE]">Understand your key hurdles and patterns.</dd></div>
+                <div><dt className="font-serif text-xl font-bold">Growth</dt><dd className="mt-1 text-sm text-[#FAF0DE]">Get practical direction for a more balanced and fulfilling life.</dd></div>
+              </dl>
+              <Link href="/website/start" className="mt-6 inline-flex min-h-12 items-center rounded-xl bg-[#D2B577] px-7 py-3 font-semibold text-[#64263B]">Start Free →</Link>
             </div>
-
-            <p className="mt-6 max-w-xl text-base leading-8 text-[#F0E4E5]">
-              Explore your strengths and personal patterns through
-              traditional numerology, with three complimentary
-              compatibility previews. Your name and date of birth
-              are enough to get started.
-            </p>
-
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <Link
-                href="/website/start"
-                className="group inline-flex min-h-16 w-full items-center justify-between gap-3 rounded-2xl border border-[#F6E6BB] bg-gradient-to-br from-[#F4E4BD] to-[#EAD8AD] px-5 py-4 text-center text-base font-bold text-[#64263B] shadow-[0_6px_20px_rgba(0,0,0,0.12)] transition-colors hover:from-[#FFF0CA] hover:to-[#F4E4BD] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#EAD8AD] sm:w-auto sm:gap-5 sm:px-7"
-              >
-                <span className="flex-1">Discover Your Free Profile</span>
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-[#64263B]/20 text-xl" aria-hidden="true">→</span>
-              </Link>
-
-              <a
-                href="#free-discovery"
-                className="inline-flex items-center justify-center rounded-full border border-[#D7B57B] px-7 py-4 text-center font-medium text-[#FAF1E1] hover:bg-white/10"
-              >
-                What Will I Discover?
-              </a>
-
-            </div>
-
-            <ul aria-label="Your complimentary profile includes" className="mt-6 space-y-3 text-base font-bold leading-6 text-[#EAD8AD]">
-              {['No birth time required', 'Your basic numerology profile is free', 'Includes 3 complimentary compatibility previews'].map(text => (
-                <li key={text} className="flex items-start gap-3"><span aria-hidden="true" className="shrink-0">✓</span><span>{text}</span></li>
-              ))}
-            </ul>
-
-            <div className="mt-7"><LaunchGift compact /></div>
-            <div className="mt-5"><NameCorrectionCard compact /></div>
+            <img src="/website/home/mirror.webp" alt="A woman looking at her reflection in a brass mirror" width={1440} height={1080} className="order-1 md:order-2 block h-auto w-full" />
+          </div>
+        </div>
+        <div className="mx-auto max-w-7xl px-5 pb-5 md:px-10">
 
             <div className="mt-7 border-t border-[#D8B475]/30 pt-5">
               <p className="text-sm leading-7 text-[#F0E4E5]">
@@ -152,13 +117,16 @@ export default function JeevanSutraHomePage() {
                 Join Jeevan Sutra
                 <span aria-hidden="true">→</span>
               </Link>
+            <hr className="mt-5 border-0 border-t border-[#D8B475]/40" />
             </div>
           </div>
+      </section>
 
-          <div className="mx-auto w-full max-w-[600px]">
+      <div className="bg-[#64263B] px-5 pb-6 pt-0 md:px-10 md:pt-4"><ExploreSlider /></div>
+      <section aria-label="Earth and Navagraha" className="bg-[#64263B] px-5 py-12 text-[#FAF0DE]">
+        <div className="mx-auto w-full max-w-[600px]">
             <GrahaArtwork />
           </div>
-        </div>
       </section>
 
       {/* BENEFITS */}
@@ -333,9 +301,9 @@ export default function JeevanSutraHomePage() {
           <div className="mt-12 text-center">
             <Link
               href="/website/start"
-              className="inline-flex items-center rounded-full bg-[#64263B] px-9 py-4 font-medium text-white hover:bg-[#4D1930]"
+              className="inline-flex items-center rounded-full bg-[#64263B] px-9 py-4 font-medium text-[#FAF0DE] hover:bg-[#4D1930]"
             >
-              Discover Your Free Profile
+              Discover Your Personality
               <span className="ml-3" aria-hidden="true">→</span>
             </Link>
 
@@ -502,11 +470,12 @@ export default function JeevanSutraHomePage() {
 
               <Link
                 href="/website/join"
-                className="mt-8 inline-flex items-center justify-center gap-3 rounded-full bg-[#64263B] px-8 py-4 font-medium text-white hover:bg-[#4D1930]"
+                className="mt-8 inline-flex items-center justify-center gap-3 rounded-full bg-[#64263B] px-8 py-4 font-medium text-[#FAF0DE] hover:bg-[#4D1930]"
               >
                 Apply to Join — Free
                 <span aria-hidden="true">→</span>
               </Link>
+            <hr className="mt-5 border-0 border-t border-[#D8B475]/40" />
 
               <p className="mt-4 text-sm leading-7 text-[#665B55]">
                 No registration or practitioner subscription fee.
@@ -699,12 +668,13 @@ export default function JeevanSutraHomePage() {
               Join Our Practitioner Network
               <span aria-hidden="true">→</span>
             </Link>
+            <hr className="mt-5 border-0 border-t border-[#D8B475]/40" />
           </div>
         </div>
       </section>
 
       {/* FINAL CUSTOMER CTA */}
-      <section className="bg-gradient-to-br from-[#64263B] to-[#3D1329] px-5 py-20 text-center text-white md:px-10">
+      <section className="bg-gradient-to-br from-[#64263B] to-[#3D1329] px-5 py-20 text-center text-[#FAF0DE] md:px-10">
         <div className="mx-auto max-w-4xl">
           <p className="text-xs uppercase tracking-[0.22em] text-[#EAD8AD]">
             Your Discovery Begins Here
@@ -722,7 +692,7 @@ export default function JeevanSutraHomePage() {
             href="/website/start"
             className="mt-9 inline-flex items-center rounded-full bg-[#EAD8AD] px-9 py-4 font-medium text-[#64263B]"
           >
-            Discover Your Free Profile
+            Discover Your Personality
             <span className="ml-3" aria-hidden="true">→</span>
           </Link>
         </div>
@@ -769,6 +739,7 @@ export default function JeevanSutraHomePage() {
             >
               Join Jeevan Sutra
             </Link>
+            <hr className="mt-5 border-0 border-t border-[#D8B475]/40" />
           </nav>
         </div>
 

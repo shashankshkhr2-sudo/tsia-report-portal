@@ -24,7 +24,7 @@ export function validRelationship(kind: unknown, relationship: unknown): kind is
 }
 export type LegacyReading = {
  version: 'JS_COMPATIBILITY_LAUNCH_1'; kind: string; people: { name: string }[];
- observations: string[]; limitation: string;
+ observations: string[]; detailedSections?: ReadingSection[]; limitation: string;
 }
 export type CustomerReading = StandardReading | LegacyReading
 

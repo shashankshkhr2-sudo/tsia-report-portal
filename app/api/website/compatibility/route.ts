@@ -3,6 +3,7 @@ import { createHmac } from 'node:crypto'
 import { customerIdentity, database, JS_ORGANIZATION_ID } from '@/lib/jeevansutra/customer-server'
 import { comparisonPerson, launchKinds, launchPreview } from '@/lib/jeevansutra/compatibility-launch'
 import { validRelationship, priorities as allowedPriorities } from '@/lib/jeevansutra/compatibility-contract'
+import { launchRelationshipGuidance } from '@/lib/jeevansutra/compatibility-launch-options'
 import { buildCompatibility } from '@/lib/jeevansutra/compatibility-engine'
 import { compatibilityDraftEnabled } from '@/lib/jeevansutra/compatibility-release'
 import { customerResult } from '@/lib/jeevansutra/compatibility-customer-result'
@@ -64,9 +65,13 @@ export async function POST(request: Request) {
     let input
     try { input = JSON.parse(Buffer.concat(chunks).toString('utf8')) } catch { return reply({ error: 'Invalid request.' }, 400) }
     const draft = compatibilityDraftEnabled()
+    const fullLoShu = !draft
+      && process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://rzinwcnfhrpdddziedvq.supabase.co'
     if (!input || (draft ? !validRelationship(input.kind, input.relationship) : !launchKinds.includes(input.kind)) || input.permission !== true || typeof input.name !== 'string' || typeof input.dob !== 'string') return reply({ error: 'Choose a comparison type and confirm permission.' }, 400)
+    if (!draft && (typeof input.relationship !== 'string' || !launchRelationshipGuidance(input.kind, input.relationship))) return reply({ error: 'Choose a relationship for this comparison type.' }, 400)
     let other
     try { other = comparisonPerson(input.name, input.dob) } catch (error) { return reply({ error: error instanceof Error ? error.message : 'Check the other person’s details.' }, 400) }
+    if (fullLoShu && !other.dob) return reply({ error: 'Enter the other person’s date of birth for the full compatibility reading.' }, 400)
     if (draft && (!other.dob || !Array.isArray(input.priorities) || input.priorities.length > 3
       || new Set(input.priorities).size !== input.priorities.length
       || input.priorities.some((p: unknown) => typeof p !== 'string' || !(allowedPriorities as readonly string[]).includes(p))
@@ -80,12 +85,12 @@ export async function POST(request: Request) {
     if (!limit.ok) return reply({ error: 'Previews are temporarily unavailable.' }, 503)
     if (await limit.json() !== true) return reply({ error: 'Please wait before trying again.' }, 429)
     // Include the self profile snapshot so a changed DOB never silently reuses an incompatible report.
-    const key = createHmac('sha256', secret).update(JSON.stringify(draft ? ['v2-draft', input.kind, input.relationship, input.selfRole.trim().replace(/\s+/g, ' ').toLowerCase(), input.otherRole.trim().replace(/\s+/g, ' ').toLowerCase(), self.name.toLowerCase(), self.dob, other.name.toLowerCase(), other.dob] : [input.kind, other.name.toLowerCase(), other.dob])).digest('hex')
+    const key = createHmac('sha256', secret).update(JSON.stringify(draft ? ['v2-draft', input.kind, input.relationship, input.selfRole.trim().replace(/\s+/g, ' ').toLowerCase(), input.otherRole.trim().replace(/\s+/g, ' ').toLowerCase(), self.name.toLowerCase(), self.dob, other.name.toLowerCase(), other.dob] : [input.kind, other.name.toLowerCase(), other.dob, input.relationship, ...(fullLoShu ? ['full-loshu-detailed-v3', self.name.toLowerCase(), self.dob] : [])])).digest('hex')
     const source = draft ? { self, other, kind: input.kind, relationship: input.relationship, selfRole: input.selfRole.trim(), otherRole: input.otherRole.trim(), priorities: input.priorities } : null
     const built = source ? buildCompatibility(source) : null
     const saved = await database(draft ? 'rpc/save_js_compatibility_v2_draft' : 'rpc/save_js_compatibility_preview', { method: 'POST', body: JSON.stringify({
       p_auth_user_id: identity.userId, p_comparison_key: key,
-      p_preview: built ? built.standard : launchPreview(input.kind, self, other),
+      p_preview: built ? built.standard : launchPreview(input.kind, self, other, input.relationship, fullLoShu),
       ...(built && source ? { p_source: source, p_practitioner: built.practitioner } : {}),
     }) })
     if (!saved.ok) return reply({ error: 'Your preview could not be saved. Please try again.' }, 503)

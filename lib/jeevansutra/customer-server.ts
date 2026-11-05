@@ -6,7 +6,7 @@ export async function database(path: string, init: RequestInit = {}) {
   if (!url || !key) throw new Error('Customer service is unavailable.')
   const headers: Record<string, string> = { apikey: key, 'Content-Type': 'application/json', ...(init.headers as Record<string, string> || {}) }
   if (!key.startsWith('sb_secret_')) headers.Authorization = `Bearer ${key}`
-  return fetch(new URL(`/rest/v1/${path}`, url), { ...init, headers, cache: 'no-store', signal: AbortSignal.timeout(10000) })
+  return jsTimedFetch(new URL(`/rest/v1/${path}`, url), { ...init, headers, cache: 'no-store', signal: AbortSignal.timeout(10000) })
 }
 export async function customerIdentity(request: Request) {
   const match = /^Bearer ([A-Za-z0-9._-]+)$/.exec(request.headers.get('authorization') || '')
@@ -35,8 +35,21 @@ export async function customerAuthResponse(request: Request) {
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   const authorization = request.headers.get("authorization") || ""
   if (!url || !key || !/^Bearer [A-Za-z0-9._-]+$/.test(authorization) || authorization.length > 8199) throw new Error("Invalid authentication request")
-  pending = fetch(new URL("/auth/v1/user", url), { headers: { apikey: key, Authorization: authorization }, cache: "no-store", signal: AbortSignal.timeout(10000) })
+  pending = jsTimedFetch(new URL("/auth/v1/user", url), { headers: { apikey: key, Authorization: authorization }, cache: "no-store", signal: AbortSignal.timeout(process.env.NODE_ENV === "development" ? 25000 : 10000) })
   customerAuthRequests.set(request, pending)
  }
  return (await pending).clone()
+}
+
+async function jsTimedFetch(url: URL, init: RequestInit) {
+  if (process.env.NODE_ENV !== "development") return fetch(url, init)
+  const start = Date.now()
+  try {
+    const response = await fetch(url, init)
+    console.info("[JS timing]", url.pathname, response.status, Date.now() - start, "ms")
+    return response
+  } catch (error) {
+    console.info("[JS timing]", url.pathname, error instanceof Error ? error.name : "Error", Date.now() - start, "ms")
+    throw error
+  }
 }

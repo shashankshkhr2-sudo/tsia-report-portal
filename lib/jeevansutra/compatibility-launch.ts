@@ -1,6 +1,9 @@
 import 'server-only'
+import { fullCompatibilityConclusion, detailedCompatibilitySections } from './compatibility-full-conclusion'
 import { calculateChaldeanName } from '@/lib/numerology/chaldean'
 import { calculateNumerologyV2 } from '@/lib/numerology/calculations'
+
+import { launchRelationshipGuidance } from './compatibility-launch-options'
 
 export const launchKinds = ['Personal Relationship Compatibility', 'Business Partnership Compatibility', 'Professional Compatibility', 'Interaction Guidance', "Family Compatibility"] as const
 export function comparisonPerson(name: string, dob: string) {
@@ -23,14 +26,20 @@ function summary(person: { name: string; dob: string }) {
   const calculation = calculateNumerologyV2({ fullName: person.name, dateOfBirth: person.dob })
   return { name: person.name, nameNumber: energy.finalNumber, theme: themes[energy.finalNumber], mulank: calculation.mulank.final, bhagyank: calculation.bhagyank.final }
 }
-export function launchPreview(kind: string, self: { name: string; dob: string }, other: { name: string; dob: string }) {
+export function launchPreview(kind: string, self: { name: string; dob: string }, other: { name: string; dob: string }, relationship = '', fullLoShu = false) {
+  const guidance = launchRelationshipGuidance(kind, relationship)
+  const fullConclusion = fullLoShu
+    ? fullCompatibilityConclusion(kind, relationship, self, other)
+    : null
   const people = [summary(self), summary(other)]
   const shared = people[0].nameNumber === people[1].nameNumber
   return {
     version: 'JS_COMPATIBILITY_LAUNCH_1', kind, people,
+    ...(guidance ? { relationship } : {}),
+    ...(fullConclusion ? { fullConclusion, detailedSections: detailedCompatibilitySections(kind, relationship, self, other) } : {}),
     observations: [shared ? 'Your names share a reduced Chaldean number. Use this common symbolic theme as a starting point for discussing how you each express yourselves.' : 'Your names have different reduced Chaldean numbers. Explore your different approaches without assuming that differences mean conflict.', other.dob ? 'Both dates of birth are included. Discuss how your individual priorities and ways of responding compare in everyday situations.' : 'This comparison includes name-based guidance for the other person. Their DOB-based patterns are unavailable.'],
-    question: kind === launchKinds[4] ? "How can you support each other as family while respecting individual needs, boundaries and responsibilities?" : kind === launchKinds[1] ? 'How will you agree roles, decisions and responsibilities?' : kind === launchKinds[2] ? 'How do you each prefer to receive feedback and resolve disagreements?' : kind === launchKinds[3] ? 'What does each person need to clarify before agreeing the next step?' : 'What helps each of you feel heard and respected?',
-    action: 'Choose one expectation to discuss together and agree one practical next step.',
+    question: guidance ? relationship + ': ' + guidance[0] : kind === launchKinds[4] ? "How can you support each other as family while respecting individual needs, boundaries and responsibilities?" : kind === launchKinds[1] ? 'How will you agree roles, decisions and responsibilities?' : kind === launchKinds[2] ? 'How do you each prefer to receive feedback and resolve disagreements?' : kind === launchKinds[3] ? 'What does each person need to clarify before agreeing the next step?' : 'What helps each of you feel heard and respected?',
+    action: guidance?.[1] ?? 'Choose one expectation to discuss together and agree one practical next step.',
     limitation: 'A brief traditional numerology-based reflection, not a full reading or proof of compatibility, private feelings or future outcomes.',
   }
 }

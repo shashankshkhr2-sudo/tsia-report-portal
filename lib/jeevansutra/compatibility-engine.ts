@@ -43,7 +43,7 @@ export type ReadingInput = {
  self: { name: string; dob: string }; other: { name: string; dob: string };
  kind: CompatibilityKind; relationship: string; selfRole: string; otherRole: string; priorities: string[];
 }
-export function calculateCompatibility(input: ReadingInput) {
+export function calculateCompatibility(input: Pick<ReadingInput, 'self' | 'other'>) {
  const a = calculateNumerologyV2({ fullName: input.self.name, dateOfBirth: input.self.dob })
  const b = calculateNumerologyV2({ fullName: input.other.name, dateOfBirth: input.other.dob })
  const combined = Object.fromEntries(digits.map(n => [n, a.loShu.counts[n] + b.loShu.counts[n]])) as Record<NumerologyDigit, number>
