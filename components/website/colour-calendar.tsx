@@ -17,7 +17,7 @@ const metalAccessories: Record<string, { image: string; label: string; alt: stri
 }
 function MetalAccessory({ metal }: { metal: string }) {
   const choices = metal === "Gold or copper" ? ["Gold", "Copper"] : [metal]
-  return <div className="mt-4 space-y-2">
+  return <div className="min-w-0 space-y-2">
     {choices.length > 1 && <p className="text-center text-xs text-[#766B67]">Choose either metal</p>}
     {choices.map(name => {
       const item = metalAccessories[name]
@@ -25,7 +25,7 @@ function MetalAccessory({ metal }: { metal: string }) {
       return <div key={name} className="overflow-hidden rounded-xl border border-[#D2B577] bg-[#64263B] p-2 text-center text-[#FAF0DE]">
         <p className="font-serif text-lg leading-6">{name}</p>
         <p className="mt-0.5 text-[11px] leading-4 text-[#FAF0DE]/90">{item.label}</p>
-        <img src={`/website/metals/${item.image}.webp`} alt={item.alt} width={600} height={600} loading="lazy" className="mt-2 block aspect-square w-full rounded-lg object-contain" />
+        <img src={`/website/metals/${item.image}.webp`} alt={item.alt} width={600} height={600} loading="lazy" className="mx-auto mt-2 block h-24 w-full rounded-lg bg-[#FAF7F0] object-contain sm:h-28" />
       </div>
     })}
   </div>
@@ -121,11 +121,13 @@ export function ColourCalendar({ dob }: { dob: string }) {
       {!today && <p role="status" className="text-sm text-[#766B67]">Preparing your calendar…</p>}
       {today && !start && <p className="text-sm text-[#766B67]">Enter all eight digits: DD/MM/YYYY.</p>}
       {error && <p role="alert" className="rounded-xl bg-white p-4 text-[#8A303A]">{error}</p>}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">{days.map(day => {
+      <div className="grid grid-cols-1 gap-3">{days.map(day => {
         const isToday = day.date === today
-        return <article key={day.date} aria-label={dateLabel(day.date, { weekday: "long", day: "numeric", month: "long", year: "numeric" })} className={isToday ? "rounded-2xl border-2 border-[#B89143] bg-[#FFF8E8] p-3 shadow-sm sm:p-4" : "rounded-2xl border border-[#E4D8C4] bg-white p-3 sm:p-4"}>
-          <div className="mb-4"><div className="flex flex-wrap items-center justify-between gap-1"><p className="text-sm font-semibold text-[#64263B]">{dateLabel(day.date, { weekday: "long" })}</p>{isToday && <span className="rounded-full bg-[#64263B] px-2 py-1 text-[10px] font-semibold text-white">TODAY</span>}</div><p className="mt-1 font-serif text-2xl text-[#64263B]">{dateLabel(day.date, { day: "numeric", month: "short" })}</p></div>
+        return <article key={day.date} aria-label={dateLabel(day.date, { weekday: "long", day: "numeric", month: "long", year: "numeric" })} className={isToday ? "grid grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] items-center gap-3 rounded-2xl border-2 border-[#B89143] bg-[#FFF8E8] p-3 shadow-sm sm:gap-6 sm:p-4" : "grid grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] items-center gap-3 rounded-2xl border border-[#E4D8C4] bg-white p-3 sm:gap-6 sm:p-4"}>
+          <div className="min-w-0">
+          <div className="mb-3"><div className="flex flex-wrap items-center justify-between gap-1"><p className="text-sm font-semibold text-[#64263B]">{dateLabel(day.date, { weekday: "long" })}</p>{isToday && <span className="rounded-full bg-[#64263B] px-2 py-1 text-[10px] font-semibold text-white">TODAY</span>}</div><p className="mt-1 font-serif text-2xl text-[#64263B]">{dateLabel(day.date, { day: "numeric", month: "short" })}</p></div>
           <Swatches colours={day.dailyColours} />
+          </div>
           <MetalAccessory metal={day.jewelleryMetal} />
         </article>
       })}</div>
