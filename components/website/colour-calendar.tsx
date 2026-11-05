@@ -76,10 +76,13 @@ export function ColourCalendar({ dob }: { dob: string }) {
       {personalColours && <article className="rounded-2xl border border-[#E4D8C4] bg-white p-5">
         <div className="mb-4"><p className="text-xs font-semibold uppercase tracking-widest text-[#906C36]">Always yours</p><h3 className="mt-1 font-serif text-2xl text-[#64263B]">Your personal palette</h3><p className="mt-2 text-sm text-[#766B67]">Familiar shades to enjoy on any day.</p></div>
         <div className="max-w-md"><Swatches colours={personalColours} /></div>
-        <div className="mt-5 border-t border-[#D2B577]/40 pt-4">
-          <h4 className="text-sm font-medium text-[#766B67]">Your personal jewellery metal</h4>
-          <p className="mt-2 font-serif text-2xl text-[#64263B]">{days[0]?.personalMetal}</p>
-          <p className="mt-2 text-sm leading-6 text-[#766B67]">An optional choice for everyday jewellery. You can keep wearing it regardless of the daily suggestion.</p>
+        <div className="mt-6 overflow-hidden rounded-3xl border-2 border-[#D2B577] bg-[#64263B] p-4 text-center text-[#FAF0DE] sm:p-6">
+          <h4 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#D2B577]">Your signature metal</h4>
+          <p className="mt-3 font-serif text-4xl leading-tight sm:text-5xl">{days[0]?.personalMetal}</p>
+          <p className="mt-3 font-serif text-lg italic leading-7">A personal touch for your everyday style.</p>
+          {days[0]?.personalMetal === "Silver" && <img src="/website/metals/silver.webp" alt="A plain silver bracelet and pendant resting on ivory fabric" width={880} height={480} loading="lazy" className="mt-5 block h-auto w-full rounded-2xl" />}
+          <p className="mt-5 font-serif text-lg tracking-wide">Ring · Bracelet · Pendant</p>
+          <p className="mt-3 text-xs leading-5 text-[#FAF0DE]/80">An optional everyday choice, independent of the daily suggestion.</p>
         </div>
       </article>}
       <div className="flex flex-wrap items-end justify-between gap-4">
