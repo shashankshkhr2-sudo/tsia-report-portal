@@ -4,8 +4,8 @@ import { getColourDay, type Colour } from "@/lib/jeevansutra/colour-calendar"
 
 function Swatches({ colours }: { colours: Colour[] }) {
   return <ul className="grid grid-cols-3 gap-1.5">{colours.map(colour => <li key={colour.name} className="min-w-0 text-center">
-    <div aria-hidden="true" style={{ backgroundColor: colour.hex }} className="h-12 rounded-xl border border-black/15 shadow-sm" />
-    <span className="mt-2 block min-h-8 text-[10px] leading-4 text-[#514047] sm:text-xs" style={{ wordBreak: "normal", overflowWrap: "normal" }}>{colour.name}</span>
+    <div aria-hidden="true" style={{ backgroundColor: colour.hex }} className="h-14 rounded-xl sm:h-16 border border-black/15 shadow-sm" />
+    <span className="mt-2 block min-h-8 text-[11px] leading-4 text-[#514047] sm:text-xs" style={{ wordBreak: "normal", overflowWrap: "normal" }}>{colour.name}</span>
   </li>)}</ul>
 }
 const metalAccessories: Record<string, { image: string; label: string; alt: string }> = {
@@ -17,16 +17,15 @@ const metalAccessories: Record<string, { image: string; label: string; alt: stri
 }
 function MetalAccessory({ metal }: { metal: string }) {
   const choices = metal === "Gold or copper" ? ["Gold", "Copper"] : [metal]
-  return <div className="min-w-0 space-y-2">
+  return <div className="min-w-0 space-y-3">
     {choices.length > 1 && <p className="text-center text-xs text-[#766B67]">Choose either metal</p>}
     {choices.map(name => {
       const item = metalAccessories[name]
       if (!item) return null
-      return <div key={name} className="overflow-hidden rounded-xl border border-[#D2B577] bg-[#64263B] p-2 text-center text-[#FAF0DE]">
-        <p className="font-serif text-lg leading-6">{name}</p>
-        <p className="mt-0.5 text-[11px] leading-4 text-[#FAF0DE]/90">{item.label}</p>
-        <img src={`/website/metals/${item.image}.webp`} alt={item.alt} width={600} height={600} loading="lazy" className="mx-auto mt-2 block h-24 w-full rounded-lg bg-[#FAF7F0] object-contain sm:h-28" />
-      </div>
+      return <figure key={name} className="min-w-0">
+        <img src={`/website/metals/${item.image}.webp`} alt={item.alt} width={600} height={600} loading="lazy" className="block aspect-[5/4] w-full rounded-xl object-cover" />
+        <figcaption className="mt-1.5 text-center text-xs font-medium leading-5 text-[#64263B] sm:text-sm">{name} · {item.label}</figcaption>
+      </figure>
     })}
   </div>
 }
@@ -123,16 +122,19 @@ export function ColourCalendar({ dob }: { dob: string }) {
       {error && <p role="alert" className="rounded-xl bg-white p-4 text-[#8A303A]">{error}</p>}
       <div className="grid grid-cols-1 gap-3">{days.map(day => {
         const isToday = day.date === today
-        return <article key={day.date} aria-label={dateLabel(day.date, { weekday: "long", day: "numeric", month: "long", year: "numeric" })} className={isToday ? "grid grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] items-center gap-3 rounded-2xl border-2 border-[#B89143] bg-[#FFF8E8] p-3 shadow-sm sm:gap-6 sm:p-4" : "grid grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] items-center gap-3 rounded-2xl border border-[#E4D8C4] bg-white p-3 sm:gap-6 sm:p-4"}>
-          <div className="min-w-0">
-          <div className="mb-3"><div className="flex flex-wrap items-center justify-between gap-1"><p className="text-sm font-semibold text-[#64263B]">{dateLabel(day.date, { weekday: "long" })}</p>{isToday && <span className="rounded-full bg-[#64263B] px-2 py-1 text-[10px] font-semibold text-white">TODAY</span>}</div><p className="mt-1 font-serif text-2xl text-[#64263B]">{dateLabel(day.date, { day: "numeric", month: "short" })}</p></div>
-          <Swatches colours={day.dailyColours} />
+        return <article key={day.date} aria-label={dateLabel(day.date, { weekday: "long", day: "numeric", month: "long", year: "numeric" })} className={isToday ? "rounded-2xl border-2 border-[#B89143] bg-[#FFF8E8] p-3 shadow-sm sm:p-4" : "rounded-2xl border border-[#E4D8C4] bg-white p-3 sm:p-4"}>
+          <header className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-[#D2B577]/50 pb-2">
+            <h4 className="font-serif text-xl leading-7 text-[#64263B] sm:text-2xl">{dateLabel(day.date, { weekday: "long" })} · {dateLabel(day.date, { day: "numeric", month: "short" })}</h4>
+            {isToday && <span className="shrink-0 rounded-full bg-[#64263B] px-2 py-1 text-[10px] font-semibold text-white">TODAY</span>}
+          </header>
+          <div className="grid grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] items-center gap-3 sm:gap-5">
+            <Swatches colours={day.dailyColours} />
+            <MetalAccessory metal={day.jewelleryMetal} />
           </div>
-          <MetalAccessory metal={day.jewelleryMetal} />
         </article>
       })}</div>
       <div className="rounded-2xl bg-[#EFE7D9] p-4 text-sm leading-6 text-[#65544D]"><p>Choose any one of these three shades for your outfit or an accessory. Wear what feels comfortable and natural to you.</p></div>
-      <p className="text-center text-xs leading-5 text-[#766B67]">Guided by numerology traditions. Choose what feels right for you.<br />Jewellery suggestions are optional and inspired by planetary traditions. Wear what suits your comfort and preferences.<br />Calendar dates follow India Standard Time.</p>
+      <p className="text-center text-xs leading-5 text-[#766B67]">Guided by numerology traditions. Choose what feels right for you.<br />Metal accessory suggestions are optional and inspired by planetary traditions. Wear what suits your comfort and preferences.<br />Calendar dates follow India Standard Time.</p>
     </div>
   </section>
 }
