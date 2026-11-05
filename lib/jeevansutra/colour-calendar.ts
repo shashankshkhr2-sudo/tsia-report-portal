@@ -14,6 +14,22 @@ export const colourPalettes: Record<number, Colour[]> = {
   8: [{name:"Dark blue",hex:"#304966"},{name:"Black",hex:"#29282D"},{name:"Navy",hex:"#202D45"}],
   9: [{name:"Red",hex:"#B64046"},{name:"Brick red",hex:"#A95649"},{name:"Burgundy",hex:"#64263B"}]
 }
+// Contemporary Jyotish associations; Rahu and Ketu use silver from gemstone-setting practice.
+// Applying these associations to the personal-day number is a Jeevan Sutra interpretation.
+// Sources: https://www.ganeshaspeaks.com/predictions/astrology/navagraha/
+// https://namietamodi.com/gemstones/
+// Optional jewellery guidance, not a gemstone prescription.
+export const jewelleryMetals: Record<number, string> = {
+  1: "Gold or copper",
+  2: "Silver",
+  3: "Gold",
+  4: "Silver",
+  5: "Bronze",
+  6: "Silver",
+  7: "Silver",
+  8: "Iron",
+  9: "Copper"
+}
 export function reduceNumber(value: number): number {
   if (!Number.isSafeInteger(value) || value < 1) throw new Error("Expected a positive whole number");
   return 1 + ((value - 1) % 9);
@@ -37,6 +53,7 @@ export function getColourDay(dob: string, selectedDate: string) {
   return {
     date: selectedDate, mulank, personalYear, personalMonth, personalDay,
     personalColours: colourPalettes[mulank],
-    dailyColours: colourPalettes[personalDay]
+    dailyColours: colourPalettes[personalDay],
+    jewelleryMetal: jewelleryMetals[personalDay]
   };
 }

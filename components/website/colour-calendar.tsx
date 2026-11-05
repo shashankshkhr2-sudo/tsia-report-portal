@@ -96,10 +96,14 @@ export function ColourCalendar({ dob }: { dob: string }) {
         return <article key={day.date} aria-label={dateLabel(day.date, { weekday: "long", day: "numeric", month: "long", year: "numeric" })} className={isToday ? "rounded-2xl border-2 border-[#B89143] bg-[#FFF8E8] p-3 shadow-sm sm:p-4" : "rounded-2xl border border-[#E4D8C4] bg-white p-3 sm:p-4"}>
           <div className="mb-4"><div className="flex flex-wrap items-center justify-between gap-1"><p className="text-sm font-semibold text-[#64263B]">{dateLabel(day.date, { weekday: "long" })}</p>{isToday && <span className="rounded-full bg-[#64263B] px-2 py-1 text-[10px] font-semibold text-white">TODAY</span>}</div><p className="mt-1 font-serif text-2xl text-[#64263B]">{dateLabel(day.date, { day: "numeric", month: "short" })}</p></div>
           <Swatches colours={day.dailyColours} />
+          <div className="mt-4 border-t border-[#D2B577]/40 pt-3">
+            <p className="text-xs font-medium text-[#766B67]">Jewellery metal</p>
+            <p className="mt-1 text-sm font-semibold leading-6 text-[#64263B]">{day.jewelleryMetal}</p>
+          </div>
         </article>
       })}</div>
       <div className="rounded-2xl bg-[#EFE7D9] p-4 text-sm leading-6 text-[#65544D]"><p>Choose any one of these three shades for your outfit or an accessory. Wear what feels comfortable and natural to you.</p></div>
-      <p className="text-center text-xs leading-5 text-[#766B67]">Guided by numerology traditions. Choose what feels right for you.<br />Calendar dates follow India Standard Time.</p>
+      <p className="text-center text-xs leading-5 text-[#766B67]">Guided by numerology traditions. Choose what feels right for you.<br />Jewellery suggestions are optional and inspired by planetary traditions. Wear what suits your comfort and preferences.<br />Calendar dates follow India Standard Time.</p>
     </div>
   </section>
 }
