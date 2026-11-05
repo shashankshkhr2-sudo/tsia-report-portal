@@ -76,6 +76,11 @@ export function ColourCalendar({ dob }: { dob: string }) {
       {personalColours && <article className="rounded-2xl border border-[#E4D8C4] bg-white p-5">
         <div className="mb-4"><p className="text-xs font-semibold uppercase tracking-widest text-[#906C36]">Always yours</p><h3 className="mt-1 font-serif text-2xl text-[#64263B]">Your personal palette</h3><p className="mt-2 text-sm text-[#766B67]">Familiar shades to enjoy on any day.</p></div>
         <div className="max-w-md"><Swatches colours={personalColours} /></div>
+        <div className="mt-5 border-t border-[#D2B577]/40 pt-4">
+          <h4 className="text-sm font-medium text-[#766B67]">Your personal jewellery metal</h4>
+          <p className="mt-2 font-serif text-2xl text-[#64263B]">{days[0]?.personalMetal}</p>
+          <p className="mt-2 text-sm leading-6 text-[#766B67]">An optional choice for everyday jewellery. You can keep wearing it regardless of the daily suggestion.</p>
+        </div>
       </article>}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div><h3 className="font-serif text-2xl text-[#64263B]">Seven days of colour</h3>{days.length > 0 && <p className="mt-1 text-sm text-[#766B67]">{dateLabel(days[0].date, { day: "numeric", month: "short", year: "numeric" })} – {dateLabel(days[6].date, { day: "numeric", month: "short", year: "numeric" })}</p>}</div>

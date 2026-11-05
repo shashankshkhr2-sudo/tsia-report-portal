@@ -53,6 +53,7 @@ export function getColourDay(dob: string, selectedDate: string) {
   return {
     date: selectedDate, mulank, personalYear, personalMonth, personalDay,
     personalColours: colourPalettes[mulank],
+    personalMetal: jewelleryMetals[mulank],
     dailyColours: colourPalettes[personalDay],
     jewelleryMetal: jewelleryMetals[personalDay]
   };
