@@ -3,10 +3,10 @@ import { useEffect, useState } from "react"
 import { getColourDay, type Colour } from "@/lib/jeevansutra/colour-calendar"
 
 function Swatches({ colours }: { colours: Colour[] }) {
-  return <div>
-    <div aria-hidden="true" className="grid grid-cols-3 gap-2">{colours.map(colour => <div key={colour.name} style={{ backgroundColor: colour.hex }} className="h-12 rounded-xl border border-black/15 shadow-sm" />)}</div>
-    <ul className="mt-3 space-y-1.5">{colours.map(colour => <li key={colour.name} className="flex items-center gap-2 text-xs leading-5 text-[#514047]"><span aria-hidden="true" style={{ backgroundColor: colour.hex }} className="h-3 w-3 shrink-0 rounded-full border border-black/15" /><span>{colour.name}</span></li>)}</ul>
-  </div>
+  return <ul className="grid grid-cols-3 gap-1.5">{colours.map(colour => <li key={colour.name} className="min-w-0 text-center">
+    <div aria-hidden="true" style={{ backgroundColor: colour.hex }} className="h-12 rounded-xl border border-black/15 shadow-sm" />
+    <span className="mt-2 block min-h-8 text-[10px] leading-4 text-[#514047] sm:text-xs" style={{ wordBreak: "normal", overflowWrap: "normal" }}>{colour.name}</span>
+  </li>)}</ul>
 }
 function indiaDate() {
   const parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date())
