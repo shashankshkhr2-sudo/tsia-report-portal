@@ -42,3 +42,24 @@ process.env.JS_COMPATIBILITY_V2_DRAFT_ENABLED='true';process.env.VERCEL_ENV='pro
 process.env.VERCEL_ENV='preview';assert.equal(release(),true);delete process.env.JS_COMPATIBILITY_V2_DRAFT_ENABLED;assert.equal(release(),false);
 assert.equal(contract.validRelationship('Family','Mother-in-law / daughter-in-law'),true);assert.equal(contract.validRelationship('Family','Partners'),false);
 console.log('PASS: all source syntax, Akhand/Shiny arithmetic, eight lines, four categories, symmetry, invalid DOB, customer projection, legacy preservation, draft release gate.');
+
+// Detailed launch report checks
+const launchModule=load(root+"/lib/jeevansutra/compatibility-launch.ts");
+const launchOptions=load(root+"/lib/jeevansutra/compatibility-launch-options.ts");
+let detailedCases=0;
+for(const kind of launchModule.launchKinds){
+ for(const relationship of launchOptions.launchRelationships(kind)){
+  const saved=launchModule.launchPreview(kind,input.self,input.other,relationship,true);
+  const result=project(saved);
+  assert.equal(result.kind,relationship);
+  assert.equal(result.detailedSections.length,11);
+  assert.ok(result.detailedSections.every(s=>s.title.trim() && s.text.trim() && !s.text.includes("undefined")));
+  assert.deepEqual(project(JSON.parse(JSON.stringify(saved))),result);
+  assert.deepEqual(Object.keys(result).sort(),["version","kind","people","observations","detailedSections","limitation"].sort());
+  assert.ok(result.people.every(p=>Object.keys(p).length===1 && typeof p.name==="string"));
+  detailedCases++;
+ }
+}
+assert.equal(detailedCases,17);
+assert.throws(()=>launchModule.launchPreview("Family Compatibility",input.self,input.other,"Business partners",true));
+console.log("PASS: 17 detailed relationships, report sections, saved JSON reopening, customer field filtering and invalid relationship rejection.");
