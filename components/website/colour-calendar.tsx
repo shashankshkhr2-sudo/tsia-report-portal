@@ -104,9 +104,10 @@ export function ColourCalendar({ dob }: { dob: string }) {
         return <article key={day.date} aria-label={dateLabel(day.date, { weekday: "long", day: "numeric", month: "long", year: "numeric" })} className={isToday ? "rounded-2xl border-2 border-[#B89143] bg-[#FFF8E8] p-3 shadow-sm sm:p-4" : "rounded-2xl border border-[#E4D8C4] bg-white p-3 sm:p-4"}>
           <div className="mb-4"><div className="flex flex-wrap items-center justify-between gap-1"><p className="text-sm font-semibold text-[#64263B]">{dateLabel(day.date, { weekday: "long" })}</p>{isToday && <span className="rounded-full bg-[#64263B] px-2 py-1 text-[10px] font-semibold text-white">TODAY</span>}</div><p className="mt-1 font-serif text-2xl text-[#64263B]">{dateLabel(day.date, { day: "numeric", month: "short" })}</p></div>
           <Swatches colours={day.dailyColours} />
-          <div className="mt-4 border-t border-[#D2B577]/40 pt-3">
-            <p className="text-xs font-medium text-[#766B67]">Jewellery metal</p>
-            <p className="mt-1 text-sm font-semibold leading-6 text-[#64263B]">{day.jewelleryMetal}</p>
+          <div className="mt-4 rounded-xl border border-[#D2B577] bg-[#64263B] p-3 text-center text-[#FAF0DE]">
+            <p className="text-[10px] font-semibold uppercase leading-4 tracking-wide text-[#D2B577]">Jewellery metal</p>
+            <div aria-hidden="true" className="mx-auto my-3 h-9 w-12 rounded-[50%] border-[5px] shadow-[0_3px_6px_rgba(0,0,0,0.25)]" style={{ borderColor: ({ Silver: "#DDE0E5", Gold: "#D8B65A", Bronze: "#B78A54", Copper: "#C88661", Iron: "#9299A1", "Gold or copper": "#D8B65A" } as Record<string, string>)[day.jewelleryMetal], background: "transparent", transform: "rotate(-20deg)", boxShadow: "inset 0 1px 2px #FFFFFF80, 0 2px 4px #00000040" }} />
+            <p className="font-serif text-lg leading-6">{day.jewelleryMetal}</p>
           </div>
         </article>
       })}</div>
