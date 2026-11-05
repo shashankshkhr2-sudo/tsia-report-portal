@@ -98,7 +98,7 @@ export function ColourCalendar({ dob }: { dob: string }) {
           <Swatches colours={day.dailyColours} />
         </article>
       })}</div>
-      <div className="rounded-2xl bg-[#EFE7D9] p-4 text-sm leading-6 text-[#65544D]"><p>Choose one shade, combine it with your favourites, or add a small accent through a scarf, tie, bag or jewellery.</p></div>
+      <div className="rounded-2xl bg-[#EFE7D9] p-4 text-sm leading-6 text-[#65544D]"><p>Choose any one of these three shades for your outfit or an accessory. Wear what feels comfortable and natural to you.</p></div>
       <p className="text-center text-xs leading-5 text-[#766B67]">Guided by numerology traditions. Choose what feels right for you.<br />Calendar dates follow India Standard Time.</p>
     </div>
   </section>
