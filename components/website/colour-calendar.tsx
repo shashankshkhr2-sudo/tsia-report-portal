@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 import { getColourDay, type Colour } from "@/lib/jeevansutra/colour-calendar"
 
 function Swatches({ colours }: { colours: Colour[] }) {
-  return <ul className="grid grid-cols-3 gap-2">{colours.map(colour => <li key={colour.name} className="min-w-0 text-center"><div aria-hidden="true" style={{ backgroundColor: colour.hex }} className="mx-auto h-12 w-full rounded-xl border border-black/15 shadow-sm" /><span className="mt-2 block text-xs leading-5 text-[#514047]">{colour.name}</span></li>)}</ul>
+  return <ul className="grid grid-cols-3 gap-2">{colours.map(colour => <li key={colour.name} className="min-w-0 text-center"><div aria-hidden="true" style={{ backgroundColor: colour.hex }} className="mx-auto h-12 w-full rounded-xl border border-black/15 shadow-sm" /><span className="mt-2 block min-h-10 break-words text-xs leading-5 text-[#514047]">{colour.name}</span></li>)}</ul>
 }
 function indiaDate() {
   const parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date())
@@ -32,12 +32,12 @@ export function ColourCalendar({ dob }: { dob: string }) {
   useEffect(() => {
     if (today) {
       setStart(today)
-      setDateText(today.split("-").reverse().join(" "))
+      setDateText(today.split("-").reverse().join("/"))
     }
   }, [today])
   function changeDate(value: string) {
     const digits = value.replace(/\D/g, "").slice(0, 8)
-    setDateText([digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 8)].filter(Boolean).join(" "))
+    setDateText([digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 8)].filter(Boolean).join("/"))
     setStart(digits.length === 8 ? digits.slice(4) + "-" + digits.slice(2, 4) + "-" + digits.slice(0, 2) : "")
   }
   let days: ReturnType<typeof getColourDay>[] = []
@@ -46,6 +46,21 @@ export function ColourCalendar({ dob }: { dob: string }) {
     try {
       days = Array.from({ length: 7 }, (_, index) => getColourDay(dob, addDays(start, index)))
     } catch { error = "Please choose a valid date on or after your birth date, on or before 25 December 2200." }
+  }
+  function canMoveWeek(offset: number) {
+    if (days.length !== 7) return false
+    try {
+      const next = addDays(start, offset)
+      getColourDay(dob, next)
+      getColourDay(dob, addDays(next, 6))
+      return true
+    } catch { return false }
+  }
+  function moveWeek(offset: number) {
+    if (!canMoveWeek(offset)) return
+    const next = addDays(start, offset)
+    setStart(next)
+    setDateText(next.split("-").reverse().join("/"))
   }
   const personalColours = days[0]?.personalColours
   return <section aria-labelledby="colour-calendar-title" className="my-6 overflow-hidden rounded-[28px] border border-[#D2B577]/60 bg-[#FAF7F0] shadow-sm">
@@ -62,12 +77,16 @@ export function ColourCalendar({ dob }: { dob: string }) {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div><h3 className="font-serif text-2xl text-[#64263B]">Seven days of colour</h3>{days.length > 0 && <p className="mt-1 text-sm text-[#766B67]">{dateLabel(days[0].date, { day: "numeric", month: "short", year: "numeric" })} – {dateLabel(days[6].date, { day: "numeric", month: "short", year: "numeric" })}</p>}</div>
         <div className="flex flex-wrap items-end gap-2">
-          <label className="block text-sm font-medium text-[#64263B]">Starting date<input type="text" inputMode="numeric" placeholder="DD MM YYYY" aria-label="Calendar starting date, day month year" autoComplete="off" value={dateText} onChange={event => changeDate(event.target.value)} className="mt-1 block min-h-11 max-w-full rounded-xl border border-[#D2B577] bg-white px-3 py-2 text-base text-[#392E30]" /></label>
-          <button type="button" disabled={!today} onClick={() => { setStart(today); setDateText(today.split("-").reverse().join(" ")) }} className="min-h-11 rounded-xl border border-[#D2B577] px-4 py-2 text-sm font-semibold text-[#64263B]">Today</button>
+          <label className="block text-sm font-medium text-[#64263B]">Starting date<input type="text" inputMode="numeric" placeholder="DD/MM/YYYY" aria-label="Calendar starting date, day month year" autoComplete="off" value={dateText} onChange={event => changeDate(event.target.value)} className="mt-1 block min-h-11 max-w-full rounded-xl border border-[#D2B577] bg-white px-3 py-2 text-base text-[#392E30]" /></label>
+          <button type="button" disabled={!today} onClick={() => { setStart(today); setDateText(today.split("-").reverse().join("/")) }} className="min-h-11 rounded-xl border border-[#D2B577] px-4 py-2 text-sm font-semibold text-[#64263B]">Today</button>
         </div>
       </div>
+      <nav aria-label="Colour calendar weeks" className="flex items-center justify-between gap-3">
+        <button type="button" disabled={!canMoveWeek(-7)} onClick={() => moveWeek(-7)} className="min-h-11 rounded-xl border border-[#D2B577] px-3 py-2 text-sm font-semibold text-[#64263B] disabled:cursor-not-allowed disabled:opacity-40">← Previous 7 days</button>
+        <button type="button" disabled={!canMoveWeek(7)} onClick={() => moveWeek(7)} className="min-h-11 rounded-xl border border-[#D2B577] px-3 py-2 text-sm font-semibold text-[#64263B] disabled:cursor-not-allowed disabled:opacity-40">Next 7 days →</button>
+      </nav>
       {!today && <p role="status" className="text-sm text-[#766B67]">Preparing your calendar…</p>}
-      {today && !start && <p className="text-sm text-[#766B67]">Enter all eight digits: DD MM YYYY.</p>}
+      {today && !start && <p className="text-sm text-[#766B67]">Enter all eight digits: DD/MM/YYYY.</p>}
       {error && <p role="alert" className="rounded-xl bg-white p-4 text-[#8A303A]">{error}</p>}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">{days.map(day => {
         const isToday = day.date === today
