@@ -75,7 +75,7 @@ export function ColourCalendar({ dob }: { dob: string }) {
     <div className="space-y-6 p-4 sm:p-8">
       {personalColours && <article className="rounded-2xl border border-[#E4D8C4] bg-white p-5">
         <div className="mb-4"><p className="text-xs font-semibold uppercase tracking-widest text-[#906C36]">Always yours</p><h3 className="mt-1 font-serif text-2xl text-[#64263B]">Your personal palette</h3><p className="mt-2 text-sm text-[#766B67]">Familiar shades to enjoy on any day.</p></div>
-        <div className="max-w-md"><Swatches colours={personalColours} /></div>
+        <ul className="grid max-w-md grid-cols-3 gap-2">{personalColours.map(colour => <li key={colour.name} className="min-w-0 text-center"><div aria-hidden="true" style={{ backgroundColor: colour.hex }} className="h-12 rounded-xl border border-black/15 shadow-sm" /><span className="mt-2 block text-xs leading-5 text-[#514047]">{colour.name}</span></li>)}</ul>
         <div className="mt-5 flex items-center gap-3 overflow-hidden rounded-2xl border border-[#D2B577] bg-[#64263B] p-3 text-[#FAF0DE] sm:gap-5 sm:p-5">
           <div className="min-w-0 flex-1">
             <h4 className="text-[10px] font-semibold uppercase leading-4 tracking-[0.12em] text-[#D2B577]">Your signature metal</h4>
