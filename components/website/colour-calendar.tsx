@@ -12,6 +12,7 @@ function indiaDate() {
 }
 function addDays(value: string, count: number) {
   const date = new Date(value + "T12:00:00Z")
+  if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== value) throw new Error("Invalid date")
   date.setUTCDate(date.getUTCDate() + count)
   return date.toISOString().slice(0, 10)
 }
@@ -21,24 +22,30 @@ function dateLabel(value: string, options: Intl.DateTimeFormatOptions) {
 export function ColourCalendar({ dob }: { dob: string }) {
   const [today, setToday] = useState("")
   const [start, setStart] = useState("")
+  const [dateText, setDateText] = useState("")
   useEffect(() => {
-    const refresh = () => {
-      const current = indiaDate()
-      setToday(previous => {
-        if (previous !== current) setStart(value => !value || value === previous ? current : value)
-        return current
-      })
-    }
+    const refresh = () => setToday(indiaDate())
     refresh()
     const timer = window.setInterval(refresh, 60000)
     return () => window.clearInterval(timer)
   }, [])
+  useEffect(() => {
+    if (today) {
+      setStart(today)
+      setDateText(today.split("-").reverse().join(" "))
+    }
+  }, [today])
+  function changeDate(value: string) {
+    const digits = value.replace(/\D/g, "").slice(0, 8)
+    setDateText([digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 8)].filter(Boolean).join(" "))
+    setStart(digits.length === 8 ? digits.slice(4) + "-" + digits.slice(2, 4) + "-" + digits.slice(0, 2) : "")
+  }
   let days: ReturnType<typeof getColourDay>[] = []
   let error = ""
   if (start) {
     try {
       days = Array.from({ length: 7 }, (_, index) => getColourDay(dob, addDays(start, index)))
-    } catch { error = "Please choose a valid date on or after your birth date, before 25 December 2200." }
+    } catch { error = "Please choose a valid date on or after your birth date, on or before 25 December 2200." }
   }
   const personalColours = days[0]?.personalColours
   return <section aria-labelledby="colour-calendar-title" className="my-6 overflow-hidden rounded-[28px] border border-[#D2B577]/60 bg-[#FAF7F0] shadow-sm">
@@ -55,12 +62,12 @@ export function ColourCalendar({ dob }: { dob: string }) {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div><h3 className="font-serif text-2xl text-[#64263B]">Seven days of colour</h3>{days.length > 0 && <p className="mt-1 text-sm text-[#766B67]">{dateLabel(days[0].date, { day: "numeric", month: "short", year: "numeric" })} – {dateLabel(days[6].date, { day: "numeric", month: "short", year: "numeric" })}</p>}</div>
         <div className="flex flex-wrap items-end gap-2">
-          <label className="block text-sm font-medium text-[#64263B]">Starting date<input type="date" value={start} min={dob} max="2200-12-25" onChange={event => setStart(event.target.value)} className="mt-1 block min-h-11 max-w-full rounded-xl border border-[#D2B577] bg-white px-3 py-2 text-base text-[#392E30]" /></label>
-          <button type="button" disabled={!today} onClick={() => setStart(today)} className="min-h-11 rounded-xl border border-[#D2B577] px-4 py-2 text-sm font-semibold text-[#64263B]">Today</button>
+          <label className="block text-sm font-medium text-[#64263B]">Starting date<input type="text" inputMode="numeric" placeholder="DD MM YYYY" aria-label="Calendar starting date, day month year" autoComplete="off" value={dateText} onChange={event => changeDate(event.target.value)} className="mt-1 block min-h-11 max-w-full rounded-xl border border-[#D2B577] bg-white px-3 py-2 text-base text-[#392E30]" /></label>
+          <button type="button" disabled={!today} onClick={() => { setStart(today); setDateText(today.split("-").reverse().join(" ")) }} className="min-h-11 rounded-xl border border-[#D2B577] px-4 py-2 text-sm font-semibold text-[#64263B]">Today</button>
         </div>
       </div>
       {!today && <p role="status" className="text-sm text-[#766B67]">Preparing your calendar…</p>}
-      {today && !start && <p className="text-sm text-[#766B67]">Choose a starting date to see your colours.</p>}
+      {today && !start && <p className="text-sm text-[#766B67]">Enter all eight digits: DD MM YYYY.</p>}
       {error && <p role="alert" className="rounded-xl bg-white p-4 text-[#8A303A]">{error}</p>}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">{days.map(day => {
         const isToday = day.date === today

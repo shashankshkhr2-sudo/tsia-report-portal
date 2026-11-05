@@ -26,9 +26,10 @@ function readDate(value: string) {
   return { year, month, day };
 }
 export function getColourDay(dob: string, selectedDate: string) {
-  const birth = readDate(dob);
+  const birthIso = /^\d{2}\/\d{2}\/\d{4}$/.test(dob) ? dob.split("/").reverse().join("-") : dob;
+  const birth = readDate(birthIso);
   const target = readDate(selectedDate);
-  if (selectedDate < dob) throw new Error("Choose a date on or after birth");
+  if (selectedDate < birthIso) throw new Error("Choose a date on or after birth");
   const mulank = reduceNumber(birth.day);
   const personalYear = reduceNumber(birth.day + birth.month + target.year);
   const personalMonth = reduceNumber(personalYear + target.month);
