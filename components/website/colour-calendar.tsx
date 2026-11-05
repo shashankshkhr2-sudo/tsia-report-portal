@@ -80,9 +80,9 @@ export function ColourCalendar({ dob }: { dob: string }) {
           <div className="min-w-0 flex-1">
             <h4 className="text-[10px] font-semibold uppercase leading-4 tracking-[0.12em] text-[#D2B577]">Your signature metal</h4>
             <p className="mt-2 font-serif text-2xl leading-tight sm:text-3xl">{days[0]?.personalMetal}</p>
-            <p className="mt-2 text-xs leading-5 text-[#FAF0DE]/90">Ring · Bracelet · Pendant</p>
+
           </div>
-          {days[0]?.personalMetal === "Silver" && <img src="/website/metals/silver.webp" alt="Silver bracelet and pendant on ivory fabric" width={880} height={480} loading="lazy" className="block h-auto w-[42%] max-w-44 shrink-0 rounded-xl" />}
+          {days[0]?.personalMetal === "Silver" && <img src="/website/metals/silver.webp" alt="Silver bracelet and pendant on ivory fabric" width={880} height={480} loading="lazy" className="block h-auto w-1/2 max-w-56 shrink-0 rounded-xl" />}
         </div>
       </article>}
       <div className="flex flex-wrap items-end justify-between gap-4">
