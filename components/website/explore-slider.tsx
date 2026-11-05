@@ -1,9 +1,9 @@
 import Link from "next/link"
 
 const relationships = [
-  "Partner Compatibility",
-  "Love Life",
-  "Married Life",
+  "Love & Marriage",
+  "Friendship",
+  "Family & In-laws",
   "Work & Business",
 ]
 
@@ -26,7 +26,7 @@ export default function ExploreSlider() {
           {relationships.map((topic, index) => (
             <li key={topic} className="overflow-hidden rounded-xl border border-[#D2B577]/60">
               <Link href="/website/compatibility" className="block h-full hover:bg-white/10 focus-visible:outline-2 focus-visible:-outline-offset-2">
-                <img src={`/website/home/${["partner","love","married","business"][index]}.webp`} alt="" width={234} height={169} loading="lazy" className="aspect-[234/169] w-full object-cover" />
+                <img src={`/website/home/${["love-marriage","friendship","family-inlaws","work-business"][index]}.webp`} alt="" width={234} height={169} loading="lazy" className="aspect-[234/169] w-full object-cover" />
                 <span className="flex h-16 items-center justify-between gap-2 px-3 py-2 font-serif font-bold leading-tight md:text-xl">
                   {topic}<span aria-hidden="true">→</span>
                 </span>
