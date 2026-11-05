@@ -1,0 +1,76 @@
+"use client"
+import { useEffect, useState } from "react"
+import { getColourDay, type Colour } from "@/lib/jeevansutra/colour-calendar"
+
+function Swatches({ colours }: { colours: Colour[] }) {
+  return <ul className="grid grid-cols-3 gap-2">{colours.map(colour => <li key={colour.name} className="min-w-0 text-center"><div aria-hidden="true" style={{ backgroundColor: colour.hex }} className="mx-auto h-12 w-full rounded-xl border border-black/15 shadow-sm" /><span className="mt-2 block text-xs leading-5 text-[#514047]">{colour.name}</span></li>)}</ul>
+}
+function indiaDate() {
+  const parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date())
+  const part = (type: string) => parts.find(item => item.type === type)?.value || ""
+  return [part("year"), part("month"), part("day")].join("-")
+}
+function addDays(value: string, count: number) {
+  const date = new Date(value + "T12:00:00Z")
+  date.setUTCDate(date.getUTCDate() + count)
+  return date.toISOString().slice(0, 10)
+}
+function dateLabel(value: string, options: Intl.DateTimeFormatOptions) {
+  return new Intl.DateTimeFormat("en-GB", { ...options, timeZone: "UTC" }).format(new Date(value + "T12:00:00Z"))
+}
+export function ColourCalendar({ dob }: { dob: string }) {
+  const [today, setToday] = useState("")
+  const [start, setStart] = useState("")
+  useEffect(() => {
+    const refresh = () => {
+      const current = indiaDate()
+      setToday(previous => {
+        if (previous !== current) setStart(value => !value || value === previous ? current : value)
+        return current
+      })
+    }
+    refresh()
+    const timer = window.setInterval(refresh, 60000)
+    return () => window.clearInterval(timer)
+  }, [])
+  let days: ReturnType<typeof getColourDay>[] = []
+  let error = ""
+  if (start) {
+    try {
+      days = Array.from({ length: 7 }, (_, index) => getColourDay(dob, addDays(start, index)))
+    } catch { error = "Please choose a valid date on or after your birth date, before 25 December 2200." }
+  }
+  const personalColours = days[0]?.personalColours
+  return <section aria-labelledby="colour-calendar-title" className="my-6 overflow-hidden rounded-[28px] border border-[#D2B577]/60 bg-[#FAF7F0] shadow-sm">
+    <header className="bg-[#64263B] px-5 py-8 text-[#FAF0DE] sm:px-8">
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#D2B577]">Jeevan Sutra · Personal inspiration</p>
+      <h2 id="colour-calendar-title" className="mt-3 font-serif text-3xl leading-tight sm:text-4xl">Your Personal Days &amp; Colours</h2>
+      <p className="mt-3 max-w-xl text-sm leading-6 text-[#FAF0DE]/90">A little colour. A little inspiration. Choose what feels like you.</p>
+    </header>
+    <div className="space-y-6 p-4 sm:p-8">
+      {personalColours && <article className="rounded-2xl border border-[#E4D8C4] bg-white p-5">
+        <div className="mb-4"><p className="text-xs font-semibold uppercase tracking-widest text-[#906C36]">Always yours</p><h3 className="mt-1 font-serif text-2xl text-[#64263B]">Your personal palette</h3><p className="mt-2 text-sm text-[#766B67]">Familiar shades to enjoy on any day.</p></div>
+        <div className="max-w-md"><Swatches colours={personalColours} /></div>
+      </article>}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div><h3 className="font-serif text-2xl text-[#64263B]">Seven days of colour</h3>{days.length > 0 && <p className="mt-1 text-sm text-[#766B67]">{dateLabel(days[0].date, { day: "numeric", month: "short", year: "numeric" })} – {dateLabel(days[6].date, { day: "numeric", month: "short", year: "numeric" })}</p>}</div>
+        <div className="flex flex-wrap items-end gap-2">
+          <label className="block text-sm font-medium text-[#64263B]">Starting date<input type="date" value={start} min={dob} max="2200-12-25" onChange={event => setStart(event.target.value)} className="mt-1 block min-h-11 max-w-full rounded-xl border border-[#D2B577] bg-white px-3 py-2 text-base text-[#392E30]" /></label>
+          <button type="button" disabled={!today} onClick={() => setStart(today)} className="min-h-11 rounded-xl border border-[#D2B577] px-4 py-2 text-sm font-semibold text-[#64263B]">Today</button>
+        </div>
+      </div>
+      {!today && <p role="status" className="text-sm text-[#766B67]">Preparing your calendar…</p>}
+      {today && !start && <p className="text-sm text-[#766B67]">Choose a starting date to see your colours.</p>}
+      {error && <p role="alert" className="rounded-xl bg-white p-4 text-[#8A303A]">{error}</p>}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">{days.map(day => {
+        const isToday = day.date === today
+        return <article key={day.date} aria-label={dateLabel(day.date, { weekday: "long", day: "numeric", month: "long", year: "numeric" })} className={isToday ? "rounded-2xl border-2 border-[#B89143] bg-[#FFF8E8] p-3 shadow-sm sm:p-4" : "rounded-2xl border border-[#E4D8C4] bg-white p-3 sm:p-4"}>
+          <div className="mb-4"><div className="flex flex-wrap items-center justify-between gap-1"><p className="text-sm font-semibold text-[#64263B]">{dateLabel(day.date, { weekday: "long" })}</p>{isToday && <span className="rounded-full bg-[#64263B] px-2 py-1 text-[10px] font-semibold text-white">TODAY</span>}</div><p className="mt-1 font-serif text-2xl text-[#64263B]">{dateLabel(day.date, { day: "numeric", month: "short" })}</p></div>
+          <Swatches colours={day.dailyColours} />
+        </article>
+      })}</div>
+      <div className="rounded-2xl bg-[#EFE7D9] p-4 text-sm leading-6 text-[#65544D]"><p>Choose one shade, combine it with your favourites, or add a small accent through a scarf, tie, bag or jewellery.</p></div>
+      <p className="text-center text-xs leading-5 text-[#766B67]">Guided by numerology traditions. Choose what feels right for you.<br />Calendar dates follow India Standard Time.</p>
+    </div>
+  </section>
+}
