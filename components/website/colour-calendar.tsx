@@ -8,6 +8,28 @@ function Swatches({ colours }: { colours: Colour[] }) {
     <span className="mt-2 block min-h-8 text-[10px] leading-4 text-[#514047] sm:text-xs" style={{ wordBreak: "normal", overflowWrap: "normal" }}>{colour.name}</span>
   </li>)}</ul>
 }
+const metalAccessories: Record<string, { image: string; label: string; alt: string }> = {
+  Gold: { image: "gold-accessory", label: "Jewellery", alt: "Gold bangle and pendant on ivory fabric" },
+  Silver: { image: "silver-accessory", label: "Jewellery", alt: "Silver bangle and pendant on ivory fabric" },
+  Bronze: { image: "bronze-accessory", label: "Bag charm", alt: "Bronze bag charm with a clasp" },
+  Iron: { image: "iron-accessory", label: "Keyring", alt: "Dark iron keyring with a rounded tag" },
+  Copper: { image: "copper-accessory", label: "Water bottle", alt: "Hammered copper water bottle" }
+}
+function MetalAccessory({ metal }: { metal: string }) {
+  const choices = metal === "Gold or copper" ? ["Gold", "Copper"] : [metal]
+  return <div className="mt-4 space-y-2">
+    {choices.length > 1 && <p className="text-center text-xs text-[#766B67]">Choose either metal</p>}
+    {choices.map(name => {
+      const item = metalAccessories[name]
+      if (!item) return null
+      return <div key={name} className="overflow-hidden rounded-xl border border-[#D2B577] bg-[#64263B] p-2 text-center text-[#FAF0DE]">
+        <p className="font-serif text-lg leading-6">{name}</p>
+        <p className="mt-0.5 text-[11px] leading-4 text-[#FAF0DE]/90">{item.label}</p>
+        <img src={`/website/metals/${item.image}.webp`} alt={item.alt} width={600} height={600} loading="lazy" className="mt-2 block aspect-square w-full rounded-lg object-contain" />
+      </div>
+    })}
+  </div>
+}
 function indiaDate() {
   const parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date())
   const part = (type: string) => parts.find(item => item.type === type)?.value || ""
@@ -104,11 +126,7 @@ export function ColourCalendar({ dob }: { dob: string }) {
         return <article key={day.date} aria-label={dateLabel(day.date, { weekday: "long", day: "numeric", month: "long", year: "numeric" })} className={isToday ? "rounded-2xl border-2 border-[#B89143] bg-[#FFF8E8] p-3 shadow-sm sm:p-4" : "rounded-2xl border border-[#E4D8C4] bg-white p-3 sm:p-4"}>
           <div className="mb-4"><div className="flex flex-wrap items-center justify-between gap-1"><p className="text-sm font-semibold text-[#64263B]">{dateLabel(day.date, { weekday: "long" })}</p>{isToday && <span className="rounded-full bg-[#64263B] px-2 py-1 text-[10px] font-semibold text-white">TODAY</span>}</div><p className="mt-1 font-serif text-2xl text-[#64263B]">{dateLabel(day.date, { day: "numeric", month: "short" })}</p></div>
           <Swatches colours={day.dailyColours} />
-          <div className="mt-4 rounded-xl border border-[#D2B577] bg-[#64263B] p-3 text-center text-[#FAF0DE]">
-            <p className="text-[10px] font-semibold uppercase leading-4 tracking-wide text-[#D2B577]">Jewellery metal</p>
-            <div aria-hidden="true" className="mx-auto my-3 h-9 w-12 rounded-[50%] border-[5px] shadow-[0_3px_6px_rgba(0,0,0,0.25)]" style={{ borderColor: ({ Silver: "#DDE0E5", Gold: "#D8B65A", Bronze: "#B78A54", Copper: "#C88661", Iron: "#9299A1", "Gold or copper": "#D8B65A" } as Record<string, string>)[day.jewelleryMetal], background: "transparent", transform: "rotate(-20deg)", boxShadow: "inset 0 1px 2px #FFFFFF80, 0 2px 4px #00000040" }} />
-            <p className="font-serif text-lg leading-6">{day.jewelleryMetal}</p>
-          </div>
+          <MetalAccessory metal={day.jewelleryMetal} />
         </article>
       })}</div>
       <div className="rounded-2xl bg-[#EFE7D9] p-4 text-sm leading-6 text-[#65544D]"><p>Choose any one of these three shades for your outfit or an accessory. Wear what feels comfortable and natural to you.</p></div>
