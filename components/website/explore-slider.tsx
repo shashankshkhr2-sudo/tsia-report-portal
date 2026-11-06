@@ -40,7 +40,16 @@ export default function ExploreSlider() {
         <p className="mt-3 text-sm">Includes three complimentary compatibility previews.</p>
       </section>
 
-      <section aria-labelledby="home-days-colours" className="bg-[#FAF7F0] px-5 py-10"><div className="mx-auto grid max-w-6xl overflow-hidden rounded-3xl border border-[#D2B577]/60 bg-white shadow-sm md:grid-cols-2"><img src="/website/home/days-colours.webp" alt="Fabric colours beside a decorative calendar and silver jewellery" width={1200} height={800} loading="lazy" className="block h-auto w-full md:h-full md:object-cover" /><div className="flex flex-col justify-center p-6 sm:p-8"><p className="text-xs font-semibold uppercase tracking-widest text-[#906C36]">Days &amp; Colours</p><h2 id="home-days-colours" className="mt-3 font-serif text-3xl text-[#64263B] sm:text-4xl">Your Days. Your Colours.</h2><p className="mt-4 leading-7 text-[#766B67]">Discover one complimentary colour for today, inspired by your birth details and numerology traditions.</p><p className="mt-3 text-sm leading-6 text-[#766B67]">Preview the upcoming paid calendar with three daily shades and optional metal accessories.</p><Link href="/website/days-colours" className="mt-6 inline-flex min-h-12 items-center justify-center self-start rounded-xl bg-[#64263B] px-5 py-3 font-semibold text-[#FAF0DE]">Discover Today’s Colour →</Link></div></div></section>
+      <section aria-labelledby="home-days-colours" className="px-2 py-4 md:px-6">
+  <div className="grid grid-cols-[40%_minmax(0,1fr)] overflow-hidden rounded-2xl border border-[#D2B577] bg-[#FAF7F0] text-left">
+    <img src="/website/home/days-colours.webp" alt="Colourful fabrics, a decorative calendar and silver jewellery" width={1200} height={800} loading="lazy" className="h-full min-h-48 w-full object-cover object-center sm:min-h-56" />
+    <div className="flex min-w-0 flex-col justify-center p-4 sm:p-6">
+      <h2 id="home-days-colours" className="font-serif text-2xl leading-tight text-[#64263B] sm:text-3xl">Days &amp; Colours</h2>
+      <p className="mt-2 text-sm leading-5 text-[#766B67] sm:text-base">A little colour for your day.</p>
+      <Link href="/website/days-colours" aria-label="Explore Days and Colours" className="mt-4 inline-flex min-h-11 items-center justify-center self-start rounded-xl bg-[#64263B] px-4 py-2 text-sm font-semibold text-[#FAF0DE] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#64263B]">Explore →</Link>
+    </div>
+  </div>
+</section>
 
       <section id="life-possibilities" className="scroll-mt-28 border-t border-[#D2B577]/50 bg-[#64263B] px-2 py-8 text-center text-[#FAF0DE] md:px-6">
         <h2 className="font-serif text-3xl font-bold md:text-5xl">Discover Your Life Possibilities</h2>
