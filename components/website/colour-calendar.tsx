@@ -133,7 +133,7 @@ export function ColourCalendar({ dob }: { dob: string }) {
           </div>
         </article>
       })}</div>
-      <div className="rounded-2xl bg-[#EFE7D9] p-4 text-sm leading-6 text-[#65544D]"><p>Choose any one of these three shades for your outfit or an accessory. Wear what feels comfortable and natural to you.</p></div>
+      <div className="rounded-2xl bg-[#EFE7D9] p-4 text-sm leading-6 text-[#65544D]"><p>Choose one or two of these three shades for your outfit or accessories. Wear what feels comfortable and natural to you.</p></div>
       <p className="text-center text-xs leading-5 text-[#766B67]">Guided by numerology traditions. Choose what feels right for you.<br />Metal accessory suggestions are optional and inspired by planetary traditions. Choose what suits your comfort and preferences.<br />Calendar dates follow India Standard Time.</p>
     </div>
   </section>
