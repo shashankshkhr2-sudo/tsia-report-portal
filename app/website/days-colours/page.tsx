@@ -1,3 +1,4 @@
+import { TestColourCalendar } from "@/components/website/test-colour-calendar"
 import { FreeDailyColour } from "@/components/website/free-daily-colour"
 
 export const metadata = {
@@ -17,6 +18,7 @@ export default function DaysColoursPage() {
     </header>
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-7 sm:px-6">
       <FreeDailyColour />
+      <TestColourCalendar />
       <section aria-labelledby="paid-colour-preview" className="overflow-hidden rounded-3xl border border-[#D2B577]/60 bg-white">
         <div className="p-5 sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-widest text-[#906C36]">Paid version · Coming soon</p>
