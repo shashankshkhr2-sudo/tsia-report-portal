@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
-import { Menu, UserRound, X, Home, BookOpen, UsersRound, ChevronRight } from 'lucide-react'
+import { Menu, UserRound, X, Home, BookOpen, UsersRound, ChevronRight, Palette } from 'lucide-react'
 
 import { customerClient } from "@/lib/jeevansutra/customer-client"
 
@@ -11,6 +11,7 @@ import { HeaderAccountPhoto } from "./header-account-photo"
 import { AccountPersonalPanel } from "./account-personal-panel"
 
 const items = [
+ { title: "Days & Colours", href: "/website/days-colours", icon: Palette },
  { title: 'Home', href: '/website', icon: Home },
  { title: 'My Profile', href: '/website/welcome', icon: UserRound },
  { title: 'Services', href: '/website/services', icon: BookOpen },
