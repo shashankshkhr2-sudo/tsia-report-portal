@@ -11,12 +11,13 @@ import { HeaderAccountPhoto } from "./header-account-photo"
 import { AccountPersonalPanel } from "./account-personal-panel"
 
 const items = [
- { title: "Days & Colours", href: "/website/days-colours", icon: Palette },
+
  { title: 'Home', href: '/website', icon: Home },
  { title: 'My Profile', href: '/website/welcome', icon: UserRound },
  { title: 'Services', href: '/website/services', icon: BookOpen },
  { title: 'Compatibility', href: '/website/compatibility', icon: UsersRound },
  { title: "Invitations", href: "/website/shared-compatibility", icon: UsersRound },
+ { title: "Days & Colours", href: "/website/days-colours", icon: Palette },
   { title: "Join as a Practitioner", href: "/website/join", icon: UsersRound },
 ]
 export function WebsiteHeader() {
