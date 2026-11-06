@@ -103,7 +103,7 @@ export function ColourCalendar({ dob }: { dob: string }) {
             <p className="mt-2 font-serif text-2xl leading-tight sm:text-3xl">{days[0]?.personalMetal}</p>
 
           </div>
-          {days[0]?.personalMetal === "Silver" && <img src="/website/metals/silver.webp" alt="Silver bracelet and pendant on ivory fabric" width={880} height={480} loading="lazy" className="block h-auto w-1/2 max-w-56 shrink-0 rounded-xl" />}
+          {(days[0]?.personalMetal === "Gold or copper" ? ["Gold", "Copper"] : [days[0]?.personalMetal]).map(name => { const item = name ? metalAccessories[name] : undefined; return item ? <img key={name} src={`/website/metals/${item.image}.webp`} alt={item.alt} width={600} height={600} loading="lazy" className={days[0]?.personalMetal === "Gold or copper" ? "block h-auto w-1/4 max-w-28 shrink-0 rounded-xl" : "block h-auto w-1/2 max-w-56 shrink-0 rounded-xl"} /> : null })}
         </div>
       </article>}
       <div className="flex flex-wrap items-end justify-between gap-4">
