@@ -73,8 +73,8 @@ export function FreeDailyColour() {
   }, [attempt])
 
   return <section aria-labelledby="free-colour-title" className="rounded-3xl border border-[#D2B577]/60 bg-white p-5 sm:p-8">
-    <p className="text-xs font-semibold uppercase tracking-widest text-[#906C36]">Your complimentary daily colour</p>
-    <h2 id="free-colour-title" className="mt-2 font-serif text-3xl text-[#64263B]">A colour for today</h2>
+    <p className="text-xs font-semibold uppercase tracking-widest text-[#906C36]">Complimentary</p>
+    <h2 id="free-colour-title" className="mt-2 font-serif text-3xl text-[#64263B]">Your colour for today</h2>
     <div aria-live="polite" className="mt-5">
       {loading ? <p role="status">Preparing your daily colour…</p> : needsSignIn ? <>
         <p className="leading-7 text-[#766B67]">Sign in or complete your profile to discover today’s colour using your saved date of birth.</p>
@@ -84,9 +84,9 @@ export function FreeDailyColour() {
         <button type="button" onClick={() => setAttempt(value => value + 1)} className="mt-3 min-h-11 rounded-xl border border-[#D2B577] px-4 py-2 text-[#64263B]">Try again</button>
       </> : result ? <>
         <p className="text-sm text-[#766B67]">{new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(result.date + "T12:00:00Z"))}</p>
-        <div aria-hidden="true" style={{ backgroundColor: result.colour.hex }} className="mt-4 h-32 max-w-sm rounded-2xl border border-black/15 shadow-sm" />
+        <div aria-hidden="true" style={{ backgroundColor: result.colour.hex }} className="mt-4 h-20 w-full rounded-xl sm:h-24 border border-black/15 shadow-sm" />
         <h3 className="mt-3 font-serif text-3xl text-[#64263B]">{result.colour.name}</h3>
-        <p className="mt-3 leading-7 text-[#766B67]">Try it in your outfit or as a small colour accent. Choose what feels comfortable and natural to you.</p>
+        <p className="mt-3 leading-7 text-[#766B67]">A small touch in your outfit or accessories.</p>
       </> : null}
     </div>
     <p className="mt-5 text-xs leading-5 text-[#766B67]">Inspired by numerology traditions. Updated daily using India Standard Time.</p>

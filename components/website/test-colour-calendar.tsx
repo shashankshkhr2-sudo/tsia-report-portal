@@ -1,5 +1,7 @@
 "use client"
 import Link from "next/link"
+import { FreeDailyColour } from "./free-daily-colour"
+import { ColourCalendarPreview } from "./colour-calendar-preview"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { customerClient } from "@/lib/jeevansutra/customer-client"
@@ -79,15 +81,12 @@ export function TestColourCalendar() {
   }, [attempt, router])
 
   if (status === "ready" && dob) return <ColourCalendar key={dob} dob={dob} />
+  if (status === "denied") return <div className="my-6 space-y-5"><FreeDailyColour /><ColourCalendarPreview /></div>
   return <section className="my-6 rounded-2xl border border-[#D2B577]/60 bg-white p-5 text-[#64263B]">
     {status === "loading" ? <p role="status">Opening your calendar…</p>
       : status === "signin" ? <>
         <p>Please sign in or complete your profile to continue.</p>
         <Link href={signIn} className="mt-4 inline-flex min-h-11 items-center rounded-xl bg-[#64263B] px-5 py-3 font-semibold text-[#FAF0DE]">Continue to sign-in →</Link>
-      </> : status === "denied" ? <>
-        <h2 className="font-serif text-2xl">Calendar access</h2>
-        <p className="mt-3 leading-6">The full calendar is currently available to approved testers on our Preview website. Access is not available for this account here.</p>
-        <Link href="/website" className="mt-4 inline-flex min-h-11 items-center underline">Back to home</Link>
       </> : <>
         <p role="alert">Unable to check calendar access. Please try again.</p>
         <button type="button" onClick={() => setAttempt(value => value + 1)} className="mt-3 min-h-11 rounded-xl border border-[#D2B577] px-4 py-2">Try again</button>
