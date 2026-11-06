@@ -17,6 +17,8 @@ const goldButton =
   "inline-flex min-h-12 items-center justify-center rounded-xl bg-[#D2B577] px-6 py-3 font-semibold text-[#64263B]"
 
 export default function ExploreSlider() {
+  const professionPreview = process.env.VERCEL_ENV === "preview" ||
+    (!process.env.VERCEL_ENV && process.env.NODE_ENV === "development")
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <section id="relationships" className="scroll-mt-16 bg-[#64263B] px-2 pb-6 pt-2 text-center text-[#FAF0DE] md:px-6">
@@ -55,12 +57,18 @@ export default function ExploreSlider() {
         <h2 className="font-serif text-3xl font-bold md:text-5xl">Discover Your Life Possibilities</h2>
         <p className="mx-auto mt-2 max-w-3xl text-[#FAF0DE]">Explore practical guidance to make better choices, create new opportunities and move forward with confidence.</p>
         <ul className="mt-6 grid gap-3 lg:grid-cols-2">
-          {possibilities.map((topic, index) => (
-            <li key={topic} className="grid min-h-28 grid-cols-2 items-center overflow-hidden rounded-xl border border-[#D2B577] bg-[#64263B] text-left">
+          {possibilities.map((topic, index) => {
+            const content = <>
               <img src={"/website/home/" + ["work", "profession"][index] + ".webp"} alt="" loading="lazy" className="aspect-[6/5] h-full w-full object-cover" />
-              <span className="px-3 py-4 font-serif text-lg font-bold leading-tight">{topic}</span>
+              <span className="px-3 py-4 font-serif text-lg font-bold leading-tight">{topic}{index === 1 && professionPreview && <span aria-hidden="true" className="mt-2 block">→</span>}</span>
+            </>
+            const layout = "grid min-h-28 grid-cols-2 items-center"
+            return <li key={topic} className="overflow-hidden rounded-xl border border-[#D2B577] bg-[#64263B] text-left">
+              {index === 1 && professionPreview
+                ? <Link href="/website/professions" className={layout + " h-full hover:bg-white/10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#D2B577]"}>{content}</Link>
+                : <div className={layout}>{content}</div>}
             </li>
-          ))}
+          })}
         </ul>
       </section>
 

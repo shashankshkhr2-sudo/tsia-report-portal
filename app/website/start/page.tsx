@@ -34,7 +34,7 @@ export default function StartPage(){
   try{
    const client=customerClient();if(!client)throw Error("Sign-in unavailable")
    const target=destination()
-   const path=target==="/website/days-colours"?"/website/start?next=days-colours":target==="/website/shared-compatibility"?"/website/start?next=shared-compatibility":target==="/website/compatibility"?"/website/start?next=compatibility":target==="/website/name-discovery"?"/website/start?next=name-guidance":"/website/start"
+   const path=target==="/website/professions"?"/website/start?next=professions":target==="/website/days-colours"?"/website/start?next=days-colours":target==="/website/shared-compatibility"?"/website/start?next=shared-compatibility":target==="/website/compatibility"?"/website/start?next=compatibility":target==="/website/name-discovery"?"/website/start?next=name-guidance":"/website/start"
    sessionStorage.setItem("js-google-return",JSON.stringify({path,at:Date.now()}))
    const result=await client.auth.signInWithOAuth({provider:"google",options:{redirectTo:window.location.origin+"/website/auth/callback",skipBrowserRedirect:true,queryParams:{prompt:"select_account"}}})
    if(result.error||!result.data.url)throw Error("Unable to start Google sign-in")

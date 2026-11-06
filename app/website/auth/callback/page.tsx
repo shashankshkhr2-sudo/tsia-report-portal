@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { customerClient } from "@/lib/jeevansutra/customer-client"
-const allowed = ["/website/start?next=days-colours", "/website/start", "/website/start?next=compatibility", "/website/start?next=name-guidance", "/website/start?next=shared-compatibility"]
+const allowed = ["/website/start?next=professions", "/website/start?next=days-colours", "/website/start", "/website/start?next=compatibility", "/website/start?next=name-guidance", "/website/start?next=shared-compatibility"]
 async function finishGoogle(): Promise<string> {
  const url = new URL(window.location.href)
  window.history.replaceState(null, "", window.location.pathname)
