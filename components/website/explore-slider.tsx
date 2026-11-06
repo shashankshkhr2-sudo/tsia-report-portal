@@ -42,7 +42,7 @@ export default function ExploreSlider() {
 
       <section aria-labelledby="home-days-colours" className="px-2 py-4 md:px-6">
   <div className="grid grid-cols-[40%_minmax(0,1fr)] overflow-hidden rounded-2xl border border-[#D2B577] bg-[#FAF7F0] text-left">
-    <img src="/website/home/days-colours.webp" alt="Colourful fabrics, a decorative calendar and silver jewellery" width={1200} height={800} loading="lazy" className="h-full min-h-48 w-full object-cover object-center sm:min-h-56" />
+    <img src="/website/home/choosing-colours.webp" alt="A woman choosing a sage-green outfit from a wardrobe of colourful clothes" width={800} height={1200} loading="lazy" className="h-full min-h-48 w-full object-cover object-center sm:min-h-56" />
     <div className="flex min-w-0 flex-col justify-center p-4 sm:p-6">
       <h2 id="home-days-colours" className="font-serif text-2xl leading-tight text-[#64263B] sm:text-3xl">Days &amp; Colours</h2>
       <p className="mt-2 text-sm leading-5 text-[#766B67] sm:text-base">A little colour for your day.</p>
