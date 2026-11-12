@@ -25,14 +25,14 @@ export function buildPersonalPortrait(person: NumerologyCalculationResult) {
   let contribution: string = base.contribution
   // Explicit interaction between everyday sensitivity and private expression.
   if (primary === 2 && expression === 7) {
-    paragraphs.push("Wanting closeness and needing quiet time can coexist: you may care deeply about a response while taking time to explain why it matters.")
+    paragraphs.splice(0, paragraphs.length, "Warmth and reassurance may matter to you, even when you need quiet time to explain your feelings.", ...(direction !== primary ? [PERSONAL_SUPPORT_RULES[direction].direction] : []))
     possibleMisunderstanding = "You may want reassurance while keeping the concern private, leaving the other person unsure whether to approach you or give you space."
     contribution = "Explain whether you need reassurance or time to think, and agree when you will return to the conversation."
     references.push({ role: "integration", number: primary, rule: "mulank-2-name-7" })
   }
   // Explicit interaction between flexibility, self-direction and expression.
   if (primary === 5 && direction === 1 && expression === 3) {
-    paragraphs.push("Enjoying a conversation does not necessarily mean wanting someone else to choose for you. You may welcome ideas while still wanting ownership of your decisions.")
+    paragraphs.splice(0, paragraphs.length, "You may enjoy conversation, new ideas and room to change your plans. Being able to make your own choices may matter just as much: welcoming suggestions does not always mean agreeing to them.")
     possibleMisunderstanding = "Your willingness to discuss options could be mistaken for agreement, especially if you later choose a different approach."
     contribution = "Make clear when you are exploring an idea and when you are agreeing to a commitment that affects both people."
     references.push({ role: "integration", number: primary, rule: "mulank-5-direction-1-name-3" })

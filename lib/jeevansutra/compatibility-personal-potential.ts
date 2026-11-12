@@ -7,42 +7,42 @@ const PATTERN_COPY: Record<string, CompatibilitySharedPotential> = {
   "row_492": {
     "id": "considering-options",
     "title": "Seeing a decision from different sides",
-    "description": "This traditional theme concerns examining a situation and forming a considered view. Its useful expression is making room for another perspective while checking the practical details."
+    "description": "Considering different viewpoints may help you make a more rounded decision. The useful balance is to examine the details without losing sight of what matters to each person."
   },
   "row_357": {
     "id": "understanding-experiences",
     "title": "Making sense of experiences",
-    "description": "This traditional theme concerns recognising feelings and finding ways to express them. An experience can affect each person differently, even when both were present."
+    "description": "Putting an experience into words may help you understand its emotional meaning. Even when you experience the same event, allow room for different feelings about it."
   },
   "row_816": {
     "id": "everyday-support",
     "title": "Care expressed through everyday actions",
-    "description": "This traditional theme concerns practical responsibilities and support. It offers a way to explore how care becomes visible through actions, without assigning all the work to one person."
+    "description": "Practical help may be an important way of expressing care. Taking responsibility can support everyday life together, while affection and appreciation still need their own place."
   },
   "column_438": {
     "id": "organising-plans",
     "title": "Giving an idea a workable shape",
-    "description": "This traditional theme concerns organising information and putting steps in a useful order. It connects an intention with the arrangements needed to carry it out."
+    "description": "Turning an idea into clear steps may be a useful contribution. A plan becomes easier to share when both people understand the arrangements and can influence them."
   },
   "column_951": {
     "id": "maintaining-direction",
     "title": "Staying with a chosen direction",
-    "description": "This traditional theme concerns determination. Its constructive expression is commitment to a goal both people want, with room to reconsider the approach when circumstances change."
+    "description": "Determination may help you stay with a goal through difficulties. That effort becomes a shared strength when both people choose the goal and remain free to reconsider the approach."
   },
   "column_276": {
     "id": "considered-action",
     "title": "Turning consideration into action",
-    "description": "This traditional theme concerns acting with attention to people and practical details. Support is most useful when the action matches what is actually needed."
+    "description": "Thoughtful action may be a useful way of offering support. Checking what the other person needs can make the difference between welcome help and unwanted involvement."
   },
   "golden_456": {
     "id": "opportunity-and-progress",
     "title": "Exploring opportunity and progress",
-    "description": "Within the adopted tradition, this theme is associated with favourable opportunities, recognition, progress and material comfort. It is a symbolic theme to explore, not a forecast of status, income or success."
+    "description": "Your reading introduces a traditional association with opportunity, recognition and material progress. Explore the ambitions you want to support together, without treating this as a promise of success."
   },
   "silver_258": {
     "id": "lasting-foundations",
     "title": "Building something lasting",
-    "description": "Within the adopted tradition, this theme is associated with property, tangible assets and material security. It does not establish that either person will acquire property or that joining their lives or work will produce financial gains."
+    "description": "Your reading introduces a traditional association with building lasting assets, such as a home or property. This is an area to explore together, not an assurance of financial gain."
   }
 }
 
@@ -56,12 +56,12 @@ export function buildPersonalSharedPotential(evidence: PersonalCompatibilityEvid
     if (!copy) { unsupportedPatterns.push(pattern.id); continue }
     let introduction: string
     if (pattern.formation === "newly_together") {
-      introduction = "This theme emerges in your combined reading rather than appearing fully in either individual reading."
+      introduction = "A possibility to explore together."
     } else if (pattern.formation === "both_individuals") {
-      introduction = "This theme appears in both individual readings. That suggests a shared symbolic emphasis, not identical behaviour."
+      introduction = "You may recognise this approach in each other, although you can express it differently."
     } else if (pattern.formation === "first_individual" || pattern.formation === "second_individual") {
       const person = pattern.formation === "first_individual" ? evidence.source.self : evidence.source.other
-      introduction = person.name + " brings this theme from their individual reading; it is not newly created by the combination."
+      introduction = person.name + ", this is one possible contribution you bring to the connection."
     } else {
       throw new Error("Complete pattern has an inconsistent formation status.")
     }

@@ -33,8 +33,6 @@ export function CompatibilityPersonalReport({ report }: { report: PersonalCompat
         <p className="mt-4 leading-7">{person.introduction}</p>
         <h4 className="mt-6 font-semibold">What may be misunderstood</h4>
         <p className="mt-2 leading-7">{person.possibleMisunderstanding}</p>
-        <h4 className="mt-5 font-semibold">Your contribution</h4>
-        <p className="mt-2 leading-7">{person.contribution}</p>
       </section>)}</div>
     </section>
     <section className={panel}>
