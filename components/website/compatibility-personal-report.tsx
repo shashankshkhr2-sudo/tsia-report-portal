@@ -1,5 +1,15 @@
 import type { PersonalCompatibilityReport } from "@/lib/jeevansutra/compatibility-personal-report-contract"
 
+function ConnectionArtwork({ category }: { category: 'love' | 'business' | 'family' | 'friendship' }) {
+ const right = category === 'business' || category === 'friendship'
+ const lower = category === 'family' || category === 'friendship'
+ return <div aria-hidden="true" className="pointer-events-none relative mx-auto mb-5 w-full max-w-sm overflow-hidden" style={{ aspectRatio: '1.95 / 1' }}>
+  {/* Decorative artwork: the category and people are provided as accessible live text below. */}
+  {/* eslint-disable-next-line @next/next/no-img-element */}
+  <img src="/website/illustrations/connection-collection.webp" alt="" width={1536} height={1024} decoding="async" className="absolute top-0 block h-auto max-w-none" style={{ width: '200%', left: right ? '-100%' : 0, transform: lower ? 'translateY(-50%)' : undefined }} />
+ </div>
+}
+
 // English review component. Receives customer text only, never private evidence.
 export function CompatibilityPersonalReport({ report }: { report: PersonalCompatibilityReport }) {
   const [first, second] = report.people
@@ -7,6 +17,7 @@ export function CompatibilityPersonalReport({ report }: { report: PersonalCompat
   const heading = "font-serif text-2xl leading-tight text-[#64263B] sm:text-3xl"
   return <article lang="en" className="mx-auto max-w-5xl space-y-6 bg-[#FAF7F0] p-3 text-[#463B3B] sm:p-6">
     <header className="rounded-2xl border border-[#DCC9A8] px-5 py-9 text-center sm:px-10">
+      <ConnectionArtwork category={/Business|Work|Professional|Meeting/.test(report.kind) ? "business" : /Family/.test(report.kind) ? "family" : /Friendship/.test(report.kind) ? "friendship" : "love"} />
       <p className="text-xs font-semibold uppercase tracking-widest text-[#815020]">Jeevan Sutra · Your connection</p>
       <h1 className="mt-4 break-words font-serif text-3xl leading-tight text-[#64263B] sm:text-5xl">{first.name}<span className="my-2 block text-2xl text-[#A17B42]">&</span>{second.name}</h1>
       <p className="mt-5 text-sm text-[#69574E]">{report.relationship}</p>
