@@ -12,18 +12,67 @@ export function CompatibilityPersonalReview() {
   const form = useRef<HTMLFormElement | null>(null)
   const reportTop = useRef<HTMLDivElement | null>(null)
   useEffect(() => {
+    const key = "js-compatibility-review-draft-v1"
+    const fields = ["firstName", "firstDob", "secondName", "secondDob"] as const
+    const element = form.current
     const client = customerClient()
-    const subscription = client?.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_OUT" || event === "SIGNED_IN" || event === "USER_UPDATED") {
+    let owner: string | null = null
+    let restored = false
+    let edited = false
+    let draft: { owner: string | null; at: number; values: Record<string, string> } | null = null
+    const remove = () => { try { sessionStorage.removeItem(key) } catch {} }
+    try {
+      const raw = sessionStorage.getItem(key)
+      if (raw) {
+        const value = JSON.parse(raw)
+        if (value && (value.owner === null || typeof value.owner === "string") && typeof value.at === "number" && value.at <= Date.now() && Date.now() - value.at < 7200000 && value.values && fields.every(field => typeof value.values[field] === "string" && value.values[field].length <= (field.endsWith("Name") ? 120 : 10))) {
+          draft = value
+          owner = value.owner
+        } else remove()
+      }
+    } catch { remove() }
+    const save = () => {
+      if (!element) return
+      const data = new FormData(element)
+      const values = Object.fromEntries(fields.map(field => [field, String(data.get(field) || "")]))
+      try { sessionStorage.setItem(key, JSON.stringify({ owner, at: Date.now(), values })) } catch {}
+    }
+    const onInput = () => { edited = true; save() }
+    const onReset = () => { draft = null; restored = true; remove() }
+    element?.addEventListener("input", onInput)
+    element?.addEventListener("reset", onReset)
+    const subscription = client?.auth.onAuthStateChange((event, session) => {
+      const nextOwner = session?.user.id || null
+      const changedAccount = owner !== null && owner !== nextOwner
+      if (event === "SIGNED_OUT" || changedAccount) {
         pending.current?.abort()
         pending.current = null
         setReport(null)
         setError("")
         setBusy(false)
-        form.current?.reset()
+        element?.reset()
+        remove()
+        draft = null
+        restored = true
       }
+      owner = nextOwner
+      if (!restored && (event === "INITIAL_SESSION" || event === "SIGNED_IN")) {
+        if (draft && !edited && element) {
+          for (const field of fields) {
+            const input = element.elements.namedItem(field)
+            if (input instanceof HTMLInputElement) input.value = draft.values[field]
+          }
+        }
+        restored = true
+      }
+      if (event !== "SIGNED_OUT" && !changedAccount && restored) save()
     })
-    return () => { pending.current?.abort(); subscription?.data.subscription.unsubscribe() }
+    return () => {
+      pending.current?.abort()
+      subscription?.data.subscription.unsubscribe()
+      element?.removeEventListener("input", onInput)
+      element?.removeEventListener("reset", onReset)
+    }
   }, [])
   useEffect(() => { if (report) reportTop.current?.focus() }, [report])
 
