@@ -60,8 +60,8 @@ export function CompatibilityPersonalReport({ report }: { report: PersonalCompat
     {report.sharedPotential.length > 0 && <section className="space-y-4"><h2 className={heading}>What you may build together</h2>{report.sharedPotential.map(item => <section key={item.id} className={panel}><h3 className="font-serif text-xl text-[#64263B]">{item.title}</h3><p className="mt-3 leading-7">{item.description}</p></section>)}</section>}
     <section className={panel}>
       <h2 className={heading}>Your compatibility conclusion</h2>
-      <h3 className="mt-5 font-semibold">Your potential connection</h3><p className="mt-2 leading-7">{report.conclusion.strongestConnection}</p>
-      <h3 className="mt-5 font-semibold">The difference to understand</h3><p className="mt-2 leading-7">{report.conclusion.mainDifference}</p>
+      <h3 className="mt-5 font-semibold">What matters to each of you</h3><p className="mt-2 leading-7">{report.conclusion.strongestConnection}</p>
+      <h3 className="mt-5 font-semibold">A question to talk through before marriage</h3><p className="mt-2 leading-7">{report.conclusion.mainDifference}</p>
     </section>
     <footer className="border-t border-[#DCC9A8] px-2 pt-5 text-center text-sm leading-6 text-[#69574E]">{report.limitation}</footer>
   </article>

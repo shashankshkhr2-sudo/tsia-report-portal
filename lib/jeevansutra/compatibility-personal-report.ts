@@ -15,33 +15,69 @@ export function buildPersonalMarriageReview(input: PersonalCompatibilityInput) {
   const second = buildPersonalPortrait(facts.individuals[1])
   const paired = buildPersonalInteractions(facts.individuals[0], facts.individuals[1])
   const potential = buildPersonalSharedPotential(facts)
-  const required = ["closeness-and-flexibility", "reflection-and-discussion", "conviction-and-choice"]
-  if (paired.evidence.unsupportedRoles.length || required.some(id => !paired.interactions.some(row => row.id === id))) {
-    throw new Error("This pairing requires additional interpretation rules before a review report can be generated.")
+  function matchFor(role: "mulank" | "bhagyank" | "name") {
+    const refs = paired.evidence.references.filter(ref => ref.role === role)
+    const row = refs.length === 1
+      ? paired.interactions.find(item => item.id === refs[0].interactionId)
+      : undefined
+    if (!row) throw new Error("This pairing requires additional interpretation rules before a review report can be generated.")
+    return { row, ref: refs[0] }
   }
+  const everyday = matchFor("mulank")
+  const priorities = matchFor("bhagyank")
+  const expression = matchFor("name")
   const marriageExamples: Record<string, string> = {
     "closeness-and-flexibility": "When considering marriage, explore this through how you would balance time together, personal interests and changes to shared plans.",
     "reflection-and-discussion": "For a sensitive marriage discussion, such as family involvement, distinguish a request for thinking time from a refusal to discuss the issue.",
     "conviction-and-choice": "A decision about where to live or how to support both careers gives you a concrete way to explore this difference before making a commitment.",
   }
-  const interactions = paired.interactions.map(row => ({ ...row, betweenYou: row.betweenYou + " " + marriageExamples[row.id] }))
-  const focus = interactions.find(row => row.id === "closeness-and-flexibility")!
+  const interactions = paired.interactions.map(row => marriageExamples[row.id] ? { ...row, betweenYou: row.betweenYou + " " + marriageExamples[row.id] } : row)
+  const priorityThemes = [
+    "", "having a say in big decisions", "finding a choice both people feel comfortable with",
+    "making time to learn or pursue an interest", "knowing how a plan will work",
+    "keeping some choices open", "being there for family and other people who depend on you",
+    "having time to think a decision through", "choosing commitments you can keep",
+    "knowing why a goal matters",
+  ] as const
+  const firstPriority = priorityThemes[priorities.ref.firstNumber]
+  const secondPriority = priorityThemes[priorities.ref.secondNumber]
+  if (!firstPriority || !secondPriority) throw new Error("Missing marriage priority wording.")
+  const connection = firstPriority === secondPriority
+    ? `You may both value ${firstPriority}. Before marriage, each of you could give a real example of what that would look like in your home. Your answers may reveal where you already agree.`
+    : `${first.portrait.name} may value ${firstPriority}. For ${second.portrait.name}, ${secondPriority} may matter. Pick one decision ahead of you and see whether you can find an option that respects both wishes.`
+  const questions = [
+    "", "When a decision affects both of us, what should we check with each other before saying yes?",
+    "If one of us is disappointed by a change of plan, how would we like to hear about it?",
+    "When one of us brings up a new idea, how can we tell whether we are just talking or actually agreeing?",
+    "Before we book something or spend money together, which details do we both want settled?",
+    "If a new opportunity changes our plans, which promises do we want to keep?",
+    "If a family member needs regular help, what can each of us realistically offer?",
+    "If one of us needs time to think about a difficult subject, when will we come back to it?",
+    "During a busy week, how will we share the work and notice when one of us needs help?",
+    "When we disagree about something important, how can each of us explain why it matters?",
+  ] as const
+  // Pick the topic independently of who was entered first.
+  const topics = [everyday.ref.firstNumber, everyday.ref.secondNumber].sort((a, b) => a - b)
+  const discussion = topics[0] === topics[1]
+    ? questions[topics[0]]
+    : `Think of a recent example of “${everyday.row.area}”. What mattered most to each of you that day, and what would you ask each other to do next time?`
+  if (!discussion) throw new Error("Missing marriage discussion question.")
   const report: PersonalCompatibilityReport = {
     version: PERSONAL_COMPATIBILITY_REPORT_VERSION,
     kind: input.kind,
     relationship: input.relationship,
     people: [first.portrait, second.portrait],
     connection: {
-      title: "Closeness with room to be yourselves",
-      description: "Your reading explores how reassurance, independence and different ways of expressing yourselves could meet in marriage. Start with understanding each person, then consider the expectations you would bring into everyday life together.",
+      title: "Jeevan Sutra — Understand each other a little better, build a stronger bond.",
+      description: "Before marriage, it helps to talk about the life you want to share. Use this reading to compare what matters to each of you, then try the discussion question together.",
     },
     interactions,
     sharedPotential: potential.items,
     conclusion: {
-      strongestConnection: "A potential strength is bringing a meaningful purpose together with the willingness to take initiative. It becomes a shared strength when both people help choose the direction.",
-      mainDifference: "The central difference to explore is how reassurance and flexibility coexist. Neither a request for closeness nor a request for space should automatically be read as a rejection of the other person.",
-      firstNextStep: focus.firstAdjustment,
-      secondNextStep: focus.secondAdjustment,
+      strongestConnection: connection,
+      mainDifference: discussion,
+      firstNextStep: expression.row.firstAdjustment,
+      secondNextStep: expression.row.secondAdjustment,
     },
     limitation: "A traditional numerology interpretation for reflection, not a verified personality assessment or a prediction of marriage, property or financial outcomes. Your experience of each other remains essential.",
   }
@@ -53,9 +89,9 @@ export function buildPersonalMarriageReview(input: PersonalCompatibilityInput) {
       interactionRules: paired.evidence,
       potentialRules: potential.evidence,
       editorialRules: {
-        contextVersion: "JS_MARRIAGE_CONTEXT_1_DRAFT",
-        strongestConnection: "bhagyank-9-1",
-        mainDifference: "mulank-2-5",
+        contextVersion: "JS_MARRIAGE_CONTEXT_2_DRAFT",
+        strongestConnection: priorities.ref.ruleId,
+        mainDifference: everyday.ref.ruleId,
       },
     },
     reviewOnly: true as const,

@@ -120,7 +120,7 @@ export function CompatibilityPersonalReview() {
     <section className="mx-auto mb-8 max-w-3xl rounded-2xl border border-[#DCC9A8] bg-white p-5 sm:p-8">
       <h1 className="font-serif text-3xl text-[#64263B]">Compatibility design review</h1>
       <p className="mt-3 leading-6">Considering marriage · Internal draft. This form generates a review without saving a comparison or using a test allowance.</p>
-      <p className="mt-2 text-sm leading-6">Use your authorised customer account. The draft currently supports only the reviewed numerical combinations.</p>
+      <p className="mt-2 text-sm leading-6">Sign in with your authorised review account to try a Considering marriage report.</p>
       <a href="/website/start" className="mt-3 inline-block underline underline-offset-4">Open customer sign-in</a>
       <form ref={form} onSubmit={submit} className="mt-6 space-y-5">
         <fieldset disabled={busy} className="grid gap-6 disabled:opacity-60 sm:grid-cols-2">

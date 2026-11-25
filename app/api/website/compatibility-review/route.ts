@@ -68,6 +68,6 @@ export async function POST(request: Request) {
     const result = buildPersonalMarriageReview({ self, other, kind: "Love & Marriage", relationship: "Considering marriage" })
     return reply({ report: result.report, reviewOnly: true })
   } catch {
-    return reply({ error: "Check both names and dates (DD/MM/YYYY). This draft supports only the currently reviewed numerical pairing." }, 422)
+    return reply({ error: "We could not generate this review. Check both names and enter each date of birth as DD/MM/YYYY." }, 422)
   }
 }
