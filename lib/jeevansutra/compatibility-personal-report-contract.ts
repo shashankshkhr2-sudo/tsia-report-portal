@@ -31,12 +31,42 @@ export type CompatibilitySharedPotential = {
   description: string
 }
 
+export type MarriageComparisonCard = {
+  title: string
+  firstPerspective: string
+  secondPerspective: string
+  betweenYou: string
+}
+
+export type MarriageNumberComparison = MarriageComparisonCard & {
+  firstNumber: number
+  secondNumber: number
+}
+
 export type PersonalCompatibilityReport = {
   version: typeof PERSONAL_COMPATIBILITY_REPORT_VERSION
   kind: string
   relationship: string
   people: [CompatibilityPersonPortrait, CompatibilityPersonPortrait]
   connection: { title: string; description: string }
+  marriageGrid?: {
+    cells: {
+      digit: number
+      first: number
+      second: number
+      joint: number
+    }[]
+    lines: {
+      title: string
+      digits: number[]
+      missing: number[]
+      status: string
+    }[]
+  }
+  marriageComparison?: {
+    numbers: MarriageNumberComparison[]
+    characteristics: MarriageComparisonCard[]
+  }
   interactions: CompatibilityInteraction[]
   sharedPotential: CompatibilitySharedPotential[]
   conclusion: {

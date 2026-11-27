@@ -62,6 +62,110 @@ export function buildPersonalMarriageReview(input: PersonalCompatibilityInput) {
     ? questions[topics[0]]
     : `Think of a recent example of “${everyday.row.area}”. What mattered most to each of you that day, and what would you ask each other to do next time?`
   if (!discussion) throw new Error("Missing marriage discussion question.")
+  const numbers = [
+    { title: "Mulank · Everyday swabhav", match: everyday },
+    { title: "Bhagyank · Direction in life", match: priorities },
+    { title: "Communication Number · How you express yourself", match: expression },
+  ].map(({ title, match }) => ({
+    title,
+    firstNumber: match.ref.firstNumber,
+    secondNumber: match.ref.secondNumber,
+    firstPerspective: match.row.firstPerspective,
+    secondPerspective: match.row.secondPerspective,
+    betweenYou: match.row.betweenYou,
+  }))
+
+  // Both people get the same question when a quality calls for their own answer.
+  // Keep individual preferences attached to the person, regardless of input order.
+  function askBoth(title: string, question: string, betweenYou: string) {
+    return { title, firstPerspective: question, secondPerspective: question, betweenYou }
+  }
+
+  function comparePair(
+    title: string,
+    row: { firstPerspective: string; secondPerspective: string },
+    betweenYou: string,
+  ) {
+    return {
+      title,
+      firstPerspective: row.firstPerspective,
+      secondPerspective: row.secondPerspective,
+      betweenYou,
+    }
+  }
+
+  const characteristics = [
+    askBoth("Temper and patience",
+      "Think of the last time you lost patience. What did you do, and what helped you settle?",
+      "If one of you arrives late for a family function, how would you raise the issue without embarrassing each other in front of everyone?"),
+    askBoth("Handling pressure and uncertainty",
+      "When a plan suddenly falls through, what is the first thing you need from your partner?",
+      "Imagine your train is cancelled on the way to a family event. Who would call home, and who would look at other ways to travel?"),
+    askBoth("Affection and closeness",
+      "On a busy day, what small gesture makes you feel remembered?",
+      "Compare your answers. A message at lunchtime may mean more to one of you than a long call at night."),
+    comparePair("Communication and disagreements", expression.row,
+      "When a conversation gets difficult, how will you say whether you need an answer now or some time to think?"),
+    comparePair("Ambition and life priorities", priorities.row,
+      "If one of you receives a job offer in another city, each name one opportunity you would gain and one thing you would miss."),
+    askBoth("Decisions and independence",
+      "Which decisions do you like to make yourself, and which ones should your partner discuss with you first?",
+      "If a parent asks where you will live after marriage, agree on what either of you can say before you have decided together."),
+    askBoth("Responsibility and follow-through",
+      "Which everyday responsibility could your partner comfortably leave with you from beginning to end?",
+      "Pick one real task, such as paying a bill or arranging a parent’s appointment. Agree who will remember it, arrange it and follow it up."),
+    comparePair("Routine and openness to change", everyday.row,
+      "If Sunday plans change at the last minute, what would help each of you feel that your time was considered?"),
+    askBoth("Romance and physical intimacy",
+      "What helps you feel comfortable talking about affection, closeness and your own pace?",
+      "Choose a private moment. Give each other room to say what feels welcome, what feels too soon and what you would like to talk about later."),
+    askBoth("Family involvement and boundaries",
+      "Which family commitments would you like your partner to understand before marriage?",
+      "Suppose both families invite you for the same festival. How would you decide where to go, and who would explain the plan?"),
+    askBoth("Money and security",
+      "What would help you feel financially secure while keeping up your own commitments?",
+      "Before choosing a home, discuss a monthly amount each of you feels comfortable with, including what you already contribute to family."),
+    askBoth("Apology and rebuilding trust",
+      "After someone hurts you, what helps you believe they have understood what went wrong?",
+      "If one of you agreed to a visit without asking, what would put it right today? What would you want to happen differently next time?"),
+  ]
+
+  const gridOrder = [4, 9, 2, 3, 5, 7, 8, 1, 6] as const
+  const marriageGrid = {
+    cells: gridOrder.map(digit => ({
+      digit,
+      first: facts.individuals[0].loShu.counts[digit],
+      second: facts.individuals[1].loShu.counts[digit],
+      joint: facts.jointCounts[digit],
+    })),
+    lines: facts.patterns.map(pattern => {
+      const digits = pattern.required
+      const key = digits.slice().sort((a, b) => a - b).join("")
+      const titles: Record<string, string> = {
+        "249": "Mental row", "357": "Emotional and will row",
+        "168": "Practical row", "348": "4–3–8 column",
+        "159": "9–5–1 column", "267": "2–7–6 column",
+        "456": "Golden Rajyog", "258": "Silver Rajyog",
+      }
+      const rajyog = key === "456" || key === "258"
+      let status: string
+      if (pattern.formation === "newly_together") {
+        status = "You complete this together"
+      } else if (pattern.formation === "both_individuals") {
+        status = "Complete in both personal grids"
+      } else if (pattern.formation === "first_individual") {
+        status = "Already complete in " + first.portrait.name + "’s grid"
+      } else if (pattern.formation === "second_individual") {
+        status = "Already complete in " + second.portrait.name + "’s grid"
+      } else if (rajyog) {
+        status = pattern.jointPresent.length === 2 ? "Partial" : "Absent"
+      } else {
+        status = "Incomplete"
+      }
+      return { title: titles[key] || digits.join("–"), digits, missing: pattern.missing, status }
+    }),
+  }
+
   const report: PersonalCompatibilityReport = {
     version: PERSONAL_COMPATIBILITY_REPORT_VERSION,
     kind: input.kind,
@@ -72,6 +176,8 @@ export function buildPersonalMarriageReview(input: PersonalCompatibilityInput) {
       description: "Before marriage, it helps to talk about the life you want to share. Use this reading to compare what matters to each of you, then try the discussion question together.",
     },
     interactions,
+    marriageComparison: { numbers, characteristics },
+    marriageGrid,
     sharedPotential: potential.items,
     conclusion: {
       strongestConnection: connection,
